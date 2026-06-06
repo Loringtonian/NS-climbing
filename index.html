@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- WORKING NAME: "SEND" (climber slang: to send = complete a route). Placeholder — swap all instances to rename. -->
+<title>SEND — a climbing gym for people who build</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --ink:#f2f4f7; --muted:#9aa4b2;
+    --accent:#ff6b4a; --accent2:#ffb24a; --teal:#39c2b8; --line:#262c36;
+    --radius:16px; --maxw:1040px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:inherit}
+  h1,h2,h3{line-height:1.1;letter-spacing:-.02em;font-weight:800}
+  .accent{color:var(--accent)}
+
+  /* nav */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{font-weight:900;font-size:22px;letter-spacing:.04em}
+  .logo span{color:var(--accent)}
+  .nav-cta{background:var(--accent);color:#0e1116;font-weight:700;padding:10px 18px;border-radius:999px;text-decoration:none;font-size:14px}
+
+  /* hero */
+  .hero{position:relative;border-radius:24px;overflow:hidden;margin-top:8px;min-height:520px;display:flex;align-items:flex-end;
+        background:#1b1f27 center/cover no-repeat;}
+  .hero img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.62}
+  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,17,22,.25) 0%,rgba(14,17,22,.92) 92%)}
+  .hero-inner{position:relative;z-index:2;padding:48px 44px}
+  .eyebrow{display:inline-block;background:rgba(255,107,74,.16);color:var(--accent2);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:7px 14px;border-radius:999px;margin-bottom:18px}
+  .hero h1{font-size:clamp(34px,6vw,60px);max-width:14ch}
+  .hero p.sub{margin-top:18px;font-size:clamp(17px,2.2vw,21px);color:var(--muted);max-width:46ch}
+  .hero-actions{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;text-decoration:none;padding:15px 26px;border-radius:999px;font-size:16px}
+  .btn-primary{background:var(--accent);color:#0e1116}
+  .btn-ghost{border:1px solid var(--line);color:var(--ink);background:rgba(255,255,255,.03)}
+
+  /* sections */
+  section{padding:72px 0}
+  .lede{font-size:clamp(22px,3vw,30px);font-weight:800;max-width:24ch;letter-spacing:-.02em}
+  .lede small{display:block;font-size:16px;font-weight:500;color:var(--muted);margin-top:14px;max-width:52ch;letter-spacing:0}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px}
+  .card .ic{font-size:24px}
+  .card h3{font-size:18px;margin:12px 0 8px}
+  .card p{color:var(--muted);font-size:15px}
+
+  /* lemur board band */
+  .board-band{display:grid;grid-template-columns:1.1fr .9fr;gap:0;background:var(--panel);border:1px solid var(--line);border-radius:24px;overflow:hidden}
+  .board-photo{min-height:340px}
+  .board-photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .board-copy{padding:40px}
+  .board-copy .tag{color:var(--teal);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .board-copy h2{font-size:clamp(24px,3.4vw,32px);margin:10px 0 12px}
+  .board-copy p{color:var(--muted);font-size:16px}
+  .credit{display:block;margin-top:16px;font-size:11px;color:#5d6675}
+
+  /* community voice band */
+  .voice{background:linear-gradient(135deg,#241a16,#15110e);border:1px solid #3a2a20;border-radius:24px;padding:46px;text-align:center}
+  .voice h2{font-size:clamp(26px,4vw,38px);max-width:20ch;margin:0 auto}
+  .voice p{color:var(--muted);margin:16px auto 0;max-width:50ch}
+  .counter{display:flex;gap:40px;justify-content:center;margin:34px 0 6px;flex-wrap:wrap}
+  .counter .n{font-size:52px;font-weight:900;line-height:1;color:var(--accent2)}
+  .counter .n.paid{color:var(--accent)}
+  .counter .l{font-size:14px;color:var(--muted);margin-top:8px;letter-spacing:.02em}
+  .voice .acts{margin-top:30px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+  /* founding offer */
+  .offer{background:linear-gradient(135deg,#1c2230,#13171e);border:1px solid var(--line);border-radius:24px;padding:44px;display:grid;grid-template-columns:1.2fr .8fr;gap:36px;align-items:center}
+  .offer h2{font-size:clamp(26px,4vw,38px)}
+  .offer ul{list-style:none;margin-top:22px;display:grid;gap:12px}
+  .offer li{padding-left:30px;position:relative;color:#d7dde6}
+  .offer li::before{content:"➜";position:absolute;left:0;color:var(--accent)}
+  .price-card{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:30px;text-align:center}
+  .price-card .amt{font-size:46px;font-weight:900}
+  .price-card .amt small{font-size:16px;color:var(--muted);font-weight:600}
+  .price-card .note{color:var(--muted);font-size:13px;margin-top:6px}
+  .price-card .btn{width:100%;justify-content:center;margin-top:20px}
+  .refund{margin-top:14px;font-size:12px;color:var(--teal)}
+
+  /* operating model */
+  .model{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:44px}
+  .model .tag{color:var(--teal);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .model h2{font-size:clamp(24px,3.5vw,32px);margin:10px 0 6px}
+  .model-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .model-grid .row{display:flex;gap:14px;align-items:flex-start}
+  .model-grid .row .k{color:var(--accent2);font-weight:800;font-size:14px;min-width:0}
+  .model-grid .row p{color:var(--muted);font-size:14px}
+  .model-grid .row strong{color:var(--ink);display:block;font-size:15px;font-weight:700;margin-bottom:2px}
+
+  /* waitlist */
+  .signup{text-align:center}
+  .signup h2{font-size:clamp(28px,4.5vw,42px)}
+  .signup p{color:var(--muted);margin-top:14px;max-width:48ch;margin-inline:auto}
+  form{margin-top:30px;display:flex;gap:12px;max-width:520px;margin-inline:auto;flex-wrap:wrap;justify-content:center}
+  input[type=email]{flex:1;min-width:240px;background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:15px 18px;border-radius:12px;font-size:16px}
+  input[type=email]:focus{outline:none;border-color:var(--accent)}
+  .microcopy{margin-top:16px;font-size:13px;color:var(--muted)}
+
+  footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media(max-width:780px){
+    .grid3{grid-template-columns:1fr}
+    .offer{grid-template-columns:1fr}
+    .model-grid{grid-template-columns:1fr}
+    .hero-inner{padding:32px 24px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="logo">SEND<span>.</span></div>
+    <a class="nav-cta" href="#join">Become a founding member</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <img class="bg" src="assets/gym_concept_v0.png" alt="Concept render of the SEND climbing gym">
+    <div class="hero-inner">
+      <span class="eyebrow">Founding members · Cohort 01</span>
+      <h1>A climbing gym for people who <span class="accent">build</span>.</h1>
+      <p class="sub">Bouldering, training, and a recovery-and-coffee corner — a daily reason to get off the laptop and move, with the people you already want to be around.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#join">Reserve a founding spot →</a>
+        <a class="btn btn-ghost" href="#model">How it works</a>
+      </div>
+    </div>
+  </header>
+</div>
+
+<div class="wrap">
+  <section>
+    <p class="lede">Everyone says <span class="accent">“hell yeah, I’d climb there.”</span>
+      <small>Talk is free. This page is where we find out who actually means it — with a small, fully refundable deposit. Enough founding members and we build it. Not enough, and you get every cent back. No vibes, just signal.</small></p>
+
+    <div class="grid3">
+      <div class="card"><div class="ic">🧗</div><h3>Bouldering-first + a Lemur board</h3><p>Walls and angles for every level — beginner slabs to steep projects — anchored by a <strong>Lemur Design adjustable Kilter board</strong>: thousands of LED problems, any angle, train like the pros. Plus auto-belay top-rope to climb solo, any time.</p></div>
+      <div class="card"><div class="ic">💪</div><h3>Train &amp; recover</h3><p>Hangboards, a small lifting area, mobility space, and a sauna-and-coffee corner to actually recover and hang out after.</p></div>
+      <div class="card"><div class="ic">🤝</div><h3>Built around the crew</h3><p>Co-working bar along the wall, weekly sessions, and a members’ board. The kind of third place that makes the day feel like more than screens.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="board-band">
+      <div class="board-photo"><img src="assets/board_render_v0.png" alt="Climbers training on a Lemur Design adjustable Kilter board"></div>
+      <div class="board-copy">
+        <span class="tag">The centerpiece</span>
+        <h2>A Lemur&nbsp;Design adjustable Kilter board</h2>
+        <p>One wall, thousands of app-tracked LED problems, angle adjustable from slab to steep. The training tool the best climbers in the world use — and the reason you’ll come back every single day.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="voice">
+      <h2>It gets built when enough of us ask for it.</h2>
+      <p>This isn’t a survey. It’s a head-count with teeth. Add your name to say you want it — and if you really mean it, back it with a refundable deposit. Enough of us, and it happens.</p>
+      <div class="acts">
+        <!-- TODO: point to the "add your voice" form (Tally / Google Form). Counts are placeholders until a backend feeds them. -->
+        <a class="btn btn-primary" href="#join">I want this →</a>
+        <a class="btn btn-ghost" href="#join">Back it with $50 ↓</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="join">
+    <div class="offer">
+      <div>
+        <h2>Founding Member — Cohort 01</h2>
+        <p style="color:var(--muted);margin-top:12px">Back it before it exists and lock the best deal we’ll ever offer.</p>
+        <ul>
+          <li>Founding rate locked for life — never goes up</li>
+          <li>First pick of open hours &amp; a free intro coaching session</li>
+          <li>Name on the founding wall</li>
+          <li>A real vote on location, hours, and wall-setting</li>
+          <li>100% refundable until we hit the build threshold — zero risk to you</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <div class="amt">$50<small> deposit</small></div>
+        <div class="note">refundable · holds your founding rate</div>
+        <!-- TODO: replace href with the real Stripe/Lemon Squeezy payment link before going live -->
+        <a class="btn btn-primary" href="#join" data-payment-link="REPLACE_WITH_STRIPE_LINK">Reserve my spot</a>
+        <div class="refund">Fully refunded if we don’t reach the founding goal.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="model">
+    <div class="model">
+      <span class="tag">How we keep it safe &amp; legitimate</span>
+      <h2>The operating model</h2>
+      <p style="color:var(--muted);max-width:60ch">A climbing gym is a real business with a real safety model — the same one every commercial gym in the world runs on. Here’s how the risk is handled so no host, landlord, or community is ever on the hook.</p>
+      <div class="model-grid">
+        <div class="row"><div class="k">01</div><p><strong>Separate operating company</strong>Owned and run as its own LLC. Liability sits with the business, not with any partner, venue, or community it lives near.</p></div>
+        <div class="row"><div class="k">02</div><p><strong>Commercial insurance</strong>Full general-liability and participant coverage, the standard policy commercial climbing gyms carry — bound before doors open.</p></div>
+        <div class="row"><div class="k">03</div><p><strong>Industry-standard waiver</strong>Every climber signs the same assumption-of-risk waiver used across the industry. Digital, on file, required to climb.</p></div>
+        <div class="row"><div class="k">04</div><p><strong>Bouldering-forward, no lead falls</strong>Low walls over deep crash pads and auto-belays — the lower-injury end of the sport — with certified staff and a managed setting program.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="signup">
+    <h2>Not ready for the deposit? Get on the list.</h2>
+    <p>Drop your email to follow the build and get first crack at founding spots when the next batch opens.</p>
+    <!-- TODO: wire action to a form backend (Formspree / Tally / Buttondown) before going live -->
+    <form action="REPLACE_WITH_FORM_ENDPOINT" method="POST">
+      <input type="email" name="email" placeholder="you@email.com" required>
+      <button class="btn btn-primary" type="submit">Keep me posted</button>
+    </form>
+    <p class="microcopy">No spam. One update when there’s real news.</p>
+  </section>
+</div>
+
+<div class="wrap">
+  <footer>
+    <div>SEND Climbing · an independent venture · concept page</div>
+    <div>© 2026 · all rights reserved</div>
+  </footer>
+</div>
+</body>
+</html>
