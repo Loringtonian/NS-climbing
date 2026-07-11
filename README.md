@@ -1,37 +1,55 @@
 # SEND — Crypto Crowdfunding Rails for Network States
 
 Campaign #1: a climbing wall at Network School. A petition where the signatures are money —
-refundable USDC escrow deposits behind a live on-chain counter. Withdraw anytime; a depositor majority can dissolve the campaign (each deposit doubles as a non-transferable Supporter Badge = the ballot); funds only
-release if the goal is met AND the space is greenlit. No custodian: the contract holds the vault.
+USDC deposits **locked** in a pool no person holds, behind a live on-chain counter. No
+individual take-backs: money moves only by collective outcome. A depositor majority can
+dissolve the campaign (everyone refunded); funds reach a build address only when the
+organizer proposes it AND a majority of depositors ratifies that exact address; a 90-day
+timer refunds everyone if neither happens. Each deposit doubles as a non-transferable
+Supporter Badge — the ballot.
 
 **Live page:** https://loringtonian.github.io/NS-climbing/ (community-shared, noindex)
 
 ## Start here
 
-| You want to…                       | Read                                       |
-|------------------------------------|--------------------------------------------|
-| See the plan + task board          | [`ROADMAP.md`](ROADMAP.md)                 |
-| Build on the deposit flow          | [`escrow/CLIENT.md`](escrow/CLIENT.md) — reference impl: [`escrow/web/demo.html`](escrow/web/demo.html) |
-| Audit the contract (human or agent)| [`agents.md`](agents.md)                   |
-| Verify our claims with YOUR agent  | [`VERIFY_IT.md`](VERIFY_IT.md)             |
-| Run the program + tests            | [`escrow/DEPLOY.md`](escrow/DEPLOY.md)     |
-| Grab images / brand assets         | [`assets/`](assets/)                       |
-| The real-time cheer board (bonus)  | [`cheerboard/README.md`](cheerboard/README.md) |
+| You want to…                        | Read                                       |
+|-------------------------------------|--------------------------------------------|
+| See the plan + task board           | [`ROADMAP.md`](ROADMAP.md)                 |
+| The contract, stated as law         | [`SPEC.md`](SPEC.md)                       |
+| On-chain proof of all three endings | [`REHEARSALS.md`](REHEARSALS.md)           |
+| Verify our claims with YOUR agent   | [`VERIFY_IT.md`](VERIFY_IT.md)             |
+| Audit / execute as an agent         | [`agents.md`](agents.md)                   |
+| Build on the deposit flow           | [`escrow/CLIENT.md`](escrow/CLIENT.md) — reference impl: [`escrow/web/demo.html`](escrow/web/demo.html) |
+| Run the program + tests             | [`escrow/DEPLOY.md`](escrow/DEPLOY.md)     |
+| What the wall costs                 | [`costs.html`](costs.html)                 |
+| Hackathon context                   | [`HACKATHON.md`](HACKATHON.md)             |
+| Images / brand assets               | [`assets/`](assets/)                       |
+| Real-time cheer board (bonus)       | [`cheerboard/README.md`](cheerboard/README.md) |
 
-## Status (2026-07-11, hackathon weekend)
+## Status (2026-07-11 evening, hackathon weekend)
 
-- Escrow program: built, 18/18 tests green on localnet, tiered deposits LIVE in the contract ($20/$100/$1000, exact-amount withdraw, per-tier counter).
-- Phone deposit ceremony: built (QR → Phantom/Solflare in-app browser → deposit → live counter → withdraw).
-- Mainnet deploy: pending SOL funding — imminent. Until then the page runs in read-only/preview.
+- Contract v3.1 ("locked pool"): live on devnet, program `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD`
+  — a clean chain whose entire history is the deploy, three published scenario rehearsals,
+  and the demo campaign. Binary is byte-reproducible from source (hash pinned in
+  [`escrow/DEPLOY.md`](escrow/DEPLOY.md)).
+- Independently reviewed by an adversarial AI auditor across four passes; all required
+  fixes are in the shipped source (including a deadline-gate fix the auditor caught —
+  post-deadline is strictly refunds-only, proven on-chain in rehearsal C).
+- Test suite green against the exact deployed binary.
+- Mainnet: launches on the organizer's go after a real-money smoke test. Addresses will be
+  pinned in `VERIFY_IT.md` and `agents.md` at launch — anyone taking real deposits before
+  that isn't us.
+
+## The trust model, in one breath
+
+In by choice, locked. Out only together: **fund** (majority + organizer agree on the same
+address), **dissolve** (majority votes no-confidence → everyone refunded), or **timeout**
+(90 days → everyone refunded). Nobody custodies the pool; refunds are exact and anyone can
+trigger them once open; one badge one vote, welded to the depositing wallet. Verify every
+word: [`VERIFY_IT.md`](VERIFY_IT.md).
 
 ## Stack
 
-Anchor (Rust) program on Solana · USDC (SPL) escrow · static web front-end (no framework, raw
-wallet providers) on GitHub Pages · optional MagicBlock Ephemeral Rollup cheer board.
-
-## Trust properties
-
-1. Withdraw anytime before release — unconditional.
-2. Release needs goal + approval co-sign; neither alone moves funds.
-3. Past deadline, refunds are permissionless.
-4. Verify all of it yourself: `agents.md` has the byte-for-byte build-verification procedure.
+Anchor (Rust) program on Solana · USDC (SPL) escrow · static front-end (raw wallet
+providers, pinned config, no frameworks) on GitHub Pages · optional MagicBlock Ephemeral
+Rollup cheer board.
