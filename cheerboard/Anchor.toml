@@ -1,0 +1,24 @@
+# Cheer board — MagicBlock ER flourish. Toolchain shared with escrow/ and
+# Projects/PopUp_Markets (solana 4.1.1, anchor-cli 1.0.2, rustc 1.92.0).
+[toolchain]
+anchor_version = "1.0.2"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+ns_cheer = "FxkompVBzfCN6HsZpbwGW72AanCaFkAFiEcMqoi9c3Wz"
+
+[programs.devnet]
+ns_cheer = "FxkompVBzfCN6HsZpbwGW72AanCaFkAFiEcMqoi9c3Wz"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "node scripts/lifecycle.cjs"

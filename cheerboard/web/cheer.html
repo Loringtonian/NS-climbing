@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>I want this wall</title>
+<style>
+  :root{--bg:#0e1116;--ink:#f2f4f7;--muted:#9aa4b2;--accent:#ff6b4a;--accent2:#ffb24a;--line:#262c36}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--ink);font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+       min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:24px;
+       user-select:none;-webkit-user-select:none;overflow:hidden}
+  h1{font-size:clamp(22px,6vw,30px);font-weight:800;letter-spacing:-.02em;text-align:center}
+  h1 span{color:var(--accent)}
+  #btn{width:min(72vw,320px);aspect-ratio:1;border-radius:50%;border:0;cursor:pointer;
+       background:radial-gradient(circle at 35% 30%,#ff8f6e,var(--accent) 65%);color:#0e1116;
+       font:800 clamp(22px,7vw,34px)/1.15 inherit;letter-spacing:-.01em;
+       box-shadow:0 12px 60px rgba(255,107,74,.35), inset 0 -8px 24px rgba(0,0,0,.25);
+       transition:transform .06s}
+  #btn:active{transform:scale(.93)}
+  #mine{font-size:15px;color:var(--muted)}
+  #mine b{color:var(--accent2);font-size:22px}
+  .fine{color:#5d6675;font-size:12px;text-align:center;max-width:34ch}
+  #burst{position:fixed;inset:0;pointer-events:none}
+  .pop{position:absolute;font-size:28px;animation:rise 1s ease-out forwards}
+  @keyframes rise{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-120px) scale(1.6)}}
+</style>
+</head>
+<body>
+  <h1>Do you want a climbing wall <span>at Network School?</span></h1>
+  <button id="btn">I WANT<br>THIS WALL</button>
+  <div id="mine">your cheers: <b id="count">0</b></div>
+  <div class="fine" id="status">tap as many times as you mean it — each tap is a real transaction on the rollup</div>
+  <div id="burst"></div>
+
+<script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var ER_URL = q.get("rpc") || "http://localhost:7799";
+  var PROGRAM_ID = q.get("program") || "FxkompVBzfCN6HsZpbwGW72AanCaFkAFiEcMqoi9c3Wz";
+  var BOARD = q.get("board"); // required: board PDA from scripts/init_board.cjs
+
+  var W = solanaWeb3;
+  var conn = new W.Connection(ER_URL, "processed");
+  var pid = new W.PublicKey(PROGRAM_ID);
+  var DISC_CHEER = [23,127,15,40,49,42,21,88];
+
+  // throwaway identity, persisted so a refresh keeps the same key
+  var stored = localStorage.getItem("cheer_kp");
+  var kp;
+  if (stored) { kp = W.Keypair.fromSecretKey(Uint8Array.from(JSON.parse(stored))); }
+  else { kp = W.Keypair.generate(); localStorage.setItem("cheer_kp", JSON.stringify(Array.from(kp.secretKey))); }
+
+  var myCount = parseInt(localStorage.getItem("cheer_count") || "0", 10);
+  document.getElementById("count").textContent = myCount;
+
+  var blockhash = null;
+  function refreshBlockhash() {
+    conn.getLatestBlockhash("processed").then(function (b) { blockhash = b.blockhash; }).catch(function(){});
+  }
+  refreshBlockhash();
+  setInterval(refreshBlockhash, 15000);
+
+  var seq = 0;
+  function cheer() {
+    if (!BOARD) { document.getElementById("status").textContent = "not configured: add ?board=<pda> to the URL"; return; }
+    if (!blockhash) { refreshBlockhash(); return; }
+    var data = new Uint8Array(16);
+    data.set(DISC_CHEER, 0);
+    var nonce = BigInt(Date.now()) * 1000n + BigInt(seq++ % 1000);
+    new DataView(data.buffer).setBigUint64(8, nonce, true);
+    var ix = new W.TransactionInstruction({
+      programId: pid,
+      keys: [
+        { pubkey: new W.PublicKey(BOARD), isSigner: false, isWritable: true },
+        { pubkey: kp.publicKey, isSigner: true, isWritable: false },
+      ],
+      data: data,
+    });
+    var tx = new W.Transaction();
+    tx.add(ix);
+    tx.feePayer = kp.publicKey;
+    tx.recentBlockhash = blockhash;
+    tx.sign(kp);
+    // fire-and-forget: the projector tally is the feedback loop
+    conn.sendRawTransaction(tx.serialize(), { skipPreflight: true }).catch(function(){});
+    myCount++;
+    localStorage.setItem("cheer_count", String(myCount));
+    document.getElementById("count").textContent = myCount;
+    pop();
+    if (navigator.vibrate) navigator.vibrate(15);
+  }
+
+  function pop() {
+    var el = document.createElement("div");
+    el.className = "pop";
+    el.textContent = "🧗";
+    el.style.left = (30 + Math.random() * 40) + "vw";
+    el.style.top = "60vh";
+    document.getElementById("burst").appendChild(el);
+    setTimeout(function () { el.remove(); }, 1000);
+  }
+
+  document.getElementById("btn").addEventListener("pointerdown", cheer);
+})();
+</script>
+</body>
+</html>
