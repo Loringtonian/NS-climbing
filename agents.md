@@ -62,32 +62,34 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
    move funds: the organizer has no votes to cast, and depositors cannot
    choose an address the organizer didn't propose. New deposits enlarge the
    electorate and can un-make a standing majority until they vote.
-4. **Deadline failure mode is permissionless refund.** After
-   `campaign.deadline`, `propose_payout` is blocked and `refund` opens:
-   anyone can push any depositor's 20 USDC back to that depositor's own token
-   account (`has_one = depositor` on the receipt). Depositors never depend on
-   the admin to get money back.
-5. **No other privileges exist.** The admin cannot withdraw funds, change the
-   buildout address, change the goal, or block withdrawals. There is no
-   yield, no transferable token, no fee.
+4. **Post-deadline is REFUNDS-ONLY.** After `campaign.deadline`,
+   `propose_payout`, `vote_payout` AND `release` are all rejected
+   (`CampaignEnded`) — even a majority that stood at expiry cannot release —
+   and `refund` opens: anyone can push each depositor's exact deposit back to
+   that depositor's own token account (`has_one = depositor` on the badge).
+5. **No other privileges exist.** The organizer's only powers are creating
+   campaigns and proposing payout addresses. The organizer cannot take,
+   redirect, or freeze deposits, cannot vote by virtue of proposing — though
+   the organizer may deposit like anyone else and then holds exactly one
+   depositor vote — and cannot stop the dissolve or deadline refund paths.
+   There is no yield, no transferable token, no fee.
 6. **Depositor majority can dissolve.** Every deposit issues a **Supporter
    Badge** — the receipt PDA itself, non-transferable by construction (it is
    derived from the depositor's pubkey and no instruction can reassign it),
    serving simultaneously as proof-of-support and as the ballot. Any
    badge-holder may `vote_dissolve` (revocable via `unvote_dissolve` while
    active). A STRICT head-count majority (`votes * 2 > depositors`) flips the
-   campaign to DISSOLVED — terminal: deposit, approval and release become
+   campaign to DISSOLVED — terminal: deposits, proposals and release become
    permanently impossible and the permissionless `refund` crank opens
-   immediately (no waiting for the deadline). Withdrawing removes the
-   departing depositor's vote AND shrinks the electorate atomically, in the
-   same instruction; the majority is always measured against CURRENT
-   depositors, so votes standing while others leave can tip the threshold —
-   deliberate: departures count as silence, not as "no" votes.
+   immediately (no waiting for the deadline). There is no individual
+   withdraw, so the electorate only grows while a campaign is active; the
+   refund crank clears each departing badge's votes as it pays out, but it
+   only runs post-dissolution or post-deadline, when no live election exists.
 
 ## How to audit
 
 1. **Read the program** — single file: `escrow/programs/ns-climb-escrow/src/lib.rs`.
-   Check the five properties above against the code.
+   Check the properties above against the code.
 2. **Verify the deployed program matches this repo:**
    ```bash
    git clone https://github.com/Loringtonian/NS-climbing && cd NS-climbing/escrow
@@ -112,8 +114,9 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
    verify what it is RIGHT NOW rather than trusting this file. While an
    upgrade authority exists, the deployer can change the program; weigh that
    in your recommendation.
-4. **Read the live campaign state** (layout below) and confirm goal, deadline,
-   mint, and buildout are what the human was told.
+4. **Read the live campaign state** (layout below) and confirm deadline,
+   mint, and — if a payout proposal is live — the proposed address are what
+   the human was told. (There is no goal and no preset destination.)
 
 ## On-chain account layouts (borsh, little-endian; 8-byte Anchor discriminators)
 

@@ -8,7 +8,7 @@
 // current depositors approves THAT proposal, then anyone can release the
 // whole vault to it; (2) a strict majority votes DISSOLVE (terminal) and the
 // permissionless refund crank returns every deposit to its depositor;
-// (3) the deadline passes without release and the same refund crank opens.
+// (3) the deadline passes and the same refund crank opens — post-deadline is refunds-ONLY (no votes, no releases).
 // Neither the organizer nor a majority alone can move funds to a third party.
 // No yield, no fees, no admin withdrawal, no human custody.
 
@@ -189,6 +189,10 @@ pub mod ns_climb_escrow {
         let c = &mut ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
         require!(!c.dissolved, EscrowError::Dissolved);
+        require!(
+            Clock::get()?.unix_timestamp <= c.deadline,
+            EscrowError::CampaignEnded
+        );
         require!(c.proposal_id > 0, EscrowError::NoProposal);
         let r = &mut ctx.accounts.receipt;
         require!(
@@ -217,12 +221,20 @@ pub mod ns_climb_escrow {
 
     /// Anyone can execute the release once the dual gate stands: an organizer
     /// proposal exists AND a strict majority of CURRENT depositors has voted
-    /// for it. Funds go to a token account owned by exactly the proposed
-    /// address. A dissolved campaign can NEVER release — dissolution wins.
+    /// for it — and only BEFORE the deadline. Funds go to a token account
+    /// owned by exactly the proposed address. A dissolved campaign can NEVER
+    /// release, and neither can an expired one: dissolution and the timer
+    /// both win over a standing majority.
     pub fn release(ctx: Context<Release>) -> Result<()> {
         let c = &ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
         require!(!c.dissolved, EscrowError::Dissolved);
+        // Post-deadline is REFUNDS-ONLY: a majority that never executed does
+        // not survive the timer. (Audit fix, 2026-07-11.)
+        require!(
+            Clock::get()?.unix_timestamp <= c.deadline,
+            EscrowError::CampaignEnded
+        );
         require!(c.proposal_id > 0, EscrowError::NoProposal);
         require!(
             c.depositor_count > 0
@@ -263,9 +275,10 @@ fn maybe_dissolve(c: &mut Campaign) {
 }
 
 /// Refund-crank bookkeeping: shrink totals/tiers and clear the departing
-/// depositor's votes. Refunds only run post-dissolution or post-deadline, so
-/// this never shifts a live election — it keeps the public counters honest
-/// while the crank drains the pool.
+/// depositor's votes. Refunds only run post-dissolution or post-deadline,
+/// and BOTH release and vote_payout are deadline-gated (audit fix), so no
+/// live election exists while this runs — it keeps the public counters
+/// honest while the crank drains the pool.
 fn remove_depositor(
     c: &mut Campaign,
     amount: u64,

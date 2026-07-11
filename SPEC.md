@@ -28,7 +28,8 @@ product.
    depositors votes dissolve. The campaign becomes DISSOLVED — terminal —
    and the permissionless refund crank opens immediately.
 3. **Dead-man timer.** If the deadline passes without a release, the same
-   permissionless refund crank opens for everyone.
+   permissionless refund crank opens for everyone — and nothing else remains
+   possible: post-deadline is refunds-only.
 
 Refunds (paths 2 and 3) return to each depositor exactly the amount recorded
 on their badge, into a token account owned by their own wallet, and can be
@@ -72,9 +73,9 @@ closes (rent to the depositor) only when the refund crank pays them out.
 | `vote_dissolve` | badge-holder | not released; not dissolved; badge hasn't voted dissolve | dissolve_votes += 1; then majority check (below). |
 | `unvote_dissolve` | badge-holder | not released; not dissolved; badge has a dissolve vote | dissolve_votes −= 1. |
 | `propose_payout(payout)` | ORGANIZER (`has_one = admin`) | not released; not dissolved; now ≤ deadline; payout ≠ default pubkey | Sets proposed_payout; proposal_id += 1; payout_votes = 0 (every re-proposal resets consent). |
-| `vote_payout` | badge-holder | not released; not dissolved; a proposal exists; badge hasn't voted THIS epoch | payout_votes += 1; badge records the epoch. |
+| `vote_payout` | badge-holder | not released; not dissolved; now ≤ deadline; a proposal exists; badge hasn't voted THIS epoch | payout_votes += 1; badge records the epoch. |
 | `unvote_payout` | badge-holder | not released; not dissolved; badge voted THIS epoch | payout_votes −= 1. |
-| `release` | ANYONE | not released; not dissolved; a proposal exists; `payout_votes × 2 > depositor_count` with depositor_count > 0; destination token account owned by exactly `proposed_payout` (account constraint) and of `campaign.mint` | Transfers the FULL vault balance; sets released (terminal). |
+| `release` | ANYONE | not released; not dissolved; now ≤ deadline; a proposal exists; `payout_votes × 2 > depositor_count` with depositor_count > 0; destination token account owned by exactly `proposed_payout` (account constraint) and of `campaign.mint` | Transfers the FULL vault balance; sets released (terminal). |
 | `refund` | ANYONE (cranker) | not released; (now > deadline) OR dissolved; destination token account owned by exactly the badge's depositor and of `campaign.mint` | Pays the badge's exact amount to its depositor; closes the badge (rent to depositor); counters down. |
 
 **Majority arithmetic** — strict head-count, exact integer form:
@@ -107,16 +108,24 @@ refund-crank bookkeeping pass. Once `dissolved` is set, nothing unsets it.
 8. Dissolution opens refunds immediately (pre-deadline); after the deadline,
    proposals are blocked and refunds open with proposals still live.
 
-## Deadline semantics — the coexistence nuance, stated plainly
+## Deadline semantics — post-deadline is REFUNDS-ONLY
 
-`release` has no deadline gate. If a proposal reached majority before the
-deadline and was never executed, then AFTER the deadline both paths are
-simultaneously live: anyone may execute the release, and anyone may crank
-refunds. Per depositor, whichever executes first wins. Funds are never
-stuck; there is no individual choice involved — both paths are collective.
-`propose_payout` and `deposit` are blocked after the deadline, so no NEW
-consent can form post-deadline; only a pre-deadline majority can still
-release.
+`release`, `vote_payout`, `propose_payout` and `deposit` are ALL
+deadline-gated (`CampaignEnded`). A majority that stood at expiry but never
+executed does not survive the timer: after the deadline the only live
+instruction that moves money is the permissionless refund crank, returning
+every deposit exactly. (This closes the pre-audit coexistence window where a
+stale majority could still release after expiry.)
+
+## Known property of head-count governance (disclosed)
+
+Votes are one-per-badge and badges cost a minimum of $20, so an attacker
+willing to spend can create many wallets, deposit $20 each, and vote
+dissolve — a Sybil majority. The blast radius is DENIAL-OF-CAMPAIGN ONLY:
+dissolution refunds every depositor exactly (the attacker included, minus
+their transaction costs); no path exists by which Sybil votes move anyone
+else's money anywhere. Capital-weighted voting was deliberately rejected to
+keep "a counter of people" honest; the trade is disclosed here.
 
 ## Upgrade authority (disclosure)
 

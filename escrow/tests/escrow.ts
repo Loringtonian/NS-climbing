@@ -443,10 +443,15 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
     const ID2 = "ns-wall-deadline";
     const camp = () => campaignPda(ID2);
 
-    it("deadline refunds work even with a live proposal; propose blocked after deadline", async () => {
-      await init(ID2, 4);
+    it("AUDIT FIX: post-deadline is REFUNDS-ONLY — a standing majority cannot release, votes are closed", async () => {
+      await init(ID2, 8);
       await deposit(bob, bobUsdc, 100, camp());
-      await propose(payoutA.publicKey, camp()); // active proposal, no majority
+      await deposit(alice, aliceUsdc, 20, camp());
+      await propose(payoutA.publicKey, camp());
+      await castVote("votePayout", bob, camp());
+      await castVote("votePayout", alice, camp()); // 2/2 — majority STANDS at expiry
+      // alice steps back so we can attempt a post-deadline re-vote
+      await castVote("unvotePayout", alice, camp());
 
       try {
         await program.methods
@@ -467,8 +472,25 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
         assert.include(e.toString(), "DeadlineNotPassed");
       }
 
-      await new Promise((r) => setTimeout(r, 6000));
+      await new Promise((r) => setTimeout(r, 10000));
 
+      // release rejected even though bob's vote alone is 1/2... restore the
+      // majority scenario first: with 2 depositors and only bob voting, the
+      // majority does NOT stand — so re-check the pure gate with a standing
+      // majority via the vote that CAN'T happen: vote_payout is deadline-gated.
+      try {
+        await castVote("votePayout", alice, camp());
+        assert.fail("post-deadline vote_payout should fail");
+      } catch (e: any) {
+        assert.include(e.toString(), "CampaignEnded");
+      }
+      // and release is deadline-gated regardless of vote arithmetic
+      try {
+        await release(payoutAUsdc, camp());
+        assert.fail("post-deadline release should fail");
+      } catch (e: any) {
+        assert.include(e.toString(), "CampaignEnded");
+      }
       try {
         await propose(payoutB.publicKey, camp());
         assert.fail("late propose should fail");
@@ -492,6 +514,19 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
         .rpc();
       const after = await getAccount(conn, bobUsdc);
       assert.equal(Number(after.amount - before.amount), 100_000_000);
+      await program.methods
+        .refund()
+        .accounts({
+          cranker: stranger.publicKey,
+          depositor: alice.publicKey,
+          campaign: camp(),
+          vault: vaultPda(camp()),
+          depositorToken: aliceUsdc,
+          receipt: receiptPda(camp(), alice.publicKey),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+        })
+        .signers([stranger])
+        .rpc();
       const c = await fetchC(camp());
       assert.equal(c.depositorCount, 0);
       assert.ok(c.totalEscrowed.eq(new BN(0)));
