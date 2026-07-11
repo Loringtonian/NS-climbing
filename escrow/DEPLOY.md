@@ -8,7 +8,7 @@ ever lost or you want a fresh ID: `solana-keygen new -o target/deploy/ns_climb_e
 put the new pubkey in `declare_id!` (lib.rs), `Anchor.toml`, `web/counter.js`,
 `web/demo.html`, and rebuild.
 
-Toolchain (shared with Projects/PopUp_Markets, installed 2026-07-11):
+Toolchain (installed 2026-07-11):
 - solana 4.1.1 at `~/.local/share/solana/install/active_release/bin` (PATH via `~/.profile`)
 - anchor 1.0.2 prebuilt binary at `~/.cargo/bin/anchor`
 - Anchor 1.x note: `anchor test` wants `surfpool`; we run
