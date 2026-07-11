@@ -132,6 +132,18 @@
       : window.solana ? window.solana : null;
   }
 
+  // Tier pre-select via fragment (#v1/#v5/#v10) — a fragment is presentation,
+  // not config, so it stays inside the audit's no-URL-param rule.
+  var pre = { "#v1": "20", "#v5": "100", "#v10": "1000" }[location.hash];
+  if (pre) {
+    Array.prototype.forEach.call(document.querySelectorAll(".tier"), function (b) {
+      if (b.getAttribute("data-usd") === pre) {
+        b.style.boxShadow = "0 0 0 3px rgba(255,178,74,.6)";
+        b.insertAdjacentHTML("beforeend", '<small style="opacity:.9">Your pick — confirm below</small>');
+      }
+    });
+  }
+
   // No injected wallet (plain mobile browser) -> deep-link into wallet browsers
   if (!provider()) {
     var here = location.href;

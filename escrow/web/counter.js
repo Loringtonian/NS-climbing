@@ -124,9 +124,82 @@
 
   var campaignAddr = null;
 
+  // ---- rich live panel (index.html money section) ---------------------------
+  // All optional: each element is filled only if present on the page.
+  var TIER_NAMES = ["V1", "V5", "V10"];
+  function fmtUsd(bi) { return "$" + (Number(bi / 10000n) / 100).toLocaleString(); }
+  function renderLive(c) {
+    var el;
+    if ((el = document.getElementById("goal-now"))) el.textContent = fmtUsd(c.total);
+    if ((el = document.getElementById("goal-target"))) el.textContent = fmtUsd(c.goal);
+    var goalUsd = Number(c.goal / 10000n) / 100;
+    var usd = Number(c.total / 10000n) / 100;
+    var pct = goalUsd > 0 ? Math.min(100, (usd / goalUsd) * 100) : 0;
+    if ((el = document.getElementById("goal-pct"))) el.textContent = (Math.round(pct * 10) / 10) + "%";
+    if ((el = document.getElementById("goal-fill"))) el.style.width = pct + "%";
+    if ((el = document.getElementById("goal-people"))) {
+      el.textContent = c.count + (c.count === 1 ? " person has" : " people have") + " skin in it";
+    }
+    if ((el = document.getElementById("goal-tiers"))) {
+      var bits = [];
+      for (var t = 0; t < 3; t++) if (c.tiers[t]) bits.push('<span class="chip t' + t + '">' + c.tiers[t] + " × " + TIER_NAMES[t] + "</span>");
+      el.innerHTML = bits.join("");
+    }
+    if ((el = document.getElementById("goal-state"))) {
+      el.textContent = c.released ? "FUNDED — wall greenlit" : c.dissolved ? "DISSOLVED — refunds open" : "";
+    }
+  }
+
+  // Latest-supporters strip: receipts are 82-byte accounts keyed to the
+  // campaign. No timestamp lives on-chain, so rows show wallet + tier only;
+  // a receipt that APPEARS between polls is genuinely new and gets a live
+  // "just now" pulse — no fabricated times.
+  var knownReceipts = null;
+  function pollReceipts() {
+    var strip = document.getElementById("live-strip");
+    if (!strip || !campaignAddr) return;
+    rpc("getProgramAccounts", [PROGRAM_ID, {
+      encoding: "base64",
+      filters: [{ dataSize: 82 }, { memcmp: { offset: 8, bytes: campaignAddr } }],
+    }], function (err, res) {
+      if (err || !res) return;
+      try {
+        var rows = res.map(function (it) {
+          var raw = atob(it.account.data[0]);
+          var bytes = new Uint8Array(raw.length);
+          for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+          var wallet = b58encode(bytes.slice(40, 72));
+          var amt = new DataView(bytes.buffer).getBigUint64(72, true);
+          var tier = amt === 1000000000n ? 2 : amt === 100000000n ? 1 : 0;
+          return { key: it.pubkey, wallet: wallet, tier: tier };
+        });
+        var first = knownReceipts === null;
+        if (first) knownReceipts = {};
+        var frag = "";
+        var shown = 0;
+        // newest-detected first: fresh receipts prepend
+        rows.forEach(function (r) {
+          if (!first && !knownReceipts[r.key]) r.isNew = true;
+          knownReceipts[r.key] = true;
+        });
+        rows.sort(function (a, b) { return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0); });
+        rows.slice(0, 5).forEach(function (r) {
+          frag += '<div class="sup' + (r.isNew ? " new" : "") + '">' +
+            '<span class="mono">' + r.wallet.slice(0, 4) + "…" + r.wallet.slice(-4) + "</span>" +
+            '<span class="chip t' + r.tier + '">' + TIER_NAMES[r.tier] + "</span>" +
+            (r.isNew ? '<span class="just">just now</span>' : "") +
+            "</div>";
+          shown++;
+        });
+        strip.innerHTML = shown ? frag : '<div class="sup empty">be the first on the board</div>';
+      } catch (_e) {}
+    });
+  }
+  // ---------------------------------------------------------------------------
+
   function render(c) {
     var el = document.getElementById(EL_ID);
-    if (!el) return;
+    if (!el) return; // rich panel may be the only consumer; renderLive still runs
     var usd = Number(c.total / 10000n) / 100; // 6-decimals -> dollars
     var goalUsd = Number(c.goal / 10000n) / 100;
     var pct = goalUsd > 0 ? Math.min(100, Math.round((usd / goalUsd) * 100)) : 0;
@@ -149,8 +222,13 @@
     if (!campaignAddr) return;
     rpc("getAccountInfo", [campaignAddr, { encoding: "base64" }], function (err, res) {
       if (err || !res || !res.value) return; // keep last rendered state on transient errors
-      try { render(parseCampaign(res.value.data[0])); } catch (_e) {}
+      try {
+        var parsed = parseCampaign(res.value.data[0]);
+        render(parsed);
+        renderLive(parsed);
+      } catch (_e) {}
     });
+    pollReceipts();
   }
 
   function start() {

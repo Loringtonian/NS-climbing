@@ -63,6 +63,46 @@
 
   footer{border-top:1px solid var(--line);padding:28px 0;color:#5d6675;font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 
+  /* live money section — one accent ramp (V1 orange -> V10 amber), tabular numbers */
+  .ask{text-align:left}
+  .ask .nums{font-variant-numeric:tabular-nums}
+  .goal-hero{margin:26px 0 6px}
+  .goal-hero .big{font-size:clamp(40px,9vw,64px);font-weight:900;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
+  .goal-hero .big span{color:var(--muted);font-weight:700;font-size:.55em}
+  .goal-meta{display:flex;justify-content:space-between;align-items:baseline;gap:10px;color:var(--muted);font-size:14px;margin-top:10px;font-variant-numeric:tabular-nums}
+  .goal-track{height:12px;border-radius:999px;background:#242a34;overflow:hidden;margin-top:12px}
+  .goal-track i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#ff6b4a,#ff8d4a 60%,#ffb24a);transition:width 1.1s cubic-bezier(.22,1,.36,1)}
+  .chip{display:inline-block;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.03em}
+  .chip.t0{background:rgba(255,107,74,.16);color:#ff8a6e}
+  .chip.t1{background:rgba(255,141,74,.16);color:#ffa06e}
+  .chip.t2{background:rgba(255,178,74,.18);color:#ffc266}
+  #goal-tiers{display:flex;gap:8px;flex-wrap:wrap}
+  #live-strip{display:grid;gap:6px;margin:18px 0 4px}
+  .sup{display:flex;align-items:center;gap:10px;background:#141922;border:1px solid var(--line);border-radius:12px;padding:9px 14px;font-size:14px}
+  .sup .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#c7cfda}
+  .sup .just{margin-left:auto;color:var(--accent2);font-size:12px;font-weight:700}
+  .sup.new{animation:supIn .9s ease-out}
+  .sup.empty{color:#5d6675;justify-content:center}
+  @keyframes supIn{0%{background:#3a2a20;transform:translateY(-4px);opacity:.4}100%{background:#141922;transform:none;opacity:1}}
+  .tiers{display:grid;gap:12px;margin:26px 0 8px}
+  .tier-card{display:block;text-decoration:none;color:var(--ink);background:#141922;border:1px solid var(--line);border-radius:16px;padding:18px 20px;transition:transform .08s, border-color .12s}
+  .tier-card:active{transform:scale(.985)}
+  .tier-card .row{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .tier-card .name{font-weight:900;font-size:20px;letter-spacing:-.01em}
+  .tier-card .amt{font-weight:900;font-size:20px;font-variant-numeric:tabular-nums}
+  .tier-card .perk{color:var(--muted);font-size:14px;margin-top:6px;line-height:1.45}
+  .tier-card.v1{border-color:#7a3a28;background:linear-gradient(180deg,#1d1712,#141922 70%)}
+  .tier-card.v1 .name{color:#ff8a6e}
+  .tier-card.v1 .go{background:var(--accent);color:#0e1116}
+  .tier-card.v5 .name{color:#ffa06e}
+  .tier-card.v10{border-color:#5a4726}
+  .tier-card.v10 .name{background:linear-gradient(180deg,#ffd28a,var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tier-card .go{display:inline-block;margin-top:12px;font-weight:800;font-size:14px;padding:9px 18px;border-radius:999px;background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .tier-card.v1 .go{border:0}
+  .tier-card .hint{display:block;font-size:12px;color:#7a8595;margin-top:8px}
+  .trustline{color:var(--muted);font-size:14px;margin-top:18px;line-height:1.55}
+  .trustline a{color:var(--accent2)}
+  @media(min-width:641px){.tiers{grid-template-columns:1fr 1fr 1fr}}
   @media(max-width:640px){.gallery{grid-template-columns:1fr}.hero-inner{padding:30px 22px}}
 </style>
 </head>
@@ -112,10 +152,42 @@
   <section>
     <div class="ask">
       <h2>Add your voice.</h2>
-      <p>Not a waitlist, not a donation — an escrow. Put $20 — or $100, or $1000 — of USDC behind the demand. You can pull it back <b>any time</b> before the money is actually released to the buildout — even after a greenlight. If 90 days pass without goal + greenlight, or a majority of depositors votes to dissolve, refunds open for everyone. Priced demand is the signal.</p>
-      <div id="escrow-counter" class="fine" style="font-weight:800;color:#f2f4f7;font-size:16px"></div>
-      <a class="btn" href="escrow/web/demo.html">Escrow $20+ — I want this wall <small>→</small></a>
-      <div class="fine">Deposit, not donation · one Lemur board, one small room — enough of us, and it happens. <a href="agents.md" style="color:#7a8595">agents.md</a></div>
+      <p style="color:var(--muted);max-width:56ch;margin:10px 0 0">Not a waitlist, not a donation — an escrow. Priced demand is the signal.</p>
+
+      <div class="goal-hero">
+        <div class="big nums"><span id="goal-now">$—</span> <span>of <b id="goal-target" style="color:var(--ink)">$—</b></span></div>
+        <div class="goal-track"><i id="goal-fill"></i></div>
+        <div class="goal-meta">
+          <div id="goal-tiers"></div>
+          <div><span id="goal-pct">—%</span> · <span id="goal-people">—</span></div>
+        </div>
+        <div id="goal-state" class="fine" style="font-weight:800;color:#ffb24a"></div>
+      </div>
+
+      <div id="live-strip"></div>
+
+      <div class="tiers">
+        <!-- tier one-liners: sales_kit/TIERS.md (draft copy, Lorin taste-pass on live page) -->
+        <a class="tier-card v1" href="escrow/web/demo.html#v1">
+          <div class="row"><span class="name">V1</span><span class="amt nums">$20</span></div>
+          <div class="perk">Get on the board. Your name on the founding plaque.</div>
+          <span class="go">Escrow $20 →</span><span class="hint">most start here</span>
+        </a>
+        <a class="tier-card v5" href="escrow/web/demo.html#v5">
+          <div class="row"><span class="name">V5</span><span class="amt nums">$100</span></div>
+          <div class="perk">First-ascent night. First-week priority.</div>
+          <span class="go">Escrow $100 →</span>
+        </a>
+        <a class="tier-card v10" href="escrow/web/demo.html#v10">
+          <div class="row"><span class="name">V10</span><span class="amt nums">$1000</span></div>
+          <div class="perk">Name a route. Top of the plaque.</div>
+          <span class="go">Escrow $1000 →</span><span class="hint">first ascent of opening night</span>
+        </a>
+      </div>
+
+      <div class="trustline">Withdraw your exact deposit anytime before release; a majority of depositors can dissolve it all; if the timer runs out, refunds open to everyone — enforced by code, <a href="VERIFY_IT.md">or have your agent check us</a>.</div>
+      <div class="fine" style="margin-top:10px">Deposit, not donation · one Lemur board, one small room — enough of us, and it happens. <a href="agents.md" style="color:#7a8595">agents.md</a></div>
+      <div id="escrow-counter" class="fine" style="display:none"></div>
       <script>
         // hardcoded on purpose (audit: config never comes from URL params)
         window.ESCROW_CONFIG = {
