@@ -1,4 +1,42 @@
-# DEPLOY.md — devnet now, mainnet when funded
+# DEPLOY.md — MAINNET-FIRST (strategy pivot 2026-07-11: devnet faucets dry, Lorin funds real SOL)
+
+**The path: localnet test suite (correctness gate, 18/18 green) → mainnet deploy
+via `scripts/mainnet_go.sh` (human-gated) → the smoke-test protocol below →
+QR goes on the wall.** Devnet instructions kept further down for reference only.
+
+## Mainnet bring-up (human-gated)
+
+1. Lorin sends SOL to the deployer wallet `84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2`
+   (`~/.config/solana/id.json`). **Send 2.5 SOL** — breakdown: programdata rent
+   2.2284 (deploy `--max-len 320000`, ~12% upgrade cushion; reclaimable via
+   `solana program close` at end-of-life) + 0.0011 program account + ~0.005
+   campaign+vault rent + fees + slack. Tight alternative (`MAX_LEN=285480`):
+   1.9881 rent → 2.2 SOL send, but zero room to ever patch the program.
+2. On Lorin's explicit go: `GOAL_USDC=<real goal> BUILDOUT=<address> bash scripts/mainnet_go.sh`
+   — the script echoes deployer/goal/buildout and requires typing MAINNET.
+   BUILDOUT is IMMUTABLE after init; deployer wallet is the default, multisig
+   preferred when it exists.
+3. Run the smoke test below. Only then publish the QR.
+
+## MAINNET SMOKE TEST — Lorin is depositor #1 (before any QR goes up)
+
+Real-money loop test, ~10 minutes, from Lorin's phone with ~$25 USDC + ~0.01 SOL
+in Phantom (mainnet, no network switching needed):
+
+1. Open the deposit page URL printed by mainnet_go.sh (MAINNET_STATE.md) →
+   "Open in Phantom" → connect.
+2. **Deposit $20 (V1).** Confirm: wallet shows -20 USDC; page flips to
+   "You're on the board — $20 escrowed ✓"; counter reads "1 × V1 · $20 escrowed".
+3. **Withdraw.** Confirm: wallet shows +20 USDC back (exact); counter returns
+   to zero; receipt rent (~0.0015 SOL) came back too.
+4. **Re-deposit $20** and leave it in — campaign opens with its first real deposit.
+5. Sanity on the explorer link in MAINNET_STATE.md: vault balance = 20 USDC,
+   depositor_count = 1.
+If ANY step misbehaves: stop, do not distribute the QR, report exactly what
+happened (tx signatures + screenshots) — funds are withdrawable the whole time.
+
+After the smoke test: update agents.md Live-campaign-parameters (cluster,
+PDA, mint), push, and selling can start.
 
 Binary: `target/deploy/ns_climb_escrow.so` — **279,336 bytes** (build 2026-07-11,
 anchor-cli 1.0.2 / anchor-lang 1.1.2 / solana 4.1.1 / rustc 1.92.0).
@@ -28,7 +66,7 @@ Toolchain (installed 2026-07-11):
 | Program keypair | `escrow/target/deploy/ns_climb_escrow-keypair.json` | Fixes the program ID |
 | Buildout address | — set at `initialize_campaign` | Where funds go on release (multisig later; any pubkey now) |
 
-## Devnet (costs nothing — airdropped SOL only)
+## Devnet (REFERENCE ONLY — retired 2026-07-11, faucets were dry all day)
 
 ```bash
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"
@@ -50,7 +88,7 @@ Devnet mint options:
   real-feeling demo; depositors self-serve test USDC at faucet.circle.com
   (select Solana Devnet), Phantom/Solflare switched to devnet.
 
-## Mainnet — exact cost (REPORT ONLY; no spend without Lorin's go)
+## Mainnet — cost table (numbers measured 2026-07-11 via `solana rent`)
 
 One-time, at current rent parameters (`solana rent`, measured 2026-07-11):
 

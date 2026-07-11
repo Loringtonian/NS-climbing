@@ -123,11 +123,13 @@
     var usd = Number(c.total / 10000n) / 100; // 6-decimals -> dollars
     var goalUsd = Number(c.goal / 10000n) / 100;
     var pct = goalUsd > 0 ? Math.min(100, Math.round((usd / goalUsd) * 100)) : 0;
-    // tier labels are placeholders; the sales kit owns the real names
+    // tier names: bouldering grades (sales_kit/TIERS.md, final).
+    // Format per spec: "N × V1 · N × V5 · N × V10 · $TOTAL"
+    var names = ["V1", "V5", "V10"];
     var parts = [];
-    if (c.tiers[0]) parts.push(c.tiers[0] + (c.tiers[0] === 1 ? " supporter" : " supporters"));
-    if (c.tiers[1]) parts.push(c.tiers[1] + (c.tiers[1] === 1 ? " founder" : " founders"));
-    if (c.tiers[2]) parts.push(c.tiers[2] + (c.tiers[2] === 1 ? " patron" : " patrons"));
+    for (var t = 0; t < 3; t++) {
+      if (c.tiers[t]) parts.push(c.tiers[t] + " × " + names[t]);
+    }
     var who = parts.length ? parts.join(" · ")
       : c.count + (c.count === 1 ? " person" : " people");
     el.textContent =

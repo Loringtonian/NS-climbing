@@ -24,7 +24,7 @@ people with real skin in the game.
 
 | Field                | Value |
 |----------------------|-------|
-| Cluster              | **devnet** (mainnet flip pending; re-read this file, it will be updated) |
+| Cluster              | **mainnet deploy imminent** (2026-07-11) — DO NOT act until this table pins the campaign PDA + mint; re-read this file |
 | Program ID           | `7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw` |
 | Campaign ID (string) | `ns-climbing-wall` |
 | Campaign PDA         | derive: `["campaign", "ns-climbing-wall"]` (see below) — will be pinned here at deploy |
@@ -32,8 +32,9 @@ people with real skin in the game.
 | Deposit tiers        | exactly $20 / $100 / $1000 USDC (`20_000_000` / `100_000_000` / `1_000_000_000` base units); other amounts rejected (`InvalidTierAmount`); one deposit per wallet — to change tier, withdraw then redeposit |
 | Goal / deadline      | stored on-chain in the campaign account; read them (layout below) |
 
-**Do not deposit real funds while this table says devnet.** On devnet the
-campaign uses a test mint; treat it as a rehearsal.
+**Do not execute a deposit until this table shows the live campaign PDA and
+the Circle USDC mint** — the program may be deployed before the campaign is
+initialized and smoke-tested.
 
 ## Trust properties (verify these in source, not in marketing)
 
