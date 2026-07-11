@@ -31,3 +31,20 @@ PHONE URL (QR this): https://loringtonian.github.io/NS-climbing/escrow/web/demo.
 | Explorer (board)   | https://explorer.solana.com/address/4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C?cluster=devnet |
 
 End a session (undelegate -> tally commits to base): `node scripts/end_board.cjs` from cheerboard/.
+
+## Freeze-protocol rehearsal record (2026-07-11, frozen artifact 5f2c7dd6…)
+
+On-chain program dump verified byte-identical to the frozen artifact.
+
+Live campaign ns-climbing-wall-v2 (the phone-test target), all with live signatures:
+deposit $20 (demo2, 4rV3XbyB…) → vote_dissolve (1 of 2, no flip — strict majority holds, 4bGdZ6Ct…)
+→ unvote (2iXumEbH…) → withdraw exact $20 (2aUzZDo8…) → re-deposit $20 (4RWFtt68…).
+Standing state: 2 depositors, $120 escrowed (1 × V1 + 1 × V5).
+
+Majority-dissolve + refund-crank demo on scratch campaign ns-wall-dissolve-demo
+(PDA Gb88RkuKTuvj65Aa8pmzEBFPDRGeSc2UPU1zH8f3sc2):
+2 × $20 deposits → vote 1/2 (dissolved: false — strictness live) → vote 2/2
+(dissolved: TRUE, 3XVb8TTq…) → refund crank by the organizer wallet returned both
+$20s BEFORE any deadline (2LHhvMBe…, ZSxQVsod…) → final: 0 depositors, 0 escrowed,
+dissolved: true (terminal).
+Explorer: https://explorer.solana.com/address/Gb88RkuKTuvj65Aa8pmzEBFPDRGeSc2UPU1zH8f3sc2?cluster=devnet
