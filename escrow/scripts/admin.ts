@@ -47,7 +47,7 @@ async function main() {
     mint: c.mint.toBase58(),
     buildout: c.buildout.toBase58(),
     goal: c.goal.toString(),
-    depositAmount: c.depositAmount.toString(),
+    tierCounts: c.tierCounts,
     deadline: new Date(c.deadline.toNumber() * 1000).toISOString(),
     totalEscrowed: c.totalEscrowed.toString(),
     depositorCount: c.depositorCount,

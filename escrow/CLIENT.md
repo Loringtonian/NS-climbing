@@ -45,17 +45,18 @@ offset 40   mint       32 bytes
 offset 72   buildout   32 bytes
 offset 104  campaign_id  4-byte len L + L bytes   (VARIABLE — offsets below shift by L)
 +0          goal            u64
-+8          deposit_amount  u64
-+16         deadline        i64
-+24         total_escrowed  u64
-+32         depositor_count u32
-+36         approved        u8 (bool)
-+37         released        u8 (bool)
-+38         bump            u8
++8          deadline        i64
++16         total_escrowed  u64
++24         depositor_count u32
++28         tier_counts     [u32; 3]   ($20 / $100 / $1000 depositors)
++40         approved        u8 (bool)
++41         released        u8 (bool)
++42         bump            u8
 ```
 
-Counter text: `depositor_count` people · `total_escrowed / 1e6` dollars ·
-`total/goal` percent. Poll every 15s; keep last state on RPC hiccups.
+Counter text: tier breakdown ("N supporters · M founders · K patrons") ·
+`total_escrowed / 1e6` dollars · `total/goal` percent. Poll every 15s; keep
+last state on RPC hiccups.
 
 ## 2. Deposit flow (phone-first — depositor is standing in front of you)
 
@@ -94,10 +95,14 @@ first 8 bytes of `sha256("global:deposit")`, no args. Same pattern for
 `withdraw` (`"global:withdraw"`). Account order exactly as in the structs in
 `programs/ns-climb-escrow/src/lib.rs`.
 
-Amount is NOT a parameter — the program transfers exactly
-`campaign.deposit_amount` (set at init, e.g. 20 USDC). One deposit per wallet
-(the receipt PDA enforces it); withdraw closes the receipt so a wallet can
-deposit again later.
+`deposit` takes ONE argument, `amount: u64` (USDC base units), and the
+program rejects anything but the tier menu: 20_000_000 / 100_000_000 /
+1_000_000_000 ($20/$100/$1000, `TIER_AMOUNTS` in lib.rs). Instruction data =
+8-byte discriminator + u64 LE amount. One deposit per wallet (the receipt PDA
+enforces it); withdraw returns exactly the receipt's amount and closes it, so
+a wallet can re-deposit at any tier (that's also the tier-upgrade path).
+The campaign account carries `tier_counts: [u32;3]` for the counter's
+"N supporters · M founders · K patrons" breakdown (layout in agents.md).
 
 **Solana Pay**: a bare Solana Pay transfer QR moves USDC to an address — it
 can NOT call a program, so a plain transfer QR would be a donation, not an
@@ -116,7 +121,7 @@ not just hidden in the UI.
 
 ```bash
 # create the campaign (prints campaign PDA for the page config)
-CAMPAIGN_ID=ns-climbing-wall GOAL_USDC=2000 DEPOSIT_USDC=20 DEADLINE_DAYS=30 \
+CAMPAIGN_ID=ns-climbing-wall GOAL_USDC=2000 DEADLINE_DAYS=30 \
 BUILDOUT=<buildout-wallet> USDC_MINT=<see DEPLOY.md> \
 npx ts-node scripts/init_campaign.ts
 

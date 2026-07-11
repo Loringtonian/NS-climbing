@@ -22,7 +22,6 @@ async function main() {
 
   const id = process.env.CAMPAIGN_ID || "ns-climbing-wall";
   const goal = new BN(Math.round(parseFloat(process.env.GOAL_USDC || "2000") * 1e6));
-  const dep = new BN(Math.round(parseFloat(process.env.DEPOSIT_USDC || "20") * 1e6));
   const days = parseFloat(process.env.DEADLINE_DAYS || "30");
   const deadline = new BN(Math.floor(Date.now() / 1000) + Math.round(days * 86400));
   const buildout = new PublicKey(process.env.BUILDOUT || provider.wallet.publicKey);
@@ -38,7 +37,7 @@ async function main() {
   );
 
   const sig = await program.methods
-    .initializeCampaign(id, goal, dep, deadline, buildout)
+    .initializeCampaign(id, goal, deadline, buildout)
     .accounts({
       admin: provider.wallet.publicKey,
       mint,
@@ -56,7 +55,7 @@ async function main() {
   console.log("admin:", provider.wallet.publicKey.toBase58());
   console.log("buildout:", buildout.toBase58());
   console.log("mint:", mint.toBase58());
-  console.log("goal:", goal.toString(), "deposit:", dep.toString(), "deadline:", deadline.toString());
+  console.log("goal:", goal.toString(), "deadline:", deadline.toString(), "(tiers fixed in-program: $20/$100/$1000)");
   console.log("(mainnet USDC for reference:", MAINNET_USDC + ")");
 }
 

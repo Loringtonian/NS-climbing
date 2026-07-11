@@ -94,8 +94,9 @@
   }
 
   // Campaign account layout (borsh, after the 8-byte Anchor discriminator):
-  // admin[32] mint[32] buildout[32] campaign_id[4+len] goal[u64] deposit_amount[u64]
-  // deadline[i64] total_escrowed[u64] depositor_count[u32] approved[u8] released[u8] bump[u8]
+  // admin[32] mint[32] buildout[32] campaign_id[4+len] goal[u64] deadline[i64]
+  // total_escrowed[u64] depositor_count[u32] tier_counts[3xu32]
+  // approved[u8] released[u8] bump[u8]
   function parseCampaign(b64) {
     var raw = atob(b64);
     var bytes = new Uint8Array(raw.length);
@@ -105,13 +106,13 @@
     var idLen = dv.getUint32(o, true);
     o += 4 + idLen;
     var goal = dv.getBigUint64(o, true); o += 8;
-    o += 8; // deposit_amount
     o += 8; // deadline
     var total = dv.getBigUint64(o, true); o += 8;
     var count = dv.getUint32(o, true); o += 4;
+    var tiers = [dv.getUint32(o, true), dv.getUint32(o + 4, true), dv.getUint32(o + 8, true)]; o += 12;
     var approved = bytes[o] === 1; o += 1;
     var released = bytes[o] === 1;
-    return { goal: goal, total: total, count: count, approved: approved, released: released };
+    return { goal: goal, total: total, count: count, tiers: tiers, approved: approved, released: released };
   }
 
   var campaignAddr = null;
@@ -122,9 +123,15 @@
     var usd = Number(c.total / 10000n) / 100; // 6-decimals -> dollars
     var goalUsd = Number(c.goal / 10000n) / 100;
     var pct = goalUsd > 0 ? Math.min(100, Math.round((usd / goalUsd) * 100)) : 0;
+    // tier labels are placeholders; the sales kit owns the real names
+    var parts = [];
+    if (c.tiers[0]) parts.push(c.tiers[0] + (c.tiers[0] === 1 ? " supporter" : " supporters"));
+    if (c.tiers[1]) parts.push(c.tiers[1] + (c.tiers[1] === 1 ? " founder" : " founders"));
+    if (c.tiers[2]) parts.push(c.tiers[2] + (c.tiers[2] === 1 ? " patron" : " patrons"));
+    var who = parts.length ? parts.join(" · ")
+      : c.count + (c.count === 1 ? " person" : " people");
     el.textContent =
-      c.count + (c.count === 1 ? " person" : " people") +
-      " · $" + usd.toLocaleString() + " escrowed · " + pct + "% of goal" +
+      who + " · $" + usd.toLocaleString() + " escrowed · " + pct + "% of goal" +
       (c.released ? " · FUNDED — wall greenlit" : "");
   }
 

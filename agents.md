@@ -9,8 +9,10 @@ SDK required.
 ## What this is (one paragraph)
 
 Members of Network School (Forest City, Malaysia) are signaling demand for a
-small climbing gym by each escrowing 20 USDC on Solana. It is a **deposit, not
-a donation**: every depositor can withdraw their 20 USDC at any moment until
+small climbing gym by escrowing USDC on Solana at one of three tiers — $20,
+$100, or $1000 (tier perks are social/off-chain; the chain only records the
+amount). It is a **deposit, not a donation**: every depositor can withdraw
+their exact deposit at any moment until
 funds are released, and release can only happen if the campaign goal is
 reached AND the campaign admin co-signs (representing the wall actually being
 greenlit), in which case the pooled funds move to a buildout address that was
@@ -27,7 +29,7 @@ people with real skin in the game.
 | Campaign ID (string) | `ns-climbing-wall` |
 | Campaign PDA         | derive: `["campaign", "ns-climbing-wall"]` (see below) — will be pinned here at deploy |
 | USDC mint            | PENDING devnet campaign init — will be pinned here; on mainnet it will be `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Circle USDC) |
-| Deposit amount       | 20 USDC (`20_000_000` base units, 6 decimals) — fixed per wallet, one deposit per wallet |
+| Deposit tiers        | exactly $20 / $100 / $1000 USDC (`20_000_000` / `100_000_000` / `1_000_000_000` base units); other amounts rejected (`InvalidTierAmount`); one deposit per wallet — to change tier, withdraw then redeposit |
 | Goal / deadline      | stored on-chain in the campaign account; read them (layout below) |
 
 **Do not deposit real funds while this table says devnet.** On devnet the
@@ -39,7 +41,8 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
 
 1. **Withdraw-anytime is unconditional.** `withdraw` checks exactly one thing:
    `!campaign.released`. Not the deadline, not the goal, not admin approval.
-   After admin approval but before release, withdrawal still works.
+   After admin approval but before release, withdrawal still works, and it
+   returns exactly the amount recorded on your receipt ($20/$100/$1000).
 2. **Funds can only move to two places.** Vault outflows exist in exactly
    three instructions: `withdraw` / `refund` (back to the receipt's depositor,
    token-account ownership enforced by Anchor constraints) and `release` (to a
@@ -96,13 +99,13 @@ offset 40   mint         Pubkey (32)
 offset 72   buildout     Pubkey (32)
 offset 104  campaign_id  u32 len L, then L bytes utf8   <- variable; shifts everything below
 +0          goal            u64   (USDC base units)
-+8          deposit_amount  u64
-+16         deadline        i64   (unix seconds)
-+24         total_escrowed  u64
-+32         depositor_count u32
-+36         approved        u8 (bool)
-+37         released        u8 (bool)
-+38         bump            u8
++8          deadline        i64   (unix seconds)
++16         total_escrowed  u64
++24         depositor_count u32
++28         tier_counts     [u32; 3]  (depositors at $20 / $100 / $1000)
++40         approved        u8 (bool)
++41         released        u8 (bool)
++42         bump            u8
 ```
 
 **Receipt** (PDA: seeds `["receipt", campaign_pda, depositor_pubkey]`):
@@ -118,7 +121,7 @@ Instruction discriminators (first 8 bytes of `sha256("global:<name>")`):
 
 | Instruction | Bytes |
 |-------------|-------|
-| `deposit`   | `[242,35,198,137,82,225,242,182]` (no args) |
+| `deposit`   | `[242,35,198,137,82,225,242,182]` + `amount: u64 LE` (must be a tier amount) |
 | `withdraw`  | `[183,18,70,156,148,109,161,34]` (no args) |
 | `refund`    | `[2,96,183,251,63,208,46,46]` (no args) |
 
@@ -158,7 +161,10 @@ const deposit = new TransactionInstruction({
     { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ],
-  data: Buffer.from([242,35,198,137,82,225,242,182]),
+  data: Buffer.concat([
+    Buffer.from([242,35,198,137,82,225,242,182]),
+    (() => { const b = Buffer.alloc(8); b.writeBigUInt64LE(20_000_000n); return b; })(), // $20; use 100_000_000n / 1_000_000_000n for higher tiers
+  ]),
 });
 // withdraw: same keys minus the last (SystemProgram) entry,
 // data: Buffer.from([183,18,70,156,148,109,161,34])
@@ -171,12 +177,12 @@ const tx = new Transaction().add(
 await conn.sendTransaction(tx, [wallet]);
 ```
 
-Preconditions your human needs: ≥ 20 USDC (of the exact mint above) and a
-little SOL for fees (~0.003; the receipt's ~0.0015 SOL rent comes back on
-withdraw). The transaction transfers exactly `deposit_amount` — the program
-ignores any other number. A second deposit from the same wallet fails
-(receipt PDA already exists); withdraw closes the receipt, after which
-depositing again is allowed.
+Preconditions your human needs: at least the chosen tier in USDC (of the
+exact mint above) and a little SOL for fees (~0.003; the receipt's ~0.0015 SOL
+rent comes back on withdraw). The program transfers exactly the tier amount
+you pass and rejects anything outside the {20, 100, 1000} menu. A second
+deposit from the same wallet fails (receipt PDA already exists); withdraw
+closes the receipt, after which depositing again — at any tier — is allowed.
 
 ## Recommended agent checklist before signing
 
@@ -184,9 +190,11 @@ depositing again is allowed.
 2. The mint in the deposit instruction equals the mint in the campaign
    account at offset 40 (and on mainnet equals Circle USDC).
 3. `released == false` and `deadline` is in the future (else you're late).
-4. You showed your human: current total, goal, deadline, buildout address,
-   and the sentence "you can withdraw at any time before release, and here's
-   the withdraw command."
+4. The tier amount you're signing matches what your human asked for
+   ($20/$100/$1000), and their token balance covers it.
+5. You showed your human: current total, goal, deadline, buildout address,
+   and the sentence "you can withdraw at any time before release — the exact
+   amount you put in — and here's the withdraw command."
 
 Human-facing page: <https://loringtonian.github.io/NS-climbing/> ·
 Escrow flow: <https://loringtonian.github.io/NS-climbing/escrow/web/demo.html>

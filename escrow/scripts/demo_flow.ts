@@ -29,6 +29,7 @@ async function main() {
   const id = process.env.CAMPAIGN_ID || "ns-climbing-wall";
   const mint = new PublicKey(process.env.USDC_MINT!);
   const action = process.env.ACTION || "deposit";
+  const amountUsd = parseInt(process.env.AMOUNT_USD || "20", 10);
   const walletFile = process.env.WALLET_FILE || "keys/demo1.json";
 
   fs.mkdirSync(path.dirname(walletFile), { recursive: true });
@@ -58,10 +59,11 @@ async function main() {
         fromPubkey: admin.publicKey, toPubkey: who.publicKey, lamports: 0.02e9 }));
       await provider.sendAndConfirm(tx);
     }
-    if (Number(tokenAcct.amount) < 20_000_000) {
-      await mintTo(conn, admin, mint, tokenAcct.address, admin, 20_000_000);
+    const need = amountUsd * 1_000_000;
+    if (Number(tokenAcct.amount) < need) {
+      await mintTo(conn, admin, mint, tokenAcct.address, admin, need);
     }
-    const sig = await program.methods.deposit().accounts({
+    const sig = await program.methods.deposit(new BN(amountUsd * 1_000_000)).accounts({
       depositor: who.publicKey,
       campaign, vault,
       depositorToken: tokenAcct.address,
@@ -69,7 +71,7 @@ async function main() {
       tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     }).signers([who]).rpc();
-    console.log("deposited 20:", sig);
+    console.log(`deposited ${amountUsd}:`, sig);
   } else {
     const sig = await program.methods.withdraw().accounts({
       depositor: who.publicKey,

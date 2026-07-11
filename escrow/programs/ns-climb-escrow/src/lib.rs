@@ -1,8 +1,9 @@
 // NS Climbing Wall — refundable escrow.
 //
-// Trust model, in one paragraph: a depositor puts `deposit_amount` USDC into a
-// program-owned vault. The depositor can withdraw it back AT ANY TIME until the
-// moment funds are released — `withdraw` checks nothing except "not released yet".
+// Trust model, in one paragraph: a depositor puts a tier amount ($20/$100/$1000
+// USDC) into a program-owned vault. The depositor can withdraw it back AT ANY
+// TIME until the moment funds are released — `withdraw` checks nothing except
+// "not released yet", and returns exactly what the receipt recorded.
 // Funds only ever leave the vault two ways: back to the depositor who put them in
 // (withdraw / refund), or — if the goal was reached AND the admin co-signed
 // approval before the deadline — to the buildout address fixed at campaign
@@ -13,22 +14,27 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
 declare_id!("7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw");
 
+/// The only deposit sizes accepted (USDC base units, 6 decimals):
+/// $20 / $100 / $1000. A fixed menu keeps the counter legible — perks per
+/// tier live off-chain.
+pub const TIER_AMOUNTS: [u64; 3] = [20_000_000, 100_000_000, 1_000_000_000];
+
 #[program]
 pub mod ns_climb_escrow {
     use super::*;
 
-    /// Admin creates a campaign. Goal, per-wallet deposit amount, deadline and
-    /// the buildout destination are fixed here, visible on-chain to everyone.
+    /// Admin creates a campaign. Goal, deadline and the buildout destination
+    /// are fixed here, visible on-chain to everyone. Deposit sizes are the
+    /// program-wide TIER_AMOUNTS menu.
     pub fn initialize_campaign(
         ctx: Context<InitializeCampaign>,
         campaign_id: String,
         goal: u64,
-        deposit_amount: u64,
         deadline: i64,
         buildout: Pubkey,
     ) -> Result<()> {
         require!(campaign_id.len() <= 32, EscrowError::IdTooLong);
-        require!(goal > 0 && deposit_amount > 0, EscrowError::ZeroAmount);
+        require!(goal > 0, EscrowError::ZeroAmount);
         require!(
             deadline > Clock::get()?.unix_timestamp,
             EscrowError::DeadlineInPast
@@ -39,24 +45,30 @@ pub mod ns_climb_escrow {
         c.buildout = buildout;
         c.campaign_id = campaign_id;
         c.goal = goal;
-        c.deposit_amount = deposit_amount;
         c.deadline = deadline;
         c.total_escrowed = 0;
         c.depositor_count = 0;
+        c.tier_counts = [0; 3];
         c.approved = false;
         c.released = false;
         c.bump = ctx.bumps.campaign;
         Ok(())
     }
 
-    /// One fixed-size deposit per wallet. Blocked after release or deadline.
-    pub fn deposit(ctx: Context<Deposit>) -> Result<()> {
+    /// One deposit per wallet, at exactly one of the TIER_AMOUNTS ($20/$100/
+    /// $1000). Blocked after release or deadline. To change tier: withdraw,
+    /// then deposit again at the new size.
+    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
         let c = &mut ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
         require!(
             Clock::get()?.unix_timestamp <= c.deadline,
             EscrowError::CampaignEnded
         );
+        let tier = TIER_AMOUNTS
+            .iter()
+            .position(|&t| t == amount)
+            .ok_or(EscrowError::InvalidTierAmount)?;
 
         token::transfer(
             CpiContext::new(
@@ -67,17 +79,18 @@ pub mod ns_climb_escrow {
                     authority: ctx.accounts.depositor.to_account_info(),
                 },
             ),
-            c.deposit_amount,
+            amount,
         )?;
 
         let r = &mut ctx.accounts.receipt;
         r.campaign = c.key();
         r.depositor = ctx.accounts.depositor.key();
-        r.amount = c.deposit_amount;
+        r.amount = amount;
         r.bump = ctx.bumps.receipt;
 
-        c.total_escrowed = c.total_escrowed.checked_add(r.amount).unwrap();
+        c.total_escrowed = c.total_escrowed.checked_add(amount).unwrap();
         c.depositor_count = c.depositor_count.checked_add(1).unwrap();
+        c.tier_counts[tier] = c.tier_counts[tier].checked_add(1).unwrap();
         Ok(())
     }
 
@@ -95,8 +108,13 @@ pub mod ns_climb_escrow {
         )?;
         let c = &mut ctx.accounts.campaign;
         let amount = ctx.accounts.receipt.amount;
+        let tier = TIER_AMOUNTS
+            .iter()
+            .position(|&t| t == amount)
+            .ok_or(EscrowError::InvalidTierAmount)?;
         c.total_escrowed = c.total_escrowed.checked_sub(amount).unwrap();
         c.depositor_count = c.depositor_count.checked_sub(1).unwrap();
+        c.tier_counts[tier] = c.tier_counts[tier].checked_sub(1).unwrap();
         Ok(())
     }
 
@@ -119,8 +137,13 @@ pub mod ns_climb_escrow {
         )?;
         let c = &mut ctx.accounts.campaign;
         let amount = ctx.accounts.receipt.amount;
+        let tier = TIER_AMOUNTS
+            .iter()
+            .position(|&t| t == amount)
+            .ok_or(EscrowError::InvalidTierAmount)?;
         c.total_escrowed = c.total_escrowed.checked_sub(amount).unwrap();
         c.depositor_count = c.depositor_count.checked_sub(1).unwrap();
+        c.tier_counts[tier] = c.tier_counts[tier].checked_sub(1).unwrap();
         Ok(())
     }
 
@@ -201,10 +224,11 @@ pub struct Campaign {
     #[max_len(32)]
     pub campaign_id: String,
     pub goal: u64,
-    pub deposit_amount: u64,
     pub deadline: i64,
     pub total_escrowed: u64,
     pub depositor_count: u32,
+    /// Depositor count per tier, same order as TIER_AMOUNTS ($20/$100/$1000).
+    pub tier_counts: [u32; 3],
     pub approved: bool,
     pub released: bool,
     pub bump: u8,
@@ -345,8 +369,10 @@ pub struct Release<'info> {
 pub enum EscrowError {
     #[msg("campaign_id must be 32 bytes or fewer")]
     IdTooLong,
-    #[msg("goal and deposit_amount must be nonzero")]
+    #[msg("goal must be nonzero")]
     ZeroAmount,
+    #[msg("amount must be exactly $20, $100, or $1000 USDC")]
+    InvalidTierAmount,
     #[msg("deadline must be in the future")]
     DeadlineInPast,
     #[msg("funds already released")]

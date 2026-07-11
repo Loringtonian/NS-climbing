@@ -31,8 +31,8 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Skin in the game <span>· $20</span></h1>
-  <div class="sub">Escrow $20 USDC toward the climbing wall. It's a deposit, not a donation — pull it back any time until the wall is greenlit.</div>
+  <h1>Skin in the game <span>· $20 / $100 / $1000</span></h1>
+  <div class="sub">Escrow USDC toward the climbing wall at the tier you mean. It's a deposit, not a donation — pull it back any time until the wall is greenlit.</div>
 
   <div class="card">
     <div id="escrow-counter">loading…</div>
@@ -48,9 +48,13 @@
     </div>
     <div id="hasWallet">
       <button class="btn" id="connect">Connect wallet</button>
-      <div id="inBadge" class="in hidden">You're on the board — $20 escrowed ✓</div>
-      <button class="btn hidden" id="deposit">Escrow $20</button>
-      <button class="btn ghost hidden" id="withdraw">Withdraw my $20</button>
+      <div id="inBadge" class="in hidden">You're on the board ✓</div>
+      <!-- tier labels are placeholders; sales kit owns the names -->
+      <button class="btn hidden tier" data-usd="20">$20 · Supporter</button>
+      <button class="btn hidden tier" data-usd="100">$100 · Founder</button>
+      <button class="btn hidden tier" data-usd="1000">$1000 · Patron</button>
+      <button class="btn ghost hidden" id="withdraw">Withdraw my deposit</button>
+      <div class="fine hidden" id="upgradeHint">To change tier: withdraw, then deposit again at the new size.</div>
     </div>
     <div id="status"></div>
   </div>
@@ -122,15 +126,22 @@
       [enc.encode("receipt"), campaign.toBytes(), depositor.toBytes()], pid)[0];
   }
 
-  // Receipt existence drives the UI: deposited -> badge + withdraw; not -> deposit
+  // Receipt existence drives the UI: deposited -> badge (with tier) + withdraw;
+  // not deposited -> the three tier buttons.
+  var tierBtns = Array.prototype.slice.call(document.querySelectorAll(".tier"));
   function refreshState() {
     if (!wallet) return;
     conn.getAccountInfo(receiptPda(wallet.pk)).then(function (acct) {
       var deposited = !!acct;
+      if (deposited && acct.data.length >= 80) {
+        // Receipt: 8 disc | 32 campaign | 32 depositor | 8 amount | 1 bump
+        var amt = new DataView(acct.data.buffer, acct.data.byteOffset).getBigUint64(72, true);
+        $("inBadge").textContent = "You're on the board — $" + (Number(amt / 10000n) / 100).toLocaleString() + " escrowed ✓";
+      }
       show("inBadge", deposited);
       show("withdraw", deposited);
-      show("deposit", !deposited);
-      $("deposit").disabled = false;
+      show("upgradeHint", deposited);
+      tierBtns.forEach(function (b) { b.classList.toggle("hidden", deposited); b.disabled = false; });
       $("withdraw").disabled = false;
     }).catch(function () {});
   }
@@ -159,45 +170,56 @@
     return sig;
   }
 
-  $("deposit").onclick = async function () {
-    if (USDC_MINT.indexOf("REPLACE") === 0) { status("Not configured yet: campaign USDC mint missing."); return; }
-    $("deposit").disabled = true;
-    try {
-      var mint = new W.PublicKey(USDC_MINT);
-      var myAta = ata(wallet.pk, mint);
-      var ixs = [];
-      ixs.push(new W.TransactionInstruction({
-        programId: ATA_PID,
-        keys: [
-          { pubkey: wallet.pk, isSigner: true, isWritable: true },
-          { pubkey: myAta, isSigner: false, isWritable: true },
-          { pubkey: wallet.pk, isSigner: false, isWritable: false },
-          { pubkey: mint, isSigner: false, isWritable: false },
-          { pubkey: W.SystemProgram.programId, isSigner: false, isWritable: false },
-          { pubkey: TOKEN_PID, isSigner: false, isWritable: false },
-        ],
-        data: new Uint8Array([1]), // CreateIdempotent
-      }));
-      ixs.push(new W.TransactionInstruction({
-        programId: pid,
-        keys: [
-          { pubkey: wallet.pk, isSigner: true, isWritable: true },
-          { pubkey: campaign, isSigner: false, isWritable: true },
-          { pubkey: vault, isSigner: false, isWritable: true },
-          { pubkey: myAta, isSigner: false, isWritable: true },
-          { pubkey: receiptPda(wallet.pk), isSigner: false, isWritable: true },
-          { pubkey: TOKEN_PID, isSigner: false, isWritable: false },
-          { pubkey: W.SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        data: DISC_DEPOSIT,
-      }));
-      var sig = await send(ixs);
-      status("Escrowed — you're on the board. " + sig.slice(0, 12) + "…");
-    } catch (e) {
-      status("Deposit failed: " + shortErr(e));
-    }
-    refreshState();
-  };
+  function depositData(usd) {
+    // deposit(amount: u64) -> 8-byte discriminator + u64 LE amount (6 decimals)
+    var data = new Uint8Array(16);
+    data.set(DISC_DEPOSIT, 0);
+    new DataView(data.buffer).setBigUint64(8, BigInt(usd) * 1000000n, true);
+    return data;
+  }
+
+  tierBtns.forEach(function (btn) {
+    btn.onclick = async function () {
+      if (USDC_MINT.indexOf("REPLACE") === 0) { status("Not configured yet: campaign USDC mint missing."); return; }
+      var usd = parseInt(btn.getAttribute("data-usd"), 10);
+      tierBtns.forEach(function (b) { b.disabled = true; });
+      try {
+        var mint = new W.PublicKey(USDC_MINT);
+        var myAta = ata(wallet.pk, mint);
+        var ixs = [];
+        ixs.push(new W.TransactionInstruction({
+          programId: ATA_PID,
+          keys: [
+            { pubkey: wallet.pk, isSigner: true, isWritable: true },
+            { pubkey: myAta, isSigner: false, isWritable: true },
+            { pubkey: wallet.pk, isSigner: false, isWritable: false },
+            { pubkey: mint, isSigner: false, isWritable: false },
+            { pubkey: W.SystemProgram.programId, isSigner: false, isWritable: false },
+            { pubkey: TOKEN_PID, isSigner: false, isWritable: false },
+          ],
+          data: new Uint8Array([1]), // CreateIdempotent
+        }));
+        ixs.push(new W.TransactionInstruction({
+          programId: pid,
+          keys: [
+            { pubkey: wallet.pk, isSigner: true, isWritable: true },
+            { pubkey: campaign, isSigner: false, isWritable: true },
+            { pubkey: vault, isSigner: false, isWritable: true },
+            { pubkey: myAta, isSigner: false, isWritable: true },
+            { pubkey: receiptPda(wallet.pk), isSigner: false, isWritable: true },
+            { pubkey: TOKEN_PID, isSigner: false, isWritable: false },
+            { pubkey: W.SystemProgram.programId, isSigner: false, isWritable: false },
+          ],
+          data: depositData(usd),
+        }));
+        var sig = await send(ixs);
+        status("Escrowed $" + usd + " — you're on the board. " + sig.slice(0, 12) + "…");
+      } catch (e) {
+        status("Deposit failed: " + shortErr(e));
+      }
+      refreshState();
+    };
+  });
 
   $("withdraw").onclick = async function () {
     $("withdraw").disabled = true;
@@ -216,7 +238,7 @@
         data: DISC_WITHDRAW,
       });
       var sig = await send([ix]);
-      status("Withdrawn — your $20 is back in your wallet. " + sig.slice(0, 12) + "…");
+      status("Withdrawn — your deposit is back in your wallet. " + sig.slice(0, 12) + "…");
     } catch (e) {
       status("Withdraw failed: " + shortErr(e));
     }
@@ -225,7 +247,7 @@
 
   function shortErr(e) {
     var m = (e && e.message) || String(e);
-    if (m.indexOf("insufficient funds") >= 0) return "not enough USDC in this wallet (need $20).";
+    if (m.indexOf("insufficient funds") >= 0) return "not enough USDC in this wallet for that tier.";
     return m.slice(0, 140);
   }
 
