@@ -1,0 +1,102 @@
+{
+  "generatedAt": "2026-07-11T14:45:48.120Z",
+  "board": "4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C",
+  "program": "FxkompVBzfCN6HsZpbwGW72AanCaFkAFiEcMqoi9c3Wz",
+  "erUrl": "https://devnet-router.magicblock.app",
+  "boardTotal": 7472,
+  "countedCheers": 7472,
+  "totalCheerers": 22,
+  "firstCheerAt": 1783744487,
+  "lastCheerAt": 1783780164,
+  "latestSig": "sPv9hqTwcxagvcLdLYJaavzDcnGzfaSe78TNZ1BfmADsYn4zseUyEy7Ycsd97PJ9oJkALGfXfC2RmKMXpzZXVXu",
+  "cheerers": [
+    {
+      "pubkey": "AJEfaQytsvY3w1cLRbgkFLMiw7MvGJyHRw5Qi7v2De3C",
+      "cheers": 2404
+    },
+    {
+      "pubkey": "4DgN26ADncsZgvS3CFkc4MQYK4DNtEQXQE2E4aCcpEUb",
+      "cheers": 2004
+    },
+    {
+      "pubkey": "9ovfg6MU73uRMiyMvQYk3mxvD6zJ2LdD7DvKZPsqR4CJ",
+      "cheers": 1337
+    },
+    {
+      "pubkey": "sxJRVUvWL15r63mpefBw3EXmnb2eHEdfbmTD9pHw21s",
+      "cheers": 682
+    },
+    {
+      "pubkey": "8WDNg2jHdDuEtZx4NPvWaDUMgVPXHyqYxJMVxPQveQH3",
+      "cheers": 346
+    },
+    {
+      "pubkey": "GQJrvnM41Aef7hRz6EhSVBeUCxuf1gqUFPjPVBa5kzvN",
+      "cheers": 161
+    },
+    {
+      "pubkey": "BbgyiXn6YF3zeY1r9rtpTK9a2BpaQYL9k9dS1WUC7Joq",
+      "cheers": 121
+    },
+    {
+      "pubkey": "6ASB4AHEG3cky3dFWkiR3sqcey9yfrUzoXZrVuck19BW",
+      "cheers": 105
+    },
+    {
+      "pubkey": "9Y5427iNH5SQqDWmuwzE5eEnSA87MeCCLq2VpyxqpDGD",
+      "cheers": 60
+    },
+    {
+      "pubkey": "GRg77HgwKa858LrDaoeoRdrQqrFGwNr9g76RTNgRB2gV",
+      "cheers": 48
+    },
+    {
+      "pubkey": "4zEiAg2kEj2QKVwtJ4r7jepU9FyW7Y4EX9CaKa726J6a",
+      "cheers": 47
+    },
+    {
+      "pubkey": "BrkSqqw6EPcoKpvFfkfnoUkfVymLWx9YVKXe3SVZYXgP",
+      "cheers": 38
+    },
+    {
+      "pubkey": "DQt4pTewzF2iEHiGg8NBr1mthotrRxLLFkHAcTqZMhvV",
+      "cheers": 36
+    },
+    {
+      "pubkey": "DtfuQ6JUT9iueRDoG2WURzSvrYoznnVW8Udb3mwayguj",
+      "cheers": 29
+    },
+    {
+      "pubkey": "6xfBzjQKTv5FGWuLnKdtJtaGazR6dfxP6jGTVbuNeDao",
+      "cheers": 13
+    },
+    {
+      "pubkey": "6x95wn6Sz2MFKuF23uEuX1wYGzawm7QrKGZcmDPmGf5x",
+      "cheers": 11
+    },
+    {
+      "pubkey": "C1CkfEQQbSvrRysKCibASSVqXHQ42WV5Sp3WmvWjj4ot",
+      "cheers": 11
+    },
+    {
+      "pubkey": "3m44kLxioghoaJX6x81BuTefyh2pZy6DxtVWLnrAgqXP",
+      "cheers": 7
+    },
+    {
+      "pubkey": "5X3na4pXgzSm9yg5vgD8EBei1M6Wk5vcMLs6rajuwjyT",
+      "cheers": 5
+    },
+    {
+      "pubkey": "6HX1XcJWNcFohsvqrzf5Xe4iWizrsBX4rBTXngSiUebY",
+      "cheers": 5
+    },
+    {
+      "pubkey": "84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2",
+      "cheers": 1
+    },
+    {
+      "pubkey": "Mo5bGyQBR3T3vqxkNkRUyazMJ172vGqHQpqqiChzHaL",
+      "cheers": 1
+    }
+  ]
+}

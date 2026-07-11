@@ -25,6 +25,8 @@
   #mine{font-size:15px;color:var(--muted)}
   #mine b{color:var(--accent2);font-size:22px}
   .fine{color:#5d6675;font-size:12px;text-align:center;max-width:34ch}
+  #lb{color:var(--accent2);font-size:14px;font-weight:700;text-decoration:none;text-shadow:0 1px 10px rgba(0,0,0,.9);
+      padding:6px 2px}
   #burst{position:fixed;inset:0;pointer-events:none}
   .pop{position:absolute;font-size:28px;animation:rise 1s ease-out forwards}
   @keyframes rise{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-120px) scale(1.6)}}
@@ -36,6 +38,7 @@
   <div id="total"><b id="totaln">–</b>cheers from everyone</div>
   <div id="mine">your cheers: <b id="count">0</b></div>
   <div class="fine" id="status">tap as many times as you mean it — each tap is a real transaction on the rollup</div>
+  <a id="lb" href="leaderboard.html">where do I stand? →</a>
   <div id="burst"></div>
 
 <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
@@ -108,6 +111,10 @@
   }
 
   document.getElementById("btn").addEventListener("pointerdown", cheer);
+
+  // the leaderboard reads the same board over the same rpc — carry both across
+  document.getElementById("lb").href =
+    "leaderboard.html?board=" + encodeURIComponent(BOARD || "") + "&rpc=" + encodeURIComponent(ER_URL);
 
   // global total — same board account the projector reads, lighter poll for phones
   function pollTotal() {

@@ -30,6 +30,60 @@ initialize (base) ──► delegate (base→ER) ──► cheer × N (ER, gasle
 - `scripts/end_board.cjs` — end it: undelegate, print final base-layer tally.
 - `web/cheer.html` — phone button page (config via `?board=<pda>&rpc=<er-url>`).
 - `web/tally.html` — projector view, 300ms polling (same query params).
+- `web/leaderboard.html` — who has smashed the button the most (below).
+- `scripts/build_leaderboard.cjs` — rebuilds the leaderboard history snapshot.
+
+## The leaderboard
+
+`web/leaderboard.html` (short path: `/board.html`) ranks the cheerers. It is
+derived from the chain, not from a database — there is no server here.
+
+Every cheer is its own transaction, signed by a throwaway keypair the browser
+generates and keeps in `localStorage` (`cheer_kp`). That pubkey **is** the
+identity: pseudonymous, unfunded, worthless, and the only thing the chain knows
+about a person. The leaderboard walks the board account's transaction history,
+resolves the signer of each `cheer` instruction, and tallies per signer. The
+page reads `cheer_kp` (read-only, never writes it) to highlight your own row.
+
+Two-stage load, so it opens fast on a phone:
+
+1. **History snapshot** — `web/leaderboard.json`, ~2 KB, precomputed. The full
+   walk is ~7,500 transactions and takes ~40 s, which is not something a phone
+   should do.
+2. **Live tail** — the page fetches only the signatures *newer* than the
+   snapshot's `latestSig`, resolves those, and merges. The headline total comes
+   straight off the board account every 3 s, so it is always exact.
+
+Refresh the snapshot (read-only; signs nothing, sends no instruction):
+
+```bash
+node cheerboard/scripts/build_leaderboard.cjs   # rewrites web/leaderboard.json
+```
+
+Names are **opt-in and private**: the page can post a display name + cheer key
+to the same private Google Form the deposit page uses. Names land in a private
+sheet, never on-chain and never on the public board. The board stays
+pseudonymous for everyone.
+
+**Self-check — the honesty property.** The board account holds its own `cheers`
+counter, incremented by the program. The leaderboard is built by an entirely
+different route (signature history → per-signer attribution). The two must
+agree, and the build script prints both:
+
+```
+board says 7472, we attributed 7472     # 2026-07-11, 22 cheerers
+board says 5414, we attributed 5414     # 2026-07-11, earlier, 20 cheerers
+```
+
+Attributed == on-chain tally means every cheer on the board is accounted for to
+a signer, with none invented and none dropped. Verify the headline number
+yourself against the account:
+
+```bash
+curl -s -X POST https://devnet-router.magicblock.app -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"getAccountInfo","params":["4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C",{"encoding":"base64"}]}' \
+  | python3 -c "import sys,json,base64,struct; d=base64.b64decode(json.load(sys.stdin)['result']['value']['data'][0]); print(struct.unpack_from('<Q',d,48)[0],'cheers')"
+```
 
 ## Run it (local rig)
 

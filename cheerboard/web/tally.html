@@ -19,12 +19,16 @@
   #rate{font-size:clamp(16px,2.4vw,26px);color:var(--muted);font-weight:700}
   #rate b{color:var(--ink)}
   .fine{position:fixed;bottom:16px;color:#5d6675;font-size:13px;text-align:center;width:100%}
+  /* nobody can click a projector — the leaderboard has to be typeable from the back of the room */
+  #lb{position:fixed;bottom:38px;width:100%;text-align:center;color:var(--muted);font-size:clamp(14px,1.6vw,20px);font-weight:700}
+  #lb b{color:var(--accent2)}
 </style>
 </head>
 <body>
   <h1>People smashing the button for <span>a climbing wall at NS</span></h1>
   <div id="n">–</div>
   <div id="rate"><b id="rpm">0</b> cheers / min · live on a MagicBlock ephemeral rollup</div>
+  <div id="lb">who's cheering hardest? <b>loringtonian.github.io/NS-climbing/board.html</b></div>
   <div class="fine" id="status">connecting…</div>
 
 <script>
