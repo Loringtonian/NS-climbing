@@ -28,6 +28,9 @@
 | Tier perks final copy                  | Lorin review | drafted |
 | In-person selling (QR + pitch)         | Lorin        | ongoing all weekend |
 | Demo video + submission package        | build agent + Lorin | Sunday |
+| Agent-legibility push (VERIFY_IT.md — "ask your agent" prompt + claims) | done, Lorin taste-pass pending | drafted |
+| Verify-with-your-agent section on the live page | build agent | open |
+| Nano-banana visual assets (poster/page art) | deferred — after text is tight | parked |
 
 ## Media lane notes (IG / X video)
 
