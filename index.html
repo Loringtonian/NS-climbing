@@ -133,6 +133,28 @@
   .trustline a{color:var(--accent2)}
   @media(min-width:641px){.tiers{grid-template-columns:1fr 1fr 1fr}}
   @media(max-width:640px){.gallery{grid-template-columns:1fr}.hero-inner{padding:30px 22px}}
+  /* best-case flow + two lanes */
+  .flow{margin-top:6px}
+  .flow h2{font-size:clamp(22px,3.4vw,30px);margin-bottom:4px}
+  .flow .sub2{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .steps{display:grid;gap:0}
+  .step{display:grid;grid-template-columns:34px 1fr;gap:14px;align-items:start;position:relative;padding-bottom:18px}
+  .step:last-child{padding-bottom:0}
+  .step:not(:last-child)::before{content:"";position:absolute;left:16px;top:30px;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),rgba(255,178,74,.25))}
+  .step .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#0e1116;background:linear-gradient(160deg,var(--accent2),var(--accent));position:relative;z-index:1}
+  .step .txt{padding-top:5px}
+  .step .txt b{display:block;font-size:16px;margin-bottom:2px}
+  .step .txt span{color:var(--muted);font-size:14px;line-height:1.55}
+  .step.end .dot{background:#1c222c;color:var(--accent2);border:1px solid var(--line)}
+  .flow .otherwise{margin-top:20px;background:#141922;border:1px solid var(--line);border-left:3px solid var(--accent2);border-radius:12px;padding:14px 16px;color:var(--muted);font-size:14px;line-height:1.6}
+  .flow .otherwise b{color:var(--ink)}
+  .lanes{display:grid;gap:10px;margin:18px 0 4px}
+  @media(min-width:641px){.lanes{grid-template-columns:1fr 1fr}}
+  .lane{display:flex;align-items:center;gap:12px;background:#141922;border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:var(--ink);font-weight:700;font-size:15px}
+  .lane:hover{border-color:var(--accent)}
+  .lane.hot{background:linear-gradient(160deg,rgba(255,107,74,.14),transparent);border-color:rgba(255,107,74,.45)}
+  .lane .ico{font-size:20px;line-height:1}
+  .lane small{display:block;font-weight:500;color:var(--muted);font-size:13px;margin-top:2px}
   /* statement of affairs — two registers under a toggle */
   .statement{max-width:65ch}
   .statement h2{font-size:clamp(22px,3vw,30px);margin-bottom:6px}
@@ -193,9 +215,29 @@
   </section>
 
   <section>
+    <div class="flow">
+      <h2>How this ends well.</h2>
+      <div class="sub2">The best case, start to finish. There is exactly one other ending — see below.</div>
+      <div class="steps">
+        <div class="step"><div class="dot">1</div><div class="txt"><b>You lock in $20.</b><span>Two taps in your wallet. The money leaves your account and sits in a pool no person can touch.</span></div></div>
+        <div class="step"><div class="dot">2</div><div class="txt"><b>Enough of us do the same.</b><span>The counter climbs in public. Not signatures — money. That's the number Balaji can't wave away.</span></div></div>
+        <div class="step"><div class="dot">3</div><div class="txt"><b>Network School says go.</b><span>We show up with priced demand and a costed plan, and get the greenlight for the room.</span></div></div>
+        <div class="step"><div class="dot">4</div><div class="txt"><b>We vote on where the money goes.</b><span>Lorin proposes the build account; a majority of depositors has to approve that exact account before a cent moves. You get pinged in the Discord thread.</span></div></div>
+        <div class="step end"><div class="dot">✓</div><div class="txt"><b>The wall gets built.</b><span>Kilter 16×12, holds, LEDs, pads. Your name goes on the founding plaque — and if you went V10, on a route.</span></div></div>
+      </div>
+      <div class="otherwise"><b>The only other ending:</b> it doesn't happen — a majority votes to dissolve, or 90 days pass with no greenlight — and <b>everyone gets their money back, automatically.</b> There is no third ending. Nobody can run off with the pool, including us.</div>
+    </div>
+  </section>
+
+  <section>
     <div class="ask">
       <h2>Add your voice.</h2>
       <p style="color:var(--muted);max-width:56ch;margin:10px 0 0">Not a waitlist, not a donation — an escrow. Put your money where your mouth is.</p>
+
+      <div class="lanes">
+        <a class="lane hot" href="#deposit"><span class="ico">🤑</span><span>Shut up and take my money<small>Straight to the tiers. It's $20.</small></span></a>
+        <a class="lane" href="#statement"><span class="ico">🧐</span><span>Explain it properly first<small>The whole thing, in plain English or crypto.</small></span></a>
+      </div>
 
       <div class="goal-hero">
         <div class="big nums"><span id="raised-now">$—</span> <span>raised</span></div>
@@ -330,7 +372,7 @@ who can trigger each — and would you lock in $20?</pre>
       </script>
     </div>
   </section>
-  <section>
+  <section id="statement">
     <div class="statement">
       <h2>The whole thing, in full.</h2>
       <div class="sub2">The same eight facts, said twice. Pick your register.</div>
