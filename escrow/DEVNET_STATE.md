@@ -121,3 +121,20 @@ VICTORY re-rehearsal on the frozen binary (scratch ns-wall-victory2, PDA
 EMdTYQXXZqJTpZnCW1jNNeYASifQt5pXaueATQRth8tT): deposits → propose DEUJCsLb…
 (4eBXU7Qe…) → vote 1/2 → 2/2 majority (3M1uYVfy…, Zwnqnonq…) → permissionless
 release (wyKpBaZh…) → funds landed at the proposed ATA.
+
+## Canonical campaign moved: send-climbing (2026-07-11, privacy episode close-out)
+
+The prior phone-test campaign (ns-climbing-wall, PDA CZdcsJxrw1BMwp3jU8Rk27jhHa7aS8Fg3wY96bgrPmgJ)
+accumulated two $20 test deposits whose transactions carried name memos from a
+briefly-shipped (and fully reverted) feature. No real person's name was
+involved, but the policy is zero name↔wallet links on-chain, so the demo
+campaign was re-created with spotless history:
+
+| What         | Value |
+|--------------|-------|
+| Campaign ID  | send-climbing |
+| Seeded       | $100 (demo1) + $20 (demo2) = $120, 2 depositors, NO memos anywhere |
+| Program      | 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD (unchanged) |
+
+Both pages' ESCROW_CONFIG pin send-climbing. ns-climbing-wall remains on the
+ledger (test deposits locked; refundable at its 90-day deadline via the crank).
