@@ -42,7 +42,7 @@ Binary: `target/deploy/ns_climb_escrow.so` — **303,504 bytes**, v2+audit build
 (tiers + dissolve vote + Supporter Badge; 2026-07-11, anchor-cli 1.0.2 /
 anchor-lang 1.1.2 / solana 4.1.1 / rustc 1.92.0).
 **sha256 `5f2c7dd682d693d743c4803205816a29ac9b07733049ccc4f6131751b081324e`** —
-this exact artifact passes the full suite on localnet (31 tests as of the audit-fix build); deploys ship this
+this exact artifact passed 31/31 on localnet via --skip-build (auditor freeze protocol, 2026-07-11; hash byte-identical before and after the run, and reproducible across clean rebuilds); deploys ship this
 file. Fits the existing --max-len 320000 devnet allocation, so devnet upgrades
 in place (NOTE: v1 campaign accounts don't parse under the v2 layout — create
 a fresh campaign after upgrading). Auditors: `solana program dump`, truncate

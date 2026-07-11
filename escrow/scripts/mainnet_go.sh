@@ -71,7 +71,15 @@ NEXT (in order):
 EOF
 cat MAINNET_STATE.md
 echo
-echo "PHONE URL (QR this AFTER the smoke test): $PAGE"
+echo "PHONE URL — DO NOT QR YET. Two gates first:"
+echo "  GATE 1 (web flip): demo.html still hardcodes DEVNET (audit fix — no URL params)."
+echo "  Edit escrow/web/demo.html: set ESCROW_CONFIG + the page config block to"
+echo "    rpc:      https://api.mainnet-beta.solana.com   (or the private RPC)"
+echo "    campaign: $CAMPAIGN_ID"
+echo "    mint:     $USDC"
+echo "  commit + push + verify the LIVE page shows the mainnet counter."
+echo "  GATE 2: the smoke test in DEPLOY.md (Lorin = depositor #1)."
+echo "  Only then QR: $PAGE"
 echo
 echo "== UPGRADE AUTHORITY — scheduled within the week (disclosed; not launch-blocking) =="
 echo "Current authority: the deployer key (held by Lorin, disclosed in agents.md)."
