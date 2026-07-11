@@ -19,6 +19,8 @@
        box-shadow:0 12px 60px rgba(255,107,74,.35), inset 0 -8px 24px rgba(0,0,0,.25);
        transition:transform .06s}
   #btn:active{transform:scale(.93)}
+  #total{font-size:17px;color:var(--ink);font-weight:700}
+  #total b{background:linear-gradient(180deg,var(--accent2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:44px;display:block;text-align:center;line-height:1.1}
   #mine{font-size:15px;color:var(--muted)}
   #mine b{color:var(--accent2);font-size:22px}
   .fine{color:#5d6675;font-size:12px;text-align:center;max-width:34ch}
@@ -30,6 +32,7 @@
 <body>
   <h1>Do you want a climbing wall <span>at Network School?</span></h1>
   <button id="btn">I WANT<br>THIS WALL</button>
+  <div id="total"><b id="totaln">–</b>cheers from everyone</div>
   <div id="mine">your cheers: <b id="count">0</b></div>
   <div class="fine" id="status">tap as many times as you mean it — each tap is a real transaction on the rollup</div>
   <div id="burst"></div>
@@ -104,6 +107,18 @@
   }
 
   document.getElementById("btn").addEventListener("pointerdown", cheer);
+
+  // global total — same board account the projector reads, lighter poll for phones
+  function pollTotal() {
+    if (!BOARD) return;
+    conn.getAccountInfo(new W.PublicKey(BOARD), "processed").then(function (info) {
+      if (!info || !info.data) return;
+      var n = new DataView(info.data.buffer, info.data.byteOffset).getBigUint64(48, true);
+      document.getElementById("totaln").textContent = Number(n).toLocaleString();
+    }).catch(function(){});
+  }
+  pollTotal();
+  setInterval(pollTotal, 1000);
 })();
 </script>
 </body>
