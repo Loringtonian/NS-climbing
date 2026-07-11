@@ -38,8 +38,12 @@ happened (tx signatures + screenshots) — funds are withdrawable the whole time
 After the smoke test: update agents.md Live-campaign-parameters (cluster,
 PDA, mint), push, and selling can start.
 
-Binary: `target/deploy/ns_climb_escrow.so` — **279,336 bytes** (build 2026-07-11,
-anchor-cli 1.0.2 / anchor-lang 1.1.2 / solana 4.1.1 / rustc 1.92.0).
+Binary: `target/deploy/ns_climb_escrow.so` — **285,480 bytes**, tiered build
+(2026-07-11, anchor-cli 1.0.2 / anchor-lang 1.1.2 / solana 4.1.1 / rustc 1.92.0).
+**sha256 `38cd4d2147f416fdd52ddeed6b5f74b670935cb90d8541490c3758b715819da0`** —
+this exact artifact passed the full 18/18 suite (belt-and-braces re-run with
+`--skip-build`); the mainnet deploy ships this file. Auditors: `solana program
+dump`, truncate to 285,480 bytes, sha256 must match (procedure in agents.md).
 Program ID `7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw` = pubkey of the
 gitignored keypair `target/deploy/ns_climb_escrow-keypair.json`. If that file is
 ever lost or you want a fresh ID: `solana-keygen new -o target/deploy/ns_climb_escrow-keypair.json`,
