@@ -55,12 +55,15 @@
       <button class="btn" id="connect">Connect wallet</button>
       <div id="inBadge" class="in hidden">You're on the board ✓</div>
       <div id="discordCta" class="fine hidden" style="text-align:center"></div>
-      <!-- tier names + copy: sales_kit/TIERS.md (bouldering grades, final) -->
       <div id="whoWrap" class="hidden">
-        <input id="whoName" maxlength="64" placeholder="Who are you? (optional)"
+        <input id="whoName" maxlength="100" placeholder="Who are you? — so we can find you when it's time to vote"
           style="width:100%;margin-top:10px;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:#0e1116;color:var(--ink);font:inherit;font-size:15px">
-        <div class="fine" style="margin-top:6px">first name or handle — so we can find you when it's time to vote. Goes on-chain with your deposit.</div>
+        <button class="btn ghost" id="whoSave" style="margin-top:8px;padding:10px;font-size:14px">Save my name</button>
+        <span class="fine" id="whoStatus" style="margin-left:10px"></span>
+        <div style="margin-top:8px;font-size:13px;color:#d7dde6">Names live in a private list held by the organizer — nothing but your deposit ever touches the chain.</div>
       </div>
+
+      <!-- tier names + copy: sales_kit/TIERS.md (bouldering grades, final) -->
       <button class="btn hidden tier" data-usd="20">V1 — $20<small>Get on the board. Your name on the founding plaque.</small></button>
       <button class="btn hidden tier" data-usd="100">V5 — $100<small>First-ascent night. First-week priority.</small></button>
       <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
@@ -100,7 +103,9 @@
     rpc: "https://api.devnet.solana.com",
     program: "42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD",
     campaign: "ns-climbing-wall",
-    mint: "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD"
+    mint: "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD",
+        // private name form — set when Lorin's Google Form lands; field hidden until then
+        nameForm: { endpoint: "", nameEntry: "", walletEntry: "" }
   };
 </script>
 <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>

@@ -164,24 +164,6 @@
   // a receipt that APPEARS between polls is genuinely new and gets a live
   // "just now" pulse — no fabricated times.
   var knownReceipts = null;
-  var memoNames = {}; // receipt pubkey -> sanitized memo name (NEW deposits only)
-  function esc(t) { return t.replace(/[&<>"']/g, function (ch) { return "&#" + ch.charCodeAt(0) + ";"; }); }
-  function fetchMemoName(receiptKey) {
-    memoNames[receiptKey] = ""; // mark in-flight so we fetch once
-    rpc("getSignaturesForAddress", [receiptKey, { limit: 1 }], function (err, sigs) {
-      if (err || !sigs || !sigs.length) return;
-      rpc("getTransaction", [sigs[0].signature, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 }], function (e2, tx) {
-        if (e2 || !tx) return;
-        try {
-          (tx.transaction.message.instructions || []).forEach(function (ix) {
-            if (ix.program === "spl-memo" && typeof ix.parsed === "string" && ix.parsed.indexOf("send-climbing: ") === 0) {
-              memoNames[receiptKey] = esc(ix.parsed.slice(15).slice(0, 64));
-            }
-          });
-        } catch (_e) {}
-      });
-    });
-  }
   function pollReceipts() {
     var strip = document.getElementById("live-strip");
     if (!strip || !campaignAddr) return;
@@ -211,14 +193,12 @@
         });
         rows.sort(function (a, b) { return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0); });
         rows.slice(0, 5).forEach(function (r) {
-          var nm = memoNames[r.key] ? '<span style="font-weight:700">' + memoNames[r.key] + "</span> " : "";
-          frag += '<div class="sup' + (r.isNew ? " new" : "") + '" data-receipt="' + r.key + '">' + nm +
+          frag += '<div class="sup' + (r.isNew ? " new" : "") + '">' +
             '<span class="mono">' + r.wallet.slice(0, 4) + "…" + r.wallet.slice(-4) + "</span>" +
             '<span class="chip t' + r.tier + '">' + TIER_NAMES[r.tier] + "</span>" +
             (r.isNew ? '<span class="just">just now</span>' : "") +
             "</div>";
           shown++;
-          if (r.isNew && !(r.key in memoNames)) fetchMemoName(r.key);
         });
         strip.innerHTML = shown ? frag : '<div class="sup empty">be the first on the board</div>';
       } catch (_e) {}

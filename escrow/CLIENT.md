@@ -79,14 +79,16 @@ while `payout_voted_seq == campaign.proposal_id`.
 | `release` | `[253,249,15,206,28,127,193,241]` | none — permissionless once the dual gate stands (and only before the deadline) |
 | `refund` | `[2,96,183,251,63,208,46,46]` | none — permissionless crank, open only post-dissolution/post-deadline |
 
-**Optional name memo:** if the depositor fills the "Who are you?" field, the
-SAME deposit transaction carries one extra SPL Memo instruction (program
-`MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr`, no keys, data
-`"send-climbing: <name>"`, name stripped of newlines and capped at 64 chars).
-The audited deposit instruction bytes are untouched — the memo is a sibling
-instruction. Skip it entirely when the field is empty. The supporters strip
-resolves memo names for deposits that land while the page is open (one
-getSignaturesForAddress + getTransaction per NEW receipt; never bulk history).
+**Names are OFF-chain by policy** (privacy: never publish a name↔wallet link
+someone didn't publish themselves). The deposit transaction is exactly the
+audited shape — no extra instructions, ever. After a confirmed deposit, an
+optional inline "Who are you?" field background-POSTs (fetch, mode no-cors,
+fire-and-forget) to a private Google Forms `formResponse` endpoint with two
+entry params: the typed name (control-chars stripped, 100-char cap) and the
+wallet address. Config: `ESCROW_CONFIG.nameForm = { endpoint, nameEntry,
+walletEntry }` — while `endpoint` is empty the field is hidden entirely.
+The visible privacy line ships with the field: "Names live in a private list
+held by the organizer — nothing but your deposit ever touches the chain."
 
 Account orders (all in `deposit.js` already):
 - `deposit`: depositor (signer, w) · campaign (w) · vault (w) · depositor's

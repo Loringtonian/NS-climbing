@@ -32,7 +32,10 @@
   var DISC_UNVOTE = new Uint8Array([244,70,201,208,63,92,167,83]);
   var DISC_VOTE_PAYOUT = new Uint8Array([253,223,29,124,122,195,50,5]);
   var DISC_UNVOTE_PAYOUT = new Uint8Array([93,70,124,191,216,185,62,248]);
-  var MEMO_PID = new W.PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+  // Private name form (Google Forms formResponse endpoint + entry IDs) —
+  // config values; until set, the name field is hidden entirely. Names NEVER
+  // touch the chain: the deposit transaction is exactly the audited shape.
+  var NAME_FORM = (window.ESCROW_CONFIG && window.ESCROW_CONFIG.nameForm) || { endpoint: "", nameEntry: "", walletEntry: "" };
   // Discord thread URL — drop the real link in when Lorin sends it; empty = plain wayfinding text
   var DISCORD_THREAD_URL = (window.ESCROW_CONFIG && window.ESCROW_CONFIG.discordThread) || "";
   var DISCORD_TEXT = "Join the send-climbing thread — NS Discord → #discussion → send-climbing — that's where votes get called.";
@@ -110,7 +113,7 @@
       show("lockedNote", deposited);
       if (deposited) renderDiscord(document.getElementById("discordCta"));
       var _nameWrap = document.getElementById("whoWrap");
-      if (_nameWrap) _nameWrap.classList.toggle("hidden", deposited);
+      if (_nameWrap) _nameWrap.classList.toggle("hidden", !(deposited && NAME_FORM.endpoint));
       tierBtns.forEach(function (b) { b.classList.toggle("hidden", deposited); b.disabled = false; });
       show("tierFine", !deposited);
       // votes: campaign v3 parse (dissolve + payout proposal state)
@@ -164,6 +167,22 @@
       }).catch(function () {});
     }).catch(function () {});
   }
+
+  var _saveName = document.getElementById("whoSave");
+  if (_saveName) _saveName.onclick = function () {
+    var nameEl = document.getElementById("whoName");
+    // strip control chars, cap 100 — this string goes to a PRIVATE sheet, never on-chain
+    var who = (nameEl.value || "").replace(/[\u0000-\u001f\u007f]+/g, " ").trim().slice(0, 100);
+    if (!who || !wallet || !NAME_FORM.endpoint) return;
+    var body = new URLSearchParams();
+    body.set(NAME_FORM.nameEntry, who);
+    body.set(NAME_FORM.walletEntry, wallet.pk.toBase58());
+    // background fire-and-forget; no-cors means we can't read the response —
+    // optimistic confirmation, the user never leaves the page
+    fetch(NAME_FORM.endpoint, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() }).catch(function () {});
+    document.getElementById("whoStatus").textContent = "noted ✓";
+    nameEl.disabled = true; _saveName.disabled = true;
+  };
 
   var _pv = document.getElementById("payoutVote");
   if (_pv) _pv.onclick = async function () {
@@ -272,17 +291,6 @@
           ],
           data: depositData(usd),
         }));
-        // optional name memo — a SEPARATE instruction in the same tx; the
-        // audited deposit instruction bytes above are untouched
-        var nameEl = document.getElementById("whoName");
-        var who = nameEl ? nameEl.value.replace(/[\r\n]+/g, " ").trim().slice(0, 64) : "";
-        if (who) {
-          ixs.push(new W.TransactionInstruction({
-            programId: MEMO_PID,
-            keys: [],
-            data: new TextEncoder().encode("send-climbing: " + who),
-          }));
-        }
         var sig = await send(ixs);
         status("Escrowed $" + usd + " — you're on the board. " + sig.slice(0, 12) + "…");
         renderDiscord(document.getElementById("discordCta"));
