@@ -11,7 +11,6 @@ export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/b
 cd "$(dirname "$0")/.."
 
 RPC=https://api.devnet.solana.com
-GOAL_USDC="${GOAL_USDC:-5000}"
 DEADLINE_DAYS="${DEADLINE_DAYS:-90}"
 CAMPAIGN_ID="${CAMPAIGN_ID:-ns-climbing-wall}"
 
@@ -28,10 +27,9 @@ MINT=$(spl-token create-token --decimals 6 -u devnet --output json | python3 -c 
 echo "demo mint: $MINT"
 
 echo "== 3/5 init campaign =="
-BUILDOUT="${BUILDOUT:-$(solana address)}"
 ANCHOR_PROVIDER_URL=$RPC ANCHOR_WALLET=~/.config/solana/id.json \
-CAMPAIGN_ID=$CAMPAIGN_ID GOAL_USDC=$GOAL_USDC DEADLINE_DAYS=$DEADLINE_DAYS \
-BUILDOUT=$BUILDOUT USDC_MINT=$MINT npx ts-node scripts/init_campaign.ts | tee /tmp/init_campaign.out
+CAMPAIGN_ID=$CAMPAIGN_ID DEADLINE_DAYS=$DEADLINE_DAYS \
+USDC_MINT=$MINT npx ts-node scripts/init_campaign.ts | tee /tmp/init_campaign.out
 PDA=$(grep "campaign PDA:" /tmp/init_campaign.out | awk '{print $3}')
 
 echo '== 4/5 rehearsal: \$20 deposit -> withdraw -> \$100 deposit (tier checks) =='
@@ -53,8 +51,7 @@ cat > DEVNET_STATE.md <<EOF
 | Campaign ID  | $CAMPAIGN_ID |
 | Campaign PDA | $PDA |
 | Demo mint    | $MINT (we control minting — fund a phone wallet: \`spl-token mint $MINT 20 <their-ata> -u devnet\` or scripts/demo_flow.ts) |
-| Buildout     | $BUILDOUT |
-| Goal         | $GOAL_USDC USDC (rehearsal number — real goal is Lorin's call) |
+| Payout       | dual-gate: organizer proposes, depositor majority approves |
 | Deposit page | $PAGE |
 | Explorer     | https://explorer.solana.com/address/$PDA?cluster=devnet |
 

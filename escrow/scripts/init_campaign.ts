@@ -2,7 +2,7 @@
  *
  *   ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
  *   ANCHOR_WALLET=~/.config/solana/id.json \
- *   CAMPAIGN_ID=ns-climbing-wall GOAL_USDC=2000 DEPOSIT_USDC=20 \
+ *   CAMPAIGN_ID=ns-climbing-wall \
  *   DEADLINE_DAYS=90 BUILDOUT=<pubkey> USDC_MINT=<mint> \
  *   npx ts-node scripts/init_campaign.ts
  *
@@ -21,10 +21,8 @@ async function main() {
   const program = anchor.workspace.nsClimbEscrow;
 
   const id = process.env.CAMPAIGN_ID || "ns-climbing-wall";
-  const goal = new BN(Math.round(parseFloat(process.env.GOAL_USDC || "2000") * 1e6));
   const days = parseFloat(process.env.DEADLINE_DAYS || "90");
   const deadline = new BN(Math.floor(Date.now() / 1000) + Math.round(days * 86400));
-  const buildout = new PublicKey(process.env.BUILDOUT || provider.wallet.publicKey);
   const mint = new PublicKey(process.env.USDC_MINT || DEVNET_USDC);
 
   const [campaign] = PublicKey.findProgramAddressSync(
@@ -37,7 +35,7 @@ async function main() {
   );
 
   const sig = await program.methods
-    .initializeCampaign(id, goal, deadline, buildout)
+    .initializeCampaign(id, deadline)
     .accounts({
       admin: provider.wallet.publicKey,
       mint,
@@ -53,9 +51,8 @@ async function main() {
   console.log("campaign PDA:", campaign.toBase58());
   console.log("vault PDA:", vault.toBase58());
   console.log("admin:", provider.wallet.publicKey.toBase58());
-  console.log("buildout:", buildout.toBase58());
   console.log("mint:", mint.toBase58());
-  console.log("goal:", goal.toString(), "deadline:", deadline.toString(), "(tiers fixed in-program: $20/$100/$1000)");
+  console.log("deadline:", deadline.toString(), "(no goal, no destination — dual-gate payout; tiers $20/$100/$1000)");
   console.log("(mainnet USDC for reference:", MAINNET_USDC + ")");
 }
 

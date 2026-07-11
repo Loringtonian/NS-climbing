@@ -19,15 +19,14 @@ cd "$(dirname "$0")/.."
 
 RPC=${RPC:-https://api.mainnet-beta.solana.com}
 USDC=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v   # Circle USDC (mainnet)
-GOAL_USDC="${GOAL_USDC:-5000}"
 DEADLINE_DAYS="${DEADLINE_DAYS:-90}"
 CAMPAIGN_ID="${CAMPAIGN_ID:-ns-climbing-wall}"
 MAX_LEN="${MAX_LEN:-320000}"   # ~12% upgrade cushion over the 285,480-byte build
 
 echo "THIS DEPLOYS TO MAINNET AND SPENDS REAL SOL."
 echo "  deployer: $(solana address)   balance: $(solana balance -u "$RPC")"
-echo "  campaign: $CAMPAIGN_ID   goal: $GOAL_USDC USDC   deadline: ${DEADLINE_DAYS}d"
-echo "  buildout: ${BUILDOUT:-$(solana address)} (IMMUTABLE after init)"
+echo "  campaign: $CAMPAIGN_ID   deadline: ${DEADLINE_DAYS}d   (no goal — raise-max; payout via dual-gate vote)"
+echo "  payout: decided later — organizer proposes, depositor majority approves"
 read -r -p "Type MAINNET to proceed: " CONFIRM
 [ "$CONFIRM" = "MAINNET" ] || { echo "aborted"; exit 1; }
 
@@ -40,10 +39,9 @@ solana program deploy target/deploy/ns_climb_escrow.so \
   --max-len "$MAX_LEN" -u "$RPC"
 
 echo "== 2/3 init campaign (Circle USDC) =="
-BUILDOUT="${BUILDOUT:-$(solana address)}"
 ANCHOR_PROVIDER_URL=$RPC ANCHOR_WALLET=~/.config/solana/id.json \
-CAMPAIGN_ID=$CAMPAIGN_ID GOAL_USDC=$GOAL_USDC DEADLINE_DAYS=$DEADLINE_DAYS \
-BUILDOUT=$BUILDOUT USDC_MINT=$USDC npx ts-node scripts/init_campaign.ts | tee /tmp/init_campaign_mainnet.out
+CAMPAIGN_ID=$CAMPAIGN_ID DEADLINE_DAYS=$DEADLINE_DAYS \
+USDC_MINT=$USDC npx ts-node scripts/init_campaign.ts | tee /tmp/init_campaign_mainnet.out
 PDA=$(grep "campaign PDA:" /tmp/init_campaign_mainnet.out | awk '{print $3}')
 
 echo "== 3/3 record state =="
@@ -57,8 +55,7 @@ cat > MAINNET_STATE.md <<EOF
 | Campaign ID  | $CAMPAIGN_ID |
 | Campaign PDA | $PDA |
 | USDC mint    | $USDC (Circle) |
-| Buildout     | $BUILDOUT |
-| Goal         | $GOAL_USDC USDC |
+| Payout       | dual-gate: organizer proposes, depositor majority approves |
 | Deposit page | $PAGE |
 | Explorer     | https://explorer.solana.com/address/$PDA |
 

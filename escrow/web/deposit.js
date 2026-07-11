@@ -31,6 +31,8 @@
   var DISC_WITHDRAW = new Uint8Array([183,18,70,156,148,109,161,34]);
   var DISC_VOTE = new Uint8Array([180,224,232,226,59,166,81,63]);
   var DISC_UNVOTE = new Uint8Array([244,70,201,208,63,92,167,83]);
+  var DISC_VOTE_PAYOUT = new Uint8Array([253,223,29,124,122,195,50,5]);
+  var DISC_UNVOTE_PAYOUT = new Uint8Array([93,70,124,191,216,185,62,248]);
 
   var wallet = null;
   var $ = function (id) { return document.getElementById(id); };
@@ -85,11 +87,13 @@
     conn.getAccountInfo(receiptPda(wallet.pk)).then(function (acct) {
       var deposited = !!acct;
       var voted = false;
-      if (deposited && acct.data.length >= 82) {
-        // Receipt: 8 disc | 32 campaign | 32 depositor | 8 amount | 1 voted | 1 bump
+      var payoutSeq = 0;
+      if (deposited && acct.data.length >= 86) {
+        // Receipt v3: 8 disc | 32 campaign | 32 depositor | 8 amount | 1 voted | 4 payout_voted_seq | 1 bump
         var dvR = new DataView(acct.data.buffer, acct.data.byteOffset);
         var amt = dvR.getBigUint64(72, true);
         voted = acct.data[80] === 1;
+        payoutSeq = dvR.getUint32(81, true);
         $("inBadge").textContent = "Supporter Badge — $" + (Number(amt / 10000n) / 100).toLocaleString() + " escrowed ✓";
       }
       show("inBadge", deposited);
@@ -98,40 +102,79 @@
       tierBtns.forEach(function (b) { b.classList.toggle("hidden", deposited); b.disabled = false; });
       show("tierFine", !deposited);
       $("withdraw").disabled = false;
-      // vote-to-dissolve: the emergency brake, deliberately quiet
-      if (deposited) {
-        conn.getAccountInfo(campaign).then(function (cAcct) {
-          if (!cAcct) return;
-          var raw = cAcct.data;
-          var dv = new DataView(raw.buffer, raw.byteOffset);
-          var o = 8 + 96;
-          o += 4 + dv.getUint32(o, true); // campaign_id
-          o += 8 + 8 + 8; // goal, deadline, total
-          var count = dv.getUint32(o, true); o += 4;
-          o += 12; // tier_counts
-          var votes = dv.getUint32(o, true); o += 4;
-          o += 1; // approved
-          var dissolved = raw[o] === 1;
-          var threshold = Math.floor(count / 2) + 1;
-          var el = $("voteLink");
-          if (dissolved) {
+      // votes: campaign v3 parse (dissolve + payout proposal state)
+      conn.getAccountInfo(campaign).then(function (cAcct) {
+        if (!cAcct) return;
+        var raw = cAcct.data;
+        var dv = new DataView(raw.buffer, raw.byteOffset);
+        var o = 8 + 64;
+        o += 4 + dv.getUint32(o, true); // campaign_id
+        o += 8 + 8; // deadline, total
+        var count = dv.getUint32(o, true); o += 4;
+        o += 12; // tier_counts
+        var dVotes = dv.getUint32(o, true); o += 4;
+        o += 32; // proposed_payout
+        var propId = dv.getUint32(o, true); o += 4;
+        var pVotes = dv.getUint32(o, true); o += 4;
+        var dissolved = raw[o] === 1;
+        var threshold = Math.floor(count / 2) + 1;
+        // dissolve link (badge-holders only)
+        var el = $("voteLink");
+        if (el) {
+          if (!deposited) { show("voteLink", false); }
+          else if (dissolved) {
             el.textContent = "Campaign dissolved by depositor vote — withdraw above.";
             el.style.pointerEvents = "none";
+            show("voteLink", true);
           } else {
             el.textContent = voted
-              ? "Remove my dissolve vote (" + votes + "/" + threshold + " to dissolve)"
-              : "Vote to dissolve the campaign (" + votes + "/" + threshold + ")";
+              ? "Remove my dissolve vote (" + dVotes + "/" + threshold + " to dissolve)"
+              : "Vote to dissolve the campaign (" + dVotes + "/" + threshold + ")";
             el.dataset.voted = voted ? "1" : "0";
+            show("voteLink", true);
           }
-          show("voteLink", true);
-        }).catch(function () {});
-      } else {
-        show("voteLink", false);
-      }
+        }
+        // payout vote button (inside the proposal panel, badge-holders only)
+        var pb = $("payoutVote");
+        if (pb) {
+          var live = propId > 0 && !dissolved;
+          if (!deposited || !live) { pb.classList.add("hidden"); }
+          else {
+            var mine = payoutSeq === propId;
+            pb.textContent = mine
+              ? "Remove my yes-vote (" + pVotes + "/" + threshold + ")"
+              : "Vote yes on this payout (" + pVotes + "/" + threshold + ")";
+            pb.dataset.voted = mine ? "1" : "0";
+            pb.classList.remove("hidden");
+            pb.disabled = false;
+          }
+        }
+      }).catch(function () {});
     }).catch(function () {});
   }
 
-  $("voteLink").onclick = async function (ev) {
+  var _pv = document.getElementById("payoutVote");
+  if (_pv) _pv.onclick = async function () {
+    if (!wallet) { status("Connect your wallet first."); return; }
+    var casting = _pv.dataset.voted !== "1";
+    _pv.disabled = true;
+    try {
+      var ix = new W.TransactionInstruction({
+        programId: pid,
+        keys: [
+          { pubkey: wallet.pk, isSigner: true, isWritable: false },
+          { pubkey: campaign, isSigner: false, isWritable: true },
+          { pubkey: receiptPda(wallet.pk), isSigner: false, isWritable: true },
+        ],
+        data: casting ? DISC_VOTE_PAYOUT : DISC_UNVOTE_PAYOUT,
+      });
+      await send([ix]);
+      status(casting ? "Payout vote cast." : "Payout vote removed.");
+    } catch (e) { status("Payout vote failed: " + shortErr(e)); }
+    refreshState();
+  };
+
+    $("voteLink").onclick = async function (ev) {
     ev.preventDefault();
     if (!wallet) return;
     var casting = $("voteLink").dataset.voted !== "1";

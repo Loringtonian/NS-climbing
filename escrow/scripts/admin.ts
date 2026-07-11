@@ -4,9 +4,9 @@
  *   CAMPAIGN_ID=ns-climbing-wall ACTION=status npx ts-node scripts/admin.ts
  *
  * ACTION=status   — print full campaign state (anyone)
- * ACTION=approve  — admin greenlight co-sign (wallet must be campaign admin)
- * ACTION=release  — execute release (anyone; program enforces goal + approval);
- *                   needs BUILDOUT_TOKEN=<USDC token account owned by buildout>
+ * ACTION=propose  — organizer proposes a payout address (PAYOUT=<pubkey>); resets payout votes
+ * ACTION=release  — execute release (anyone; program enforces proposal + majority);
+ *                   needs PAYOUT_TOKEN=<USDC token account owned by the proposed address>
  */
 import * as anchor from "@anchor-lang/core";
 import { PublicKey } from "@solana/web3.js";
@@ -23,18 +23,19 @@ async function main() {
   const [vault] = PublicKey.findProgramAddressSync(
     [Buffer.from("vault"), campaign.toBuffer()], program.programId);
 
-  if (action === "approve") {
-    const sig = await program.methods.approveRelease().accounts({
+  if (action === "propose") {
+    const payout = new PublicKey(process.env.PAYOUT!);
+    const sig = await program.methods.proposePayout(payout).accounts({
       admin: provider.wallet.publicKey,
       campaign,
     }).rpc();
-    console.log("approved:", sig);
+    console.log("proposed payout", payout.toBase58() + ":", sig);
   } else if (action === "release") {
-    const buildoutToken = new PublicKey(process.env.BUILDOUT_TOKEN!);
+    const payoutToken = new PublicKey(process.env.PAYOUT_TOKEN!);
     const sig = await program.methods.release().accounts({
       executor: provider.wallet.publicKey,
       campaign, vault,
-      buildoutToken,
+      payoutToken,
       tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
     }).rpc();
     console.log("released:", sig);
@@ -45,13 +46,14 @@ async function main() {
     campaign: campaign.toBase58(),
     admin: c.admin.toBase58(),
     mint: c.mint.toBase58(),
-    buildout: c.buildout.toBase58(),
-    goal: c.goal.toString(),
+
     tierCounts: c.tierCounts,
     deadline: new Date(c.deadline.toNumber() * 1000).toISOString(),
     totalEscrowed: c.totalEscrowed.toString(),
     depositorCount: c.depositorCount,
-    approved: c.approved,
+    proposedPayout: c.proposedPayout.toBase58(),
+    proposalId: c.proposalId,
+    payoutVotes: c.payoutVotes,
     released: c.released,
   });
 }

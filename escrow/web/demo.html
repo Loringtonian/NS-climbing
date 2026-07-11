@@ -37,7 +37,11 @@
 
   <div class="card">
     <div id="escrow-counter">loading…</div>
-    <div class="bar"><i id="bar"></i></div>
+    <div id="payout-panel" class="hidden" style="margin-top:12px;border:1px solid #5a4726;border-radius:12px;padding:12px 14px">
+      <div style="font-weight:800;font-size:14px">Payout proposed <span id="payout-addr" style="font-family:ui-monospace,Menlo,monospace;color:#ffc266"></span></div>
+      <div class="fine">Moves only on a depositor majority — <b id="payout-votes" style="color:#f2f4f7"></b></div>
+      <button class="btn ghost hidden" id="payoutVote" style="padding:10px;font-size:14px"></button>
+    </div>
   </div>
 
   <div class="card">

@@ -97,29 +97,32 @@
       .catch(function (e) { cb(e); });
   }
 
-  // Campaign account layout (borsh, after the 8-byte Anchor discriminator):
-  // admin[32] mint[32] buildout[32] campaign_id[4+len] goal[u64] deadline[i64]
-  // total_escrowed[u64] depositor_count[u32] tier_counts[3xu32]
-  // dissolve_votes[u32] approved[u8] dissolved[u8] released[u8] bump[u8]
+  // Campaign account layout v3 (borsh, after the 8-byte Anchor discriminator):
+  // admin[32] mint[32] campaign_id[4+len] deadline[i64] total_escrowed[u64]
+  // depositor_count[u32] tier_counts[3xu32] dissolve_votes[u32]
+  // proposed_payout[32] proposal_id[u32] payout_votes[u32]
+  // dissolved[u8] released[u8] bump[u8]
   function parseCampaign(b64) {
     var raw = atob(b64);
     var bytes = new Uint8Array(raw.length);
     for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
     var dv = new DataView(bytes.buffer);
-    var o = 8 + 96;
+    var o = 8 + 64;
     var idLen = dv.getUint32(o, true);
     o += 4 + idLen;
-    var goal = dv.getBigUint64(o, true); o += 8;
     o += 8; // deadline
     var total = dv.getBigUint64(o, true); o += 8;
     var count = dv.getUint32(o, true); o += 4;
     var tiers = [dv.getUint32(o, true), dv.getUint32(o + 4, true), dv.getUint32(o + 8, true)]; o += 12;
-    var votes = dv.getUint32(o, true); o += 4;
-    var approved = bytes[o] === 1; o += 1;
+    var dissolveVotes = dv.getUint32(o, true); o += 4;
+    var payout = b58encode(bytes.slice(o, o + 32)); o += 32;
+    var proposalId = dv.getUint32(o, true); o += 4;
+    var payoutVotes = dv.getUint32(o, true); o += 4;
     var dissolved = bytes[o] === 1; o += 1;
     var released = bytes[o] === 1;
-    return { goal: goal, total: total, count: count, tiers: tiers, votes: votes,
-             approved: approved, dissolved: dissolved, released: released };
+    return { total: total, count: count, tiers: tiers, votes: dissolveVotes,
+             payout: payout, proposalId: proposalId, payoutVotes: payoutVotes,
+             dissolved: dissolved, released: released };
   }
 
   var campaignAddr = null;
@@ -130,14 +133,8 @@
   function fmtUsd(bi) { return "$" + (Number(bi / 10000n) / 100).toLocaleString(); }
   function renderLive(c) {
     var el;
-    if ((el = document.getElementById("goal-now"))) el.textContent = fmtUsd(c.total);
-    if ((el = document.getElementById("goal-target"))) el.textContent = fmtUsd(c.goal);
-    var goalUsd = Number(c.goal / 10000n) / 100;
-    var usd = Number(c.total / 10000n) / 100;
-    var pct = goalUsd > 0 ? Math.min(100, (usd / goalUsd) * 100) : 0;
-    if ((el = document.getElementById("goal-pct"))) el.textContent = (Math.round(pct * 10) / 10) + "%";
-    if ((el = document.getElementById("goal-fill"))) el.style.width = pct + "%";
-    if ((el = document.getElementById("goal-people"))) {
+    if ((el = document.getElementById("raised-now"))) el.textContent = fmtUsd(c.total);
+    if ((el = document.getElementById("raised-people"))) {
       el.textContent = c.count + (c.count === 1 ? " person has" : " people have") + " skin in it";
     }
     if ((el = document.getElementById("goal-tiers"))) {
@@ -146,7 +143,19 @@
       el.innerHTML = bits.join("");
     }
     if ((el = document.getElementById("goal-state"))) {
-      el.textContent = c.released ? "FUNDED — wall greenlit" : c.dissolved ? "DISSOLVED — refunds open" : "";
+      el.textContent = c.released ? "RELEASED — funds moved to the community-approved address"
+        : c.dissolved ? "DISSOLVED — refunds open" : "";
+    }
+    // payout-proposal panel: visible only while a proposal is live
+    var panel = document.getElementById("payout-panel");
+    if (panel) {
+      var live = c.proposalId > 0 && !c.released && !c.dissolved;
+      panel.classList.toggle("hidden", !live);
+      if (live) {
+        var threshold = Math.floor(c.count / 2) + 1;
+        if ((el = document.getElementById("payout-addr"))) el.textContent = c.payout.slice(0, 4) + "…" + c.payout.slice(-4);
+        if ((el = document.getElementById("payout-votes"))) el.textContent = c.payoutVotes + " of " + threshold + " needed";
+      }
     }
   }
 
@@ -160,7 +169,7 @@
     if (!strip || !campaignAddr) return;
     rpc("getProgramAccounts", [PROGRAM_ID, {
       encoding: "base64",
-      filters: [{ dataSize: 82 }, { memcmp: { offset: 8, bytes: campaignAddr } }],
+      filters: [{ dataSize: 86 }, { memcmp: { offset: 8, bytes: campaignAddr } }],
     }], function (err, res) {
       if (err || !res) return;
       try {
@@ -200,11 +209,7 @@
   function render(c) {
     var el = document.getElementById(EL_ID);
     if (!el) return; // rich panel may be the only consumer; renderLive still runs
-    var usd = Number(c.total / 10000n) / 100; // 6-decimals -> dollars
-    var goalUsd = Number(c.goal / 10000n) / 100;
-    var pct = goalUsd > 0 ? Math.min(100, Math.round((usd / goalUsd) * 100)) : 0;
-    // tier names: bouldering grades (sales_kit/TIERS.md, final).
-    // Format per spec: "N × V1 · N × V5 · N × V10 · $TOTAL"
+    var usd = Number(c.total / 10000n) / 100;
     var names = ["V1", "V5", "V10"];
     var parts = [];
     for (var t = 0; t < 3; t++) {
@@ -213,8 +218,8 @@
     var who = parts.length ? parts.join(" · ")
       : c.count + (c.count === 1 ? " person" : " people");
     el.textContent =
-      who + " · $" + usd.toLocaleString() + " escrowed · " + pct + "% of goal" +
-      (c.released ? " · FUNDED — wall greenlit"
+      who + " · $" + usd.toLocaleString() + " raised" +
+      (c.released ? " · RELEASED to the community-approved address"
         : c.dissolved ? " · DISSOLVED — refunds open" : "");
   }
 
