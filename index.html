@@ -128,7 +128,12 @@
   #flowBox .btn{display:block;width:100%;text-align:center;font-weight:800;border:0;cursor:pointer;padding:15px;border-radius:999px;font-size:16px;background:var(--accent);color:#0e1116;margin-top:10px;text-decoration:none}
   #flowBox .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
   #flowBox .btn:disabled{opacity:.45;cursor:default}
-  #flowBox .btn.tier small{display:block;font-weight:600;font-size:12.5px;opacity:.75;margin-top:3px}
+  #flowBox .btn.tier{display:none !important}   /* tx triggers only — the cards are the UI */
+  .tiers{margin-bottom:0}
+  .tier-card.picked{border-color:var(--accent);background:linear-gradient(160deg,rgba(255,107,74,.18),transparent)}
+  .tier-card.dim{opacity:.4}
+  .tier-card .cta{display:none}
+  .pickhint{color:var(--muted);font-size:14px;margin:14px 0 0;text-align:center}
   #flowBox .in{border:1px solid #2b4a3f;background:#12201a;color:#7fe0b2;border-radius:12px;padding:12px 16px;font-weight:700;margin-top:10px;text-align:center}
   #flowBox #status{font-size:14px;margin-top:12px;min-height:20px;color:var(--accent2);word-break:break-all}
   .hidden{display:none}
@@ -192,6 +197,10 @@
   .btn-confirm{width:100%;justify-content:center;font-size:19px;padding:19px 24px;box-shadow:0 10px 40px rgba(255,107,74,.25)}
   .btn-connect{width:100%;justify-content:center;font-size:19px;padding:19px 24px;
                box-shadow:0 10px 40px rgba(255,107,74,.25);animation:pulseit 2.4s ease-in-out infinite}
+  .btn-connect.connected{animation:none;box-shadow:none;background:transparent;border:1px solid var(--line);
+               color:var(--muted);font-size:13px;font-weight:700;padding:9px 14px;width:auto;border-radius:999px;margin:0 auto 12px;display:block}
+  .tier-card .picked-tag{display:none}
+  .tier-card.picked .picked-tag{display:inline-block;color:var(--accent);font-weight:800;font-size:13px;margin-top:8px}
   @keyframes pulseit{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
   .segrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
   .segrow .seg{margin-bottom:0}
@@ -316,21 +325,23 @@
         <a class="tier-card v1" href="#deposit" data-usd="20">
           <div class="row"><span class="name">V1</span><span class="amt nums">$20</span></div>
           <div class="perk">Get on the board. Your name on the founding plaque.</div>
-          <span class="go">Escrow $20 →</span><span class="hint">most start here</span>
+          <span class="hint">most start here</span>
         </a>
         <a class="tier-card v5" href="#deposit" data-usd="100">
           <div class="row"><span class="name">V5</span><span class="amt nums">$100</span></div>
           <div class="perk">First-ascent night. First-week priority.</div>
-          <span class="go">Escrow $100 →</span>
+          
         </a>
         <a class="tier-card v10" href="#deposit" data-usd="1000">
           <div class="row"><span class="name">V10</span><span class="amt nums">$1000</span></div>
           <div class="perk">Name a route. Top of the plaque.</div>
-          <span class="go">Escrow $1000 →</span><span class="hint">first ascent of opening night</span>
+          <span class="hint">first ascent of opening night</span>
         </a>
       </div>
 
-      <div id="flowBox" class="hidden">
+      <div class="pickhint" id="pickHint">Pick a tier ↑</div>
+
+      <div id="flowBox">
         <div id="nowallet" class="hidden">
           <a class="btn" id="phantomLink" href="#">Open in Phantom</a>
           <a class="btn ghost" id="solflareLink" href="#">Open in Solflare</a>
@@ -425,8 +436,8 @@ money to vote with my wallet for a climbing wall at Network School?</pre>
         };
       </script>
       <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js" defer></script>
-      <script src="escrow/web/counter.js?v=1783779095"></script>
-      <script src="escrow/web/deposit.js?v=1783779095" defer></script>
+      <script src="escrow/web/counter.js?v=1783779708"></script>
+      <script src="escrow/web/deposit.js?v=1783779708" defer></script>
       <script>
         // tier cards open the inline flow with that tier pre-selected — no navigation
         document.addEventListener("DOMContentLoaded", function () {
@@ -435,6 +446,10 @@ money to vote with my wallet for a climbing wall at Network School?</pre>
               ev.preventDefault();
               var box = document.getElementById("flowBox");
               box.classList.remove("hidden");
+              Array.prototype.forEach.call(document.querySelectorAll(".tier-card"), function (c) {
+                c.classList.toggle("picked", c === card);
+                c.classList.toggle("dim", c !== card);
+              });
               var usd = card.getAttribute("data-usd");
               var frag = { "20": "#v1", "100": "#v5", "1000": "#v10" }[usd] || "#ask";
               history.replaceState(null, "", frag);

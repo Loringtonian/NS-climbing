@@ -73,6 +73,8 @@
   }
   // One pick, one confirm: when a tier came from the cards we never re-ask for it.
   function renderPick() {
+    var ph = document.getElementById("pickHint");
+    if (ph) ph.style.display = PICKED ? "none" : "";
     var pw = document.getElementById("pickWrap");
     var pl = document.getElementById("pickLabel");
     var cd = document.getElementById("confirmDeposit");
@@ -275,7 +277,8 @@
     try {
       var res = await p.connect();
       wallet = { p: p, pk: new W.PublicKey((res.publicKey || p.publicKey).toString()) };
-      $("connect").textContent = wallet.pk.toBase58().slice(0, 4) + "…" + wallet.pk.toBase58().slice(-4);
+      $("connect").textContent = "Connected " + wallet.pk.toBase58().slice(0, 4) + "…" + wallet.pk.toBase58().slice(-4);
+      $("connect").classList.add("connected");
       status("");
       refreshState();
     } catch (e) { status("Connect cancelled."); }
