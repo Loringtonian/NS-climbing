@@ -178,6 +178,12 @@
   .backtop:hover{border-color:var(--accent)}
   .backtop span{font-weight:700;font-size:16px}
   .backtop b{color:var(--accent);font-size:16px;white-space:nowrap}
+  .whatnext{margin-top:14px;background:#141922;border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .whatnext b{color:var(--ink)}
+  .whatnext ol{margin:8px 0 0;padding-left:18px}
+  .whatnext li{margin-bottom:7px}
+  .whatnext code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;background:#0e1116;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--accent2)}
+  .inwallet{background:#12201a;border:1px solid #2b4a3f;color:#7fe0b2;border-radius:12px;padding:11px 14px;font-size:13.5px;font-weight:700;margin-bottom:12px}
   .btn-connect{width:100%;justify-content:center;font-size:19px;padding:19px 24px;
                box-shadow:0 10px 40px rgba(255,107,74,.25);animation:pulseit 2.4s ease-in-out infinite}
   @keyframes pulseit{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
@@ -322,11 +328,20 @@
         <div id="nowallet" class="hidden">
           <a class="btn" id="phantomLink" href="#">Open in Phantom</a>
           <a class="btn ghost" id="solflareLink" href="#">Open in Solflare</a>
+          <div class="whatnext">
+            <b>What happens next:</b>
+            <ol>
+              <li>Your wallet app opens this page inside its own browser. It'll still look like this page — that's normal.</li>
+              <li>You tap <b>Connect</b>, and your wallet shows a permission screen naming the site: <code>loringtonian.github.io</code>. That's us.</li>
+              <li>Connecting shares <b>only your public address</b> — no power to move funds. Every deposit needs a separate signature from you.</li>
+            </ol>
+          </div>
           <div class="fine">Deposits are signed inside your wallet's browser. One tap above reopens this page there, connected.</div>
       <div class="fine desktop-hint">On a computer? Install the <a href="https://phantom.com" style="color:#ffb24a">Phantom browser extension</a>, then reload.</div>
 
         </div>
         <div id="hasWallet">
+          <div class="inwallet">✓ You're in your wallet's browser. This is the right place.</div>
           <button class="btn btn-connect" id="connect">Connect wallet</button>
           <div class="fine" style="margin-top:10px">Connecting shares <b>only your public address</b> — the same string you'd paste to anyone. It gives this page no power to move your funds: every deposit needs your signature, on that exact transaction. Balances are public on any blockchain, connected or not; we don't read, store, or send them anywhere.</div>
           <div id="inBadge" class="in hidden">You're on the board ✓</div>
