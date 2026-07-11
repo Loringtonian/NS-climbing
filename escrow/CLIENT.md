@@ -79,6 +79,15 @@ while `payout_voted_seq == campaign.proposal_id`.
 | `release` | `[253,249,15,206,28,127,193,241]` | none — permissionless once the dual gate stands (and only before the deadline) |
 | `refund` | `[2,96,183,251,63,208,46,46]` | none — permissionless crank, open only post-dissolution/post-deadline |
 
+**Optional name memo:** if the depositor fills the "Who are you?" field, the
+SAME deposit transaction carries one extra SPL Memo instruction (program
+`MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr`, no keys, data
+`"send-climbing: <name>"`, name stripped of newlines and capped at 64 chars).
+The audited deposit instruction bytes are untouched — the memo is a sibling
+instruction. Skip it entirely when the field is empty. The supporters strip
+resolves memo names for deposits that land while the page is open (one
+getSignaturesForAddress + getTransaction per NEW receipt; never bulk history).
+
 Account orders (all in `deposit.js` already):
 - `deposit`: depositor (signer, w) · campaign (w) · vault (w) · depositor's
   USDC ATA (w) · badge PDA (w) · Token program · System program. Prepend a
@@ -94,10 +103,11 @@ Account orders (all in `deposit.js` already):
 2. **Connected, no badge**: show the three tier buttons (V1/V5/V10) + the
    locked-pool fine print. There is NO withdraw button anywhere.
 3. **Connected, badge exists**: show "Supporter Badge — $X locked in the
-   pool ✓", the locked note (the three collective exits, verbatim from the
-   page), the quiet dissolve-vote link with live votes/threshold, and — when
-   a payout proposal is live — the payout panel's Vote/Unvote button with
-   live votes/threshold.
+   pool ✓", the Discord wayfinding line ("NS Discord → #discussion →
+   send-climbing" — URL comes from `ESCROW_CONFIG.discordThread` when set,
+   plain text until then), the locked note, the quiet dissolve-vote link with
+   live votes/threshold, and — when a payout proposal is live — the payout
+   panel's Vote/Unvote button plus a smaller Discord line for voters.
 4. **Dissolved**: badge holders see "refunds open; anyone can crank them".
    **Released**: counter says so; everything else inert.
 

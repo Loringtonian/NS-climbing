@@ -217,12 +217,19 @@
         <div id="hasWallet">
           <button class="btn" id="connect">Connect wallet</button>
           <div id="inBadge" class="in hidden">You're on the board ✓</div>
+      <div id="discordCta" class="fine hidden" style="text-align:center"></div>
+      <div id="whoWrap" class="hidden">
+        <input id="whoName" maxlength="64" placeholder="Who are you? (optional)"
+          style="width:100%;margin-top:10px;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:#0e1116;color:var(--ink);font:inherit;font-size:15px">
+        <div class="fine" style="margin-top:6px">first name or handle — so we can find you when it's time to vote. Goes on-chain with your deposit.</div>
+      </div>
           <button class="btn hidden tier" data-usd="20">V1 — $20<small>Get on the board. Your name on the founding plaque.</small></button>
           <button class="btn hidden tier" data-usd="100">V5 — $100<small>First-ascent night. First-week priority.</small></button>
           <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
           <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by community majority (fund or dissolve-refund) or the 90-day timeout refund. Perks exist when the wall exists.</div>
           <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (majority + organizer), everyone-refunded (majority dissolve), everyone-refunded (90-day timeout).</div>
           <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
+      <div id="discordCtaVote" class="fine hidden" style="text-align:center;font-size:12px"></div>
         </div>
         <div id="status"></div>
       </div>

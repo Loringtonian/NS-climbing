@@ -32,6 +32,17 @@
   var DISC_UNVOTE = new Uint8Array([244,70,201,208,63,92,167,83]);
   var DISC_VOTE_PAYOUT = new Uint8Array([253,223,29,124,122,195,50,5]);
   var DISC_UNVOTE_PAYOUT = new Uint8Array([93,70,124,191,216,185,62,248]);
+  var MEMO_PID = new W.PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+  // Discord thread URL — drop the real link in when Lorin sends it; empty = plain wayfinding text
+  var DISCORD_THREAD_URL = (window.ESCROW_CONFIG && window.ESCROW_CONFIG.discordThread) || "";
+  var DISCORD_TEXT = "Join the send-climbing thread — NS Discord → #discussion → send-climbing — that's where votes get called.";
+  function renderDiscord(el, small) {
+    if (!el) return;
+    el.innerHTML = DISCORD_THREAD_URL
+      ? '<a href="' + DISCORD_THREAD_URL + '" style="color:inherit;text-decoration:underline">' + DISCORD_TEXT + "</a>"
+      : DISCORD_TEXT;
+    el.classList.remove("hidden");
+  }
 
   var wallet = null;
   var $ = function (id) { return document.getElementById(id); };
@@ -97,6 +108,9 @@
       }
       show("inBadge", deposited);
       show("lockedNote", deposited);
+      if (deposited) renderDiscord(document.getElementById("discordCta"));
+      var _nameWrap = document.getElementById("whoWrap");
+      if (_nameWrap) _nameWrap.classList.toggle("hidden", deposited);
       tierBtns.forEach(function (b) { b.classList.toggle("hidden", deposited); b.disabled = false; });
       show("tierFine", !deposited);
       // votes: campaign v3 parse (dissolve + payout proposal state)
@@ -130,6 +144,7 @@
             el.dataset.voted = voted ? "1" : "0";
             show("voteLink", true);
           }
+          renderDiscord(document.getElementById("discordCtaVote"), true);
         }
         // payout vote button (inside the proposal panel, badge-holders only)
         var pb = $("payoutVote");
@@ -257,8 +272,20 @@
           ],
           data: depositData(usd),
         }));
+        // optional name memo — a SEPARATE instruction in the same tx; the
+        // audited deposit instruction bytes above are untouched
+        var nameEl = document.getElementById("whoName");
+        var who = nameEl ? nameEl.value.replace(/[\r\n]+/g, " ").trim().slice(0, 64) : "";
+        if (who) {
+          ixs.push(new W.TransactionInstruction({
+            programId: MEMO_PID,
+            keys: [],
+            data: new TextEncoder().encode("send-climbing: " + who),
+          }));
+        }
         var sig = await send(ixs);
         status("Escrowed $" + usd + " — you're on the board. " + sig.slice(0, 12) + "…");
+        renderDiscord(document.getElementById("discordCta"));
       } catch (e) {
         status("Deposit failed: " + shortErr(e));
       }
