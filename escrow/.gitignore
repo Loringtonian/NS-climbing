@@ -1,0 +1,8 @@
+.anchor/
+target/
+node_modules/
+test-ledger/
+.DS_Store
+# keypairs are secrets — the program keypair is regenerated per DEPLOY.md
+*-keypair.json
+keys/
