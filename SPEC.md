@@ -97,7 +97,8 @@ refund-crank bookkeeping pass. Once `dissolved` is set, nothing unsets it.
 4. `release` is impossible: with no proposal; at exactly half the votes; with
    a stale-epoch majority (re-proposal reset); to any destination not owned
    by the proposed address; after dissolution (even with a full payout
-   majority standing); after a prior release.
+   majority standing); after the deadline (even with a majority standing at
+   expiry — the audit-fix test proves this on-chain); after a prior release.
 5. New deposits dilute a standing payout majority until the newcomer votes
    (majority is evaluated at execution time against CURRENT depositors).
 6. Both votes are revocable while active; double-votes rejected; the badge
@@ -106,7 +107,8 @@ refund-crank bookkeeping pass. Once `dissolved` is set, nothing unsets it.
 7. Refund-theft is impossible: cranking a refund toward any token account not
    owned by the badge's depositor is rejected; refund amounts are exact.
 8. Dissolution opens refunds immediately (pre-deadline); after the deadline,
-   proposals are blocked and refunds open with proposals still live.
+   proposals, payout votes and release are all rejected (`CampaignEnded`)
+   and only the refund crank remains live.
 
 ## Deadline semantics — post-deadline is REFUNDS-ONLY
 
