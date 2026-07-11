@@ -28,31 +28,44 @@ initialize (base) ──► delegate (base→ER) ──► cheer × N (ER, gasle
 - `scripts/commit_board.cjs` — **bank the cheers** mid-session (below).
 - `scripts/commit_proof.cjs` — proves commit-without-pause on a throwaway board.
 - `scripts/end_board.cjs` — end it: undelegate, print final base-layer tally.
-- `web/cheer.html` — phone button page (config via `?board=<pda>&rpc=<er-url>`).
-- `web/tally.html` — projector view, 300ms polling (same query params).
-- `web/leaderboard.html` — who has smashed the button the most (below).
+- `web/cheer.html` — the phone page: button on top, leaderboard below it
+  (config via `?board=<pda>&rpc=<er-url>`). Short path: `/board.html` jumps
+  straight to the board.
+- `web/tally.html` — projector view (same query params).
+- `web/cheerboard.js` — shared, read-only chain aggregation + the face function.
 - `scripts/build_leaderboard.cjs` — rebuilds the leaderboard history snapshot.
 
 ## The leaderboard
 
-`web/leaderboard.html` (short path: `/board.html`) ranks the cheerers. It is
-derived from the chain, not from a database — there is no server here.
+It lives *below the button* on `cheer.html` — you smash, you scroll, you see
+where you stand. It is derived from the chain, not from a database: there is no
+server here.
 
 Every cheer is its own transaction, signed by a throwaway keypair the browser
-generates and keeps in `localStorage` (`cheer_kp`). That pubkey **is** the
-identity: pseudonymous, unfunded, worthless, and the only thing the chain knows
-about a person. The leaderboard walks the board account's transaction history,
-resolves the signer of each `cheer` instruction, and tallies per signer. The
-page reads `cheer_kp` (read-only, never writes it) to highlight your own row.
+generates and keeps in `localStorage` (`cheer_kp`). That pubkey is the only
+thing the chain knows about a person. The page walks the board account's
+transaction history, resolves the signer of each `cheer` instruction, and
+tallies per signer.
+
+**Faces, not hashes.** A key is shown as two emoji faces, computed straight from
+the pubkey (`FNV-1a` twice into a 188-face set → 35,156 pairs). Same key, same
+face, forever — and anyone can recompute it from public data, so there is no
+lookup table and nothing to trust. A truncated hash is a bad name for a human;
+🐅😳 is a good one. The full pubkey lives in each row's `title` attribute for
+anyone auditing.
+
+**Two numbers, everywhere.** Total cheers *and* unique cheerers. The cheer count
+is the throughput flex (five fingers work — that's the point of a rollup); the
+people count is the part nobody can fake by tapping harder.
 
 Two-stage load, so it opens fast on a phone:
 
 1. **History snapshot** — `web/leaderboard.json`, ~2 KB, precomputed. The full
-   walk is ~7,500 transactions and takes ~40 s, which is not something a phone
-   should do.
+   walk is thousands of transactions and takes ~40 s, which is not something a
+   phone should do.
 2. **Live tail** — the page fetches only the signatures *newer* than the
    snapshot's `latestSig`, resolves those, and merges. The headline total comes
-   straight off the board account every 3 s, so it is always exact.
+   straight off the board account every couple of seconds, so it is always exact.
 
 Refresh the snapshot (read-only; signs nothing, sends no instruction):
 
@@ -62,8 +75,11 @@ node cheerboard/scripts/build_leaderboard.cjs   # rewrites web/leaderboard.json
 
 Names are **opt-in and private**: the page can post a display name + cheer key
 to the same private Google Form the deposit page uses. Names land in a private
-sheet, never on-chain and never on the public board. The board stays
-pseudonymous for everyone.
+sheet, never on-chain and never on the public board. Everyone stays a face.
+
+`?me=<pubkey>` highlights any key's row — handy for checking your standing from
+another device. It is display-only; cheers are always signed by the browser's
+own key.
 
 **Self-check — the honesty property.** The board account holds its own `cheers`
 counter, incremented by the program. The leaderboard is built by an entirely

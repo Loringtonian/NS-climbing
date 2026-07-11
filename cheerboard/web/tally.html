@@ -9,17 +9,22 @@
   :root{--bg:#0e1116;--ink:#f2f4f7;--muted:#9aa4b2;--accent:#ff6b4a;--accent2:#ffb24a}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:linear-gradient(rgba(10,12,16,.84),rgba(10,12,16,.9)),url(../../assets/bg_wall.jpg) center/cover no-repeat #0e1116;color:var(--ink);font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
-       min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden}
+       min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;overflow:hidden;
+       font-variant-numeric:tabular-nums}
   h1{font-size:clamp(24px,4vw,44px);font-weight:800;letter-spacing:-.02em;text-align:center;padding:0 20px}
   h1 span{color:var(--accent)}
-  #n{font-size:clamp(120px,28vw,420px);font-weight:900;letter-spacing:-.05em;line-height:1;
+  #n{font-size:clamp(110px,24vw,360px);font-weight:900;letter-spacing:-.05em;line-height:1;
      background:linear-gradient(180deg,var(--accent2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;
      transition:transform .12s ease-out}
   #n.bump{transform:scale(1.06)}
-  #rate{font-size:clamp(16px,2.4vw,26px);color:var(--muted);font-weight:700}
+  /* the cheer count is the spectacle; the people count is the number that can't be faked */
+  #people{font-size:clamp(20px,3vw,36px);font-weight:800;letter-spacing:-.01em}
+  #people b{color:var(--accent2)}
+  #people i{color:var(--muted);font-style:normal;font-weight:700}
+  #rate{font-size:clamp(15px,2.2vw,24px);color:var(--muted);font-weight:700;margin-top:2px}
   #rate b{color:var(--ink)}
   .fine{position:fixed;bottom:16px;color:#5d6675;font-size:13px;text-align:center;width:100%}
-  /* nobody can click a projector — the leaderboard has to be typeable from the back of the room */
+  /* nobody can click a projector — the page has to be typeable from the back of the room */
   #lb{position:fixed;bottom:38px;width:100%;text-align:center;color:var(--muted);font-size:clamp(14px,1.6vw,20px);font-weight:700}
   #lb b{color:var(--accent2)}
 </style>
@@ -27,60 +32,46 @@
 <body>
   <h1>People smashing the button for <span>a climbing wall at NS</span></h1>
   <div id="n">–</div>
+  <div id="people"><b id="peoplen">–</b> <i>people, one key each</i></div>
   <div id="rate"><b id="rpm">0</b> cheers / min · live on a MagicBlock ephemeral rollup</div>
-  <div id="lb">who's cheering hardest? <b>loringtonian.github.io/NS-climbing/board.html</b></div>
+  <div id="lb">smash it &amp; find your face: <b>loringtonian.github.io/NS-climbing/cheer.html</b></div>
   <div class="fine" id="status">connecting…</div>
 
+<script src="cheerboard.js?v=2"></script>
 <script>
 (function () {
   var q = new URLSearchParams(location.search);
-  var ER_URL = q.get("rpc") || "http://localhost:7799";
-  var BOARD = q.get("board"); // board PDA
+  var ER_URL = q.get("rpc") || "https://devnet-router.magicblock.app";
+  var BOARD = q.get("board") || "4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C";
+  var PROGRAM = q.get("program") || "FxkompVBzfCN6HsZpbwGW72AanCaFkAFiEcMqoi9c3Wz";
   var POLL_MS = parseInt(q.get("poll") || "300", 10);
 
+  var $ = function (id) { return document.getElementById(id); };
   var last = null;
   var history = []; // [ts, count]
 
-  function rpc(method, params, cb) {
-    fetch(ER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: method, params: params }),
-    }).then(function (r) { return r.json(); }).then(function (j) { cb(null, j.result); }).catch(cb);
-  }
+  var cb = new CheerBoard({
+    rpc: ER_URL, board: BOARD, program: PROGRAM,
+    onUpdate: function (s) {
+      if (s.people) $("peoplen").textContent = s.people.toLocaleString();
+      var el = $("n");
+      if (last === null || s.total !== last) {
+        el.textContent = s.total.toLocaleString();
+        el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+      }
+      last = s.total;
+      var now = Date.now();
+      history.push([now, s.total]);
+      while (history.length && history[0][0] < now - 60000) history.shift();
+      var rpm = history.length > 1 ? history[history.length - 1][1] - history[0][1] : 0;
+      $("rpm").textContent = Math.max(0, rpm);
+      $("status").textContent = "board " + BOARD.slice(0, 6) + "… · polling every " + POLL_MS + "ms";
+    },
+  });
 
-  // Board layout: 8 disc | 32 authority | 8 board_id | 8 cheers (u64 LE)
-  function parse(b64) {
-    var raw = atob(b64);
-    var bytes = new Uint8Array(raw.length);
-    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-    return new DataView(bytes.buffer).getBigUint64(48, true);
-  }
-
-  function tick() {
-    if (!BOARD) { document.getElementById("status").textContent = "not configured: add ?board=<pda> to the URL"; return; }
-    rpc("getAccountInfo", [BOARD, { encoding: "base64", commitment: "processed" }], function (err, res) {
-      if (err || !res || !res.value) return;
-      try {
-        var n = parse(res.value.data[0]);
-        var el = document.getElementById("n");
-        if (last === null || n !== last) {
-          el.textContent = n.toLocaleString();
-          el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
-        }
-        last = n;
-        var now = Date.now();
-        history.push([now, Number(n)]);
-        while (history.length && history[0][0] < now - 60000) history.shift();
-        var rpm = history.length > 1 ? history[history.length - 1][1] - history[0][1] : 0;
-        document.getElementById("rpm").textContent = Math.max(0, rpm);
-        document.getElementById("status").textContent = "board " + BOARD.slice(0, 6) + "… · polling every " + POLL_MS + "ms";
-      } catch (_e) {}
-    });
-  }
-
-  setInterval(tick, POLL_MS);
-  tick();
+  // the account poll keeps its fast tick (a projector wants every increment); the
+  // snapshot + slow tail supply the people count without hammering the RPC
+  cb.start({ snapshot: "leaderboard.json", totalMs: POLL_MS, tailMs: 12000 });
 })();
 </script>
 </body>
