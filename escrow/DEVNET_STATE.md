@@ -48,3 +48,16 @@ Majority-dissolve + refund-crank demo on scratch campaign ns-wall-dissolve-demo
 $20s BEFORE any deadline (2LHhvMBe…, ZSxQVsod…) → final: 0 depositors, 0 escrowed,
 dissolved: true (terminal).
 Explorer: https://explorer.solana.com/address/Gb88RkuKTuvj65Aa8pmzEBFPDRGeSc2UPU1zH8f3sc2?cluster=devnet
+
+## v1 campaign retirement note (2026-07-11)
+
+The pre-v2 campaign (`ns-climbing-wall`, PDA DSfvk5Dv…) still holds its $100
+rehearsal deposit, but it is UNREACHABLE by design: its accounts use the v1
+layout, and the upgraded program rejects them (verified live:
+`AccountDidNotDeserialize` on the withdraw attempt). The tokens are worthless
+demo-mint units (we control the mint); stranded value is ~0.006 devnet SOL of
+rent. No page references the v1 campaign anymore — the main page and deposit
+page both pin ns-climbing-wall-v2 via hardcoded ESCROW_CONFIG. Lesson banked
+for mainnet: NEVER change account layouts under a live campaign; deploy new
+program logic only between campaigns (mainnet launches directly on v2, so no
+migration exposure).

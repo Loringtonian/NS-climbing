@@ -116,6 +116,15 @@
       <div id="escrow-counter" class="fine" style="font-weight:800;color:#f2f4f7;font-size:16px"></div>
       <a class="btn" href="escrow/web/demo.html">Escrow $20+ — I want this wall <small>→</small></a>
       <div class="fine">Deposit, not donation · one Lemur board, one small room — enough of us, and it happens. <a href="agents.md" style="color:#7a8595">agents.md</a></div>
+      <script>
+        // hardcoded on purpose (audit: config never comes from URL params)
+        window.ESCROW_CONFIG = {
+          rpc: "https://api.devnet.solana.com",
+          program: "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw",
+          campaign: "ns-climbing-wall-v2",
+          mint: "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD"
+        };
+      </script>
       <script src="escrow/web/counter.js"></script>
     </div>
   </section>
