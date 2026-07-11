@@ -1,5 +1,15 @@
 # CLIENT.md — how the petition page talks to the escrow
 
+> **Working reference implementation: `web/demo.html`** (live at
+> `/escrow/web/demo.html` on the Pages site, linked from the main page CTA).
+> It already does: URL-param config (`?rpc= &program= &campaign= &mint=`),
+> Phantom/Solflare universal-link handoff when no wallet is injected,
+> receipt-existence-driven UI (deposited → badge + withdraw; not → deposit),
+> and raw-instruction building with the discriminators below (no Anchor JS
+> needed in the browser). `web/counter.js` takes the same URL params.
+> Devnet campaign values land in `DEVNET_STATE.md` when `scripts/devnet_go.sh`
+> runs (blocked on devnet SOL as of 2026-07-11 midday).
+
 Program: `ns_climb_escrow` — ID `7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw`
 (regenerate per DEPLOY.md if you redeploy fresh; the ID is the program keypair's pubkey).
 
