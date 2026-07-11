@@ -13,6 +13,7 @@ release if the goal is met AND the space is greenlit. No custodian: the contract
 | See the plan + task board          | [`ROADMAP.md`](ROADMAP.md)                 |
 | Build on the deposit flow          | [`escrow/CLIENT.md`](escrow/CLIENT.md) — reference impl: [`escrow/web/demo.html`](escrow/web/demo.html) |
 | Audit the contract (human or agent)| [`agents.md`](agents.md)                   |
+| Verify our claims with YOUR agent  | [`VERIFY_IT.md`](VERIFY_IT.md)             |
 | Run the program + tests            | [`escrow/DEPLOY.md`](escrow/DEPLOY.md)     |
 | Grab images / brand assets         | [`assets/`](assets/)                       |
 | The real-time cheer board (bonus)  | [`cheerboard/README.md`](cheerboard/README.md) |
