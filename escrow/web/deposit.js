@@ -61,14 +61,25 @@
   // Tier pre-select — callable (inline tier cards) and via fragment
   // (#v1/#v5/#v10 on the standalone page; a fragment is presentation, not
   // config, so it stays inside the audit's no-URL-param rule).
+  var PICKED = null;                       // the tier chosen from the cards, if any
+  var TIER_LABEL = { "20": "V1", "100": "V5", "1000": "V10" };
   function preselect(usd) {
+    PICKED = String(usd);
     Array.prototype.forEach.call(document.querySelectorAll(".tier"), function (b) {
-      var mine = b.getAttribute("data-usd") === String(usd);
+      var mine = b.getAttribute("data-usd") === PICKED;
       b.style.boxShadow = mine ? "0 0 0 3px rgba(255,178,74,.6)" : "";
-      var tag = b.querySelector(".pick-tag");
-      if (tag) tag.remove();
-      if (mine) b.insertAdjacentHTML("beforeend", '<small class="pick-tag" style="opacity:.9">Your pick — confirm below</small>');
     });
+    renderPick();
+  }
+  // One pick, one confirm: when a tier came from the cards we never re-ask for it.
+  function renderPick() {
+    var pw = document.getElementById("pickWrap");
+    var pl = document.getElementById("pickLabel");
+    var cd = document.getElementById("confirmDeposit");
+    if (!pw || !PICKED) return;
+    pw.classList.remove("hidden");
+    if (pl) pl.textContent = TIER_LABEL[PICKED] + " · $" + Number(PICKED).toLocaleString();
+    if (cd) cd.textContent = "Lock in $" + Number(PICKED).toLocaleString();
   }
   window.EscrowFlow = { preselect: preselect };
   var pre = { "#v1": "20", "#v5": "100", "#v10": "1000" }[location.hash];
@@ -131,7 +142,10 @@
       if (deposited) renderDiscord(document.getElementById("discordCta"));
       var _nameWrap = document.getElementById("whoWrap");
       if (_nameWrap) _nameWrap.classList.toggle("hidden", !(deposited && NAME_FORM.endpoint));
-      tierBtns.forEach(function (b) { b.classList.toggle("hidden", deposited); b.disabled = false; });
+      var pickMode = !!PICKED && !deposited;
+      tierBtns.forEach(function (b) { b.classList.toggle("hidden", deposited || pickMode); b.disabled = false; });
+      var pw = document.getElementById("pickWrap");
+      if (pw) pw.classList.toggle("hidden", !pickMode);
       show("tierFine", !deposited);
       // votes: campaign v3 parse (dissolve + payout proposal state)
       conn.getAccountInfo(campaign).then(function (cAcct) {
@@ -242,6 +256,19 @@
     refreshState();
   };
 
+  var _cd = document.getElementById("confirmDeposit");
+  if (_cd) _cd.onclick = function () {
+    var b = document.querySelector('.tier[data-usd="' + PICKED + '"]');
+    if (b) b.click();
+  };
+  var _ch = document.getElementById("changeTier");
+  if (_ch) _ch.onclick = function (e) {
+    e.preventDefault();
+    PICKED = null;
+    var pw = document.getElementById("pickWrap");
+    if (pw) pw.classList.add("hidden");
+    Array.prototype.forEach.call(document.querySelectorAll(".tier"), function (b) { b.classList.remove("hidden"); b.style.boxShadow = ""; });
+  };
   $("connect").onclick = async function () {
     var p = provider();
     if (!p) { status("No wallet found — use the buttons above to open this page inside your wallet."); return; }

@@ -184,6 +184,10 @@
   .whatnext li{margin-bottom:7px}
   .whatnext code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;background:#0e1116;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--accent2)}
   .inwallet{background:#12201a;border:1px solid #2b4a3f;color:#7fe0b2;border-radius:12px;padding:11px 14px;font-size:13.5px;font-weight:700;margin-bottom:12px}
+  .pickline{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;margin-bottom:10px}
+  .pickline b{color:var(--ink);font-size:16px}
+  .pickline a{color:var(--accent2);font-size:13px;text-decoration:underline;margin-left:auto}
+  .btn-confirm{width:100%;justify-content:center;font-size:19px;padding:19px 24px;box-shadow:0 10px 40px rgba(255,107,74,.25)}
   .btn-connect{width:100%;justify-content:center;font-size:19px;padding:19px 24px;
                box-shadow:0 10px 40px rgba(255,107,74,.25);animation:pulseit 2.4s ease-in-out infinite}
   @keyframes pulseit{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
@@ -354,6 +358,10 @@
         <div style="margin-top:8px;font-size:13px;color:#d7dde6">Names live in a private list held by the organizer — nothing but your deposit ever touches the chain.</div>
       </div>
 
+          <div id="pickWrap" class="hidden">
+            <div class="pickline">Locking in <b id="pickLabel"></b> <a href="#" id="changeTier">change</a></div>
+            <button class="btn btn-confirm" id="confirmDeposit">Lock in</button>
+          </div>
           <button class="btn hidden tier" data-usd="20">V1 — $20<small>Get on the board. Your name on the founding plaque.</small></button>
           <button class="btn hidden tier" data-usd="100">V5 — $100<small>First-ascent night. First-week priority.</small></button>
           <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
