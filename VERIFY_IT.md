@@ -23,8 +23,13 @@ vote dissolves the whole thing and everyone's money comes back.
    does anything.
 3. **The buildout address is welded shut.** Set once at campaign creation; no
    instruction exists that can change it.
-4. **Deadline = automatic unlock.** If 90 days pass without a greenlight, anyone
-   — literally any wallet — can trigger refunds for everyone.
+4. **Deadline = unlock.** This campaign's timer is 90 days (a per-campaign
+   setting, not a program constant). After it passes, anyone — literally any
+   wallet — can trigger refunds for everyone, greenlight or not. One nuance a
+   careful agent will spot: a campaign that hit its goal AND got its greenlight
+   can still release after the deadline — refunds and release are then both
+   live, and your personal withdraw works right up until release actually
+   executes. Nothing is ever stuck; nothing moves to a third party.
 5. **Majority dissolve.** Every depositor holds one vote (a non-transferable
    badge bound to their wallet — it cannot be sold, so votes cannot be bought).
    If more than half of current depositors vote to dissolve, the campaign enters
