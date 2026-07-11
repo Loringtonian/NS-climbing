@@ -154,7 +154,9 @@ describe("ns-climb-escrow (tiered)", () => {
         .signers([stranger])
         .rpc();
       assert.fail("stranger init should fail");
-    } catch (_e) { /* address = ORGANIZER constraint */ }
+    } catch (e: any) {
+      assert.include(e.toString(), "UnauthorizedInitializer");
+    }
   });
 
   it("rejects a non-tier amount ($50)", async () => {
