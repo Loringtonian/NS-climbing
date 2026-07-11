@@ -19,7 +19,7 @@ release if the goal is met AND the space is greenlit. No custodian: the contract
 
 ## Status (2026-07-11, hackathon weekend)
 
-- Escrow program: built, 15/15 tests green on localnet. Tiered deposits (V1 $20 / V5 $100 / V10 $1000) landing now.
+- Escrow program: built, 18/18 tests green on localnet, tiered deposits LIVE in the contract ($20/$100/$1000, exact-amount withdraw, per-tier counter).
 - Phone deposit ceremony: built (QR → Phantom/Solflare in-app browser → deposit → live counter → withdraw).
 - Mainnet deploy: pending SOL funding — imminent. Until then the page runs in read-only/preview.
 

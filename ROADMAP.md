@@ -10,7 +10,7 @@
 - [x] Live counter + phone deposit ceremony (QR → Phantom/Solflare → escrow → badge → withdraw)
 - [x] Agentic sign-up — `agents.md` + `llms.txt`: any agent can audit the contract and execute a deposit
 - [x] Cheer board (bonus) — gasless real-time tally on a MagicBlock Ephemeral Rollup, no wallet needed
-- [ ] **Tiered deposits $20 / $100 / $1000** — contract + 3-button UI (in progress)
+- [x] Tiered deposits $20 / $100 / $1000 — contract + 3-button UI + per-tier counter (18/18 tests)
 - [ ] **Devnet deploy + full rehearsal** — blocked on devnet SOL; then `escrow/scripts/devnet_go.sh` (~20 min)
 - [ ] Real-phone tap-through of the ceremony (needs a human + Phantom, ~15 min)
 - [ ] **Mainnet deploy** — needs ~2.1 real SOL (refundable rent deposit); then real $20s flow
@@ -20,7 +20,7 @@
 
 | Lane                                   | Owner        | Status |
 |----------------------------------------|--------------|--------|
-| Contract tier change (20/100/1000)     | build agent  | in progress |
+| Contract tier change (20/100/1000)     | build agent  | done (efd5c9f) |
 | Devnet SOL (hackathon Telegram ask)    | Lorin        | open   |
 | Mainnet SOL (~2.1, borrow/bank)        | Lorin        | open   |
 | Deposit-flow UI polish + extensions    | Blad         | open — start from `escrow/CLIENT.md`, reference impl `escrow/web/demo.html` |
