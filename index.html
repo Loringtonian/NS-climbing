@@ -3,6 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="We want a climbing gym at Network School">
+<meta property="og:description" content="A petition where the signatures are money. Locked USDC, community-governed, verify it with your own agent.">
+<meta property="og:image" content="https://loringtonian.github.io/NS-climbing/assets/og_card.jpg">
+<meta property="og:url" content="https://loringtonian.github.io/NS-climbing/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="We want a climbing gym at Network School">
+<meta name="twitter:description" content="A petition where the signatures are money. Locked USDC, community-governed, verify it with your own agent.">
+<meta name="twitter:image" content="https://loringtonian.github.io/NS-climbing/assets/og_card.jpg">
+<link rel="icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="robots" content="noindex, nofollow">
 <title>A climbing gym at Network School — member petition</title>
 <style>
@@ -122,6 +133,8 @@
   .trustline a{color:var(--accent2)}
   @media(min-width:641px){.tiers{grid-template-columns:1fr 1fr 1fr}}
   @media(max-width:640px){.gallery{grid-template-columns:1fr}.hero-inner{padding:30px 22px}}
+  .desktop-hint{display:none}
+  @media(min-width:641px){.desktop-hint{display:block}}
 </style>
 </head>
 <body>
@@ -213,6 +226,8 @@
           <a class="btn" id="phantomLink" href="#">Open in Phantom</a>
           <a class="btn ghost" id="solflareLink" href="#">Open in Solflare</a>
           <div class="fine">Deposits are signed inside your wallet's browser. One tap above reopens this page there, connected.</div>
+      <div class="fine desktop-hint">On a computer? Install the <a href="https://phantom.com" style="color:#ffb24a">Phantom browser extension</a>, then reload.</div>
+
         </div>
         <div id="hasWallet">
           <button class="btn" id="connect">Connect wallet</button>
@@ -264,6 +279,7 @@ who can trigger each — and would you lock in $20?</pre>
         <div class="xbody">Cumulative — each tier includes everything below it.<br><b>V1 · $20</b> — name on the founding plaque; counted in the live number.<br><b>V5 · $100</b> — first-ascent night invite; first-week priority booking.<br><b>V10 · $1000</b> — name one of the first routes; top billing on the plaque; opening night's first climb goes to a V10.<br><span class="fine">Perks exist when the wall exists — never promised. If it dies, the majority dissolves and everyone is refunded in full — a V10's $1000 comes back exactly like a V1's $20.</span></div>
       </details>
 
+      <div class="fine" style="margin-top:14px">Not ready to lock money in? <a href="cheerboard/web/cheer.html?board=4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C&rpc=https%3A%2F%2Fdevnet-router.magicblock.app" style="color:#ffb24a">Smash the cheer button instead →</a></div>
       <div class="trustline">Your deposit is locked until the community decides or the clock runs out — money moves only as everyone-funded (majority + organizer), everyone-refunded (majority dissolve), or everyone-refunded (90-day timeout). Enforced by code, details above.</div>
       <div class="fine" style="margin-top:10px">Deposit, not donation · one Lemur board, one small room — enough of us, and it happens. <a href="agents.md" style="color:#7a8595">agents.md</a></div>
       <div id="escrow-counter" class="fine" style="display:none"></div>

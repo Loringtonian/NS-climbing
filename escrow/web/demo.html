@@ -3,6 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="Back the wall — lock in $20 / $100 / $1000">
+<meta property="og:description" content="Deposits lock into a pool no person holds. Out only together: fund, dissolve, or timeout. Verify it with your own agent.">
+<meta property="og:image" content="https://loringtonian.github.io/NS-climbing/assets/og_card.jpg">
+<meta property="og:url" content="https://loringtonian.github.io/NS-climbing/escrow/web/demo.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Back the wall — lock in $20 / $100 / $1000">
+<meta name="twitter:description" content="Deposits lock into a pool no person holds. Out only together: fund, dissolve, or timeout. Verify it with your own agent.">
+<meta name="twitter:image" content="https://loringtonian.github.io/NS-climbing/assets/og_card.jpg">
+<link rel="icon" href="../../favicon.ico">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
 <meta name="robots" content="noindex, nofollow">
 <title>Back the wall — $20 escrow</title>
 <style>
@@ -28,6 +39,8 @@
   .trust b{color:var(--ink)}
   .trust a{color:var(--accent2)}
   .in{border:1px solid #2b4a3f;background:#12201a;color:#7fe0b2;border-radius:12px;padding:12px 16px;font-weight:700;margin-top:10px;text-align:center}
+  .desktop-hint{display:none}
+  @media(min-width:641px){.desktop-hint{display:block}}
 </style>
 </head>
 <body>
@@ -50,6 +63,8 @@
       <a class="btn" id="phantomLink" href="#">Open in Phantom</a>
       <a class="btn ghost" id="solflareLink" href="#">Open in Solflare</a>
       <div class="fine">This page needs to run inside your wallet's browser to sign the deposit. One tap above brings you right back here, connected.</div>
+      <div class="fine desktop-hint">On a computer? Install the <a href="https://phantom.com" style="color:#ffb24a">Phantom browser extension</a>, then reload.</div>
+
     </div>
     <div id="hasWallet">
       <button class="btn" id="connect">Connect wallet</button>
