@@ -1,7 +1,7 @@
 # SEND — Crypto Crowdfunding Rails for Network States
 
 Campaign #1: a climbing wall at Network School. A petition where the signatures are money —
-refundable USDC escrow deposits behind a live on-chain counter. Withdraw anytime; funds only
+refundable USDC escrow deposits behind a live on-chain counter. Withdraw anytime; a depositor majority can dissolve the campaign (each deposit doubles as a non-transferable Supporter Badge = the ballot); funds only
 release if the goal is met AND the space is greenlit. No custodian: the contract holds the vault.
 
 **Live page:** https://loringtonian.github.io/NS-climbing/ (community-shared, noindex)

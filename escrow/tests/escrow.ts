@@ -97,6 +97,19 @@ describe("ns-climb-escrow (tiered)", () => {
       .signers([who])
       .rpc();
 
+  const vote = (who: Keypair, camp = campaign()) =>
+    program.methods
+      .voteDissolve()
+      .accounts({ depositor: who.publicKey, campaign: camp, receipt: receiptPda(camp, who.publicKey) })
+      .signers([who])
+      .rpc();
+  const unvote = (who: Keypair, camp = campaign()) =>
+    program.methods
+      .unvoteDissolve()
+      .accounts({ depositor: who.publicKey, campaign: camp, receipt: receiptPda(camp, who.publicKey) })
+      .signers([who])
+      .rpc();
+
   it("initializes a campaign", async () => {
     const deadline = new BN(Math.floor(Date.now() / 1000) + 3600);
     await program.methods
@@ -114,6 +127,8 @@ describe("ns-climb-escrow (tiered)", () => {
     const c = await fetchCampaign();
     assert.equal(c.depositorCount, 0);
     assert.deepEqual(c.tierCounts, [0, 0, 0]);
+    assert.equal(c.dissolveVotes, 0);
+    assert.isFalse(c.dissolved);
     assert.ok(c.totalEscrowed.eq(new BN(0)));
     assert.ok(c.goal.eq(USDC(1120)));
     assert.isFalse(c.approved);
@@ -392,6 +407,194 @@ describe("ns-climb-escrow (tiered)", () => {
       assert.equal(c.depositorCount, 0);
       assert.deepEqual(c.tierCounts, [0, 0, 0]);
       assert.ok(c.totalEscrowed.eq(new BN(0)));
+    });
+  });
+
+  describe("dissolve vote path", () => {
+    const ID3 = "ns-wall-dissolve";
+    const camp = () => campaignPda(ID3);
+    const fetchC = () => (program.account as any).campaign.fetch(camp());
+
+    it("sets up: 3 depositors across tiers", async () => {
+      const deadline = new BN(Math.floor(Date.now() / 1000) + 3600);
+      await program.methods
+        .initializeCampaign(ID3, USDC(1120), deadline, buildout.publicKey)
+        .accounts({
+          admin: admin.publicKey,
+          mint,
+          campaign: camp(),
+          vault: vaultPda(camp()),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .rpc();
+      await deposit(alice, aliceUsdc, 20, camp());
+      await deposit(bob, bobUsdc, 100, camp());
+      await deposit(carol, carolUsdc, 1000, camp());
+      const c = await fetchC();
+      assert.equal(c.depositorCount, 3);
+      assert.ok(c.totalEscrowed.eq(USDC(1120))); // goal met
+    });
+
+    it("BADGE non-transferability: a stranger cannot vote or withdraw with someone else's badge", async () => {
+      try {
+        await program.methods
+          .voteDissolve()
+          .accounts({ depositor: stranger.publicKey, campaign: camp(), receipt: receiptPda(camp(), alice.publicKey) })
+          .signers([stranger])
+          .rpc();
+        assert.fail("vote with foreign badge should fail");
+      } catch (_e) { /* seeds + has_one reject */ }
+      try {
+        await withdraw(stranger as any, aliceUsdc, camp());
+        assert.fail("withdraw with foreign badge should fail");
+      } catch (_e) { /* receipt PDA derived from signer -> different address */ }
+    });
+
+    it("vote is revocable: vote, unvote, re-vote", async () => {
+      await vote(alice, camp());
+      let c = await fetchC();
+      assert.equal(c.dissolveVotes, 1);
+      assert.isFalse(c.dissolved); // 1 of 3 is not a strict majority
+      await unvote(alice, camp());
+      c = await fetchC();
+      assert.equal(c.dissolveVotes, 0);
+      await vote(alice, camp());
+    });
+
+    it("double-vote rejected", async () => {
+      try {
+        await vote(alice, camp());
+        assert.fail("second vote should fail");
+      } catch (e: any) {
+        assert.include(e.toString(), "AlreadyVoted");
+      }
+    });
+
+    it("majority flips to DISSOLVED (2 of 3)", async () => {
+      await vote(bob, camp());
+      const c = await fetchC();
+      assert.equal(c.dissolveVotes, 2);
+      assert.isTrue(c.dissolved);
+    });
+
+    it("DISSOLVED is terminal: approve, release (goal met!), deposit all blocked", async () => {
+      try {
+        await program.methods
+          .approveRelease()
+          .accounts({ admin: admin.publicKey, campaign: camp() })
+          .rpc();
+        assert.fail("approve on dissolved should fail");
+      } catch (e: any) { assert.include(e.toString(), "Dissolved"); }
+      try {
+        await program.methods
+          .release()
+          .accounts({
+            executor: stranger.publicKey,
+            campaign: camp(),
+            vault: vaultPda(camp()),
+            buildoutToken: buildoutUsdc,
+            tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+          })
+          .signers([stranger])
+          .rpc();
+        assert.fail("release on dissolved should fail");
+      } catch (e: any) { assert.include(e.toString(), "Dissolved"); }
+      try {
+        await deposit(stranger as any, aliceUsdc, 20, camp());
+        assert.fail("deposit on dissolved should fail");
+      } catch (_e) { /* blocked */ }
+    });
+
+    it("refund crank open immediately (before deadline) once dissolved", async () => {
+      const before = await getAccount(conn, aliceUsdc);
+      await program.methods
+        .refund()
+        .accounts({
+          cranker: stranger.publicKey,
+          depositor: alice.publicKey,
+          campaign: camp(),
+          vault: vaultPda(camp()),
+          depositorToken: aliceUsdc,
+          receipt: receiptPda(camp(), alice.publicKey),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+        })
+        .signers([stranger])
+        .rpc();
+      const after = await getAccount(conn, aliceUsdc);
+      assert.equal(Number(after.amount - before.amount), 20_000_000);
+    });
+
+    it("withdraw still works in DISSOLVED, exact amount ($1000)", async () => {
+      const before = await getAccount(conn, carolUsdc);
+      await withdraw(carol, carolUsdc, camp());
+      const after = await getAccount(conn, carolUsdc);
+      assert.equal(Number(after.amount - before.amount), 1_000_000_000);
+    });
+
+    it("vote after withdraw impossible (badge is gone)", async () => {
+      try {
+        await vote(carol, camp());
+        assert.fail("vote without badge should fail");
+      } catch (_e) { /* receipt closed */ }
+    });
+  });
+
+  describe("electorate shrink edge", () => {
+    const ID4 = "ns-wall-shrink";
+    const camp = () => campaignPda(ID4);
+    const fetchC = () => (program.account as any).campaign.fetch(camp());
+
+    it("a standing minority vote becomes the majority as others withdraw", async () => {
+      const deadline = new BN(Math.floor(Date.now() / 1000) + 3600);
+      await program.methods
+        .initializeCampaign(ID4, USDC(1120), deadline, buildout.publicKey)
+        .accounts({
+          admin: admin.publicKey,
+          mint,
+          campaign: camp(),
+          vault: vaultPda(camp()),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .rpc();
+      await deposit(alice, aliceUsdc, 20, camp());
+      await deposit(bob, bobUsdc, 100, camp());
+      await deposit(carol, carolUsdc, 1000, camp());
+
+      await vote(alice, camp()); // 1 of 3 — minority
+      let c = await fetchC();
+      assert.isFalse(c.dissolved);
+
+      await withdraw(bob, bobUsdc, camp()); // 1 of 2 — exactly half, NOT strict majority
+      c = await fetchC();
+      assert.equal(c.depositorCount, 2);
+      assert.equal(c.dissolveVotes, 1);
+      assert.isFalse(c.dissolved);
+
+      await withdraw(carol, carolUsdc, camp()); // 1 of 1 — majority: dissolves ON the withdraw
+      c = await fetchC();
+      assert.equal(c.depositorCount, 1);
+      assert.isTrue(c.dissolved);
+    });
+
+    it("un-vote impossible after dissolution (terminal)", async () => {
+      try {
+        await unvote(alice, camp());
+        assert.fail("unvote on dissolved should fail");
+      } catch (e: any) {
+        assert.include(e.toString(), "Dissolved");
+      }
+    });
+
+    it("withdrawing a voter removes their vote atomically", async () => {
+      // alice (the voter) withdraws from the dissolved campaign: vote count drops with her
+      await withdraw(alice, aliceUsdc, camp());
+      const c = await fetchC();
+      assert.equal(c.depositorCount, 0);
+      assert.equal(c.dissolveVotes, 0);
     });
   });
 });

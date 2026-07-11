@@ -3,10 +3,10 @@
 # real-money infrastructure and spends real SOL. The script double-checks by
 # making you type MAINNET.
 #
-#   GOAL_USDC=2000 DEADLINE_DAYS=30 BUILDOUT=<pubkey> bash scripts/mainnet_go.sh
+#   GOAL_USDC=2000 DEADLINE_DAYS=90 BUILDOUT=<pubkey> bash scripts/mainnet_go.sh
 #
 # Defaults: GOAL_USDC=2000 (rehearsal number — the REAL goal is Lorin's call),
-# DEADLINE_DAYS=30, BUILDOUT=deployer wallet (swap to a multisig when it
+# DEADLINE_DAYS=90, BUILDOUT=deployer wallet (swap to a multisig when it
 # exists; it CANNOT be changed after init — a new campaign would be needed).
 #
 # Cost at current rent (2026-07-11): deploy --max-len 320000 = 2.2284 SOL
@@ -20,7 +20,7 @@ cd "$(dirname "$0")/.."
 RPC=${RPC:-https://api.mainnet-beta.solana.com}
 USDC=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v   # Circle USDC (mainnet)
 GOAL_USDC="${GOAL_USDC:-2000}"
-DEADLINE_DAYS="${DEADLINE_DAYS:-30}"
+DEADLINE_DAYS="${DEADLINE_DAYS:-90}"
 CAMPAIGN_ID="${CAMPAIGN_ID:-ns-climbing-wall}"
 MAX_LEN="${MAX_LEN:-320000}"   # ~12% upgrade cushion over the 285,480-byte build
 

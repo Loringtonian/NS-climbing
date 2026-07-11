@@ -96,7 +96,7 @@
   // Campaign account layout (borsh, after the 8-byte Anchor discriminator):
   // admin[32] mint[32] buildout[32] campaign_id[4+len] goal[u64] deadline[i64]
   // total_escrowed[u64] depositor_count[u32] tier_counts[3xu32]
-  // approved[u8] released[u8] bump[u8]
+  // dissolve_votes[u32] approved[u8] dissolved[u8] released[u8] bump[u8]
   function parseCampaign(b64) {
     var raw = atob(b64);
     var bytes = new Uint8Array(raw.length);
@@ -110,9 +110,12 @@
     var total = dv.getBigUint64(o, true); o += 8;
     var count = dv.getUint32(o, true); o += 4;
     var tiers = [dv.getUint32(o, true), dv.getUint32(o + 4, true), dv.getUint32(o + 8, true)]; o += 12;
+    var votes = dv.getUint32(o, true); o += 4;
     var approved = bytes[o] === 1; o += 1;
+    var dissolved = bytes[o] === 1; o += 1;
     var released = bytes[o] === 1;
-    return { goal: goal, total: total, count: count, tiers: tiers, approved: approved, released: released };
+    return { goal: goal, total: total, count: count, tiers: tiers, votes: votes,
+             approved: approved, dissolved: dissolved, released: released };
   }
 
   var campaignAddr = null;
@@ -134,7 +137,8 @@
       : c.count + (c.count === 1 ? " person" : " people");
     el.textContent =
       who + " · $" + usd.toLocaleString() + " escrowed · " + pct + "% of goal" +
-      (c.released ? " · FUNDED — wall greenlit" : "");
+      (c.released ? " · FUNDED — wall greenlit"
+        : c.dissolved ? " · DISSOLVED — refunds open" : "");
   }
 
   function refresh() {

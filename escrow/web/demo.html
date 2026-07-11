@@ -56,7 +56,8 @@
       <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
       <div class="fine hidden" id="tierFine">All deposits withdrawable anytime. Perks exist when the wall exists — if it dies, you withdraw, nobody loses a cent.</div>
       <button class="btn ghost hidden" id="withdraw">Withdraw my deposit</button>
-      <div class="fine hidden" id="upgradeHint">To change tier: withdraw, then deposit again at the new size.</div>
+      <div class="fine hidden" id="upgradeHint">To change tier: withdraw, then deposit again at the new size. Withdrawing also removes your dissolve vote, if you cast one.</div>
+      <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
     </div>
     <div id="status"></div>
   </div>
@@ -98,6 +99,8 @@
 
   var DISC_DEPOSIT = new Uint8Array([242,35,198,137,82,225,242,182]);
   var DISC_WITHDRAW = new Uint8Array([183,18,70,156,148,109,161,34]);
+  var DISC_VOTE = new Uint8Array([180,224,232,226,59,166,81,63]);
+  var DISC_UNVOTE = new Uint8Array([244,70,201,208,63,92,167,83]);
 
   var wallet = null;
   var $ = function (id) { return document.getElementById(id); };
@@ -135,10 +138,13 @@
     if (!wallet) return;
     conn.getAccountInfo(receiptPda(wallet.pk)).then(function (acct) {
       var deposited = !!acct;
-      if (deposited && acct.data.length >= 80) {
-        // Receipt: 8 disc | 32 campaign | 32 depositor | 8 amount | 1 bump
-        var amt = new DataView(acct.data.buffer, acct.data.byteOffset).getBigUint64(72, true);
-        $("inBadge").textContent = "You're on the board — $" + (Number(amt / 10000n) / 100).toLocaleString() + " escrowed ✓";
+      var voted = false;
+      if (deposited && acct.data.length >= 82) {
+        // Receipt: 8 disc | 32 campaign | 32 depositor | 8 amount | 1 voted | 1 bump
+        var dvR = new DataView(acct.data.buffer, acct.data.byteOffset);
+        var amt = dvR.getBigUint64(72, true);
+        voted = acct.data[80] === 1;
+        $("inBadge").textContent = "Supporter Badge — $" + (Number(amt / 10000n) / 100).toLocaleString() + " escrowed ✓";
       }
       show("inBadge", deposited);
       show("withdraw", deposited);
@@ -146,8 +152,58 @@
       tierBtns.forEach(function (b) { b.classList.toggle("hidden", deposited); b.disabled = false; });
       show("tierFine", !deposited);
       $("withdraw").disabled = false;
+      // vote-to-dissolve: the emergency brake, deliberately quiet
+      if (deposited) {
+        conn.getAccountInfo(campaign).then(function (cAcct) {
+          if (!cAcct) return;
+          var raw = cAcct.data;
+          var dv = new DataView(raw.buffer, raw.byteOffset);
+          var o = 8 + 96;
+          o += 4 + dv.getUint32(o, true); // campaign_id
+          o += 8 + 8 + 8; // goal, deadline, total
+          var count = dv.getUint32(o, true); o += 4;
+          o += 12; // tier_counts
+          var votes = dv.getUint32(o, true); o += 4;
+          o += 1; // approved
+          var dissolved = raw[o] === 1;
+          var threshold = Math.floor(count / 2) + 1;
+          var el = $("voteLink");
+          if (dissolved) {
+            el.textContent = "Campaign dissolved by depositor vote — withdraw above.";
+            el.style.pointerEvents = "none";
+          } else {
+            el.textContent = voted
+              ? "Remove my dissolve vote (" + votes + "/" + threshold + " to dissolve)"
+              : "Vote to dissolve the campaign (" + votes + "/" + threshold + ")";
+            el.dataset.voted = voted ? "1" : "0";
+          }
+          show("voteLink", true);
+        }).catch(function () {});
+      } else {
+        show("voteLink", false);
+      }
     }).catch(function () {});
   }
+
+  $("voteLink").onclick = async function (ev) {
+    ev.preventDefault();
+    if (!wallet) return;
+    var casting = $("voteLink").dataset.voted !== "1";
+    try {
+      var ix = new W.TransactionInstruction({
+        programId: pid,
+        keys: [
+          { pubkey: wallet.pk, isSigner: true, isWritable: false },
+          { pubkey: campaign, isSigner: false, isWritable: true },
+          { pubkey: receiptPda(wallet.pk), isSigner: false, isWritable: true },
+        ],
+        data: casting ? DISC_VOTE : DISC_UNVOTE,
+      });
+      await send([ix]);
+      status(casting ? "Dissolve vote cast." : "Dissolve vote removed.");
+    } catch (e) { status("Vote failed: " + shortErr(e)); }
+    refreshState();
+  };
 
   $("connect").onclick = async function () {
     var p = provider();

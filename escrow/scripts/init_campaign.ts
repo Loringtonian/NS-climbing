@@ -3,7 +3,7 @@
  *   ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
  *   ANCHOR_WALLET=~/.config/solana/id.json \
  *   CAMPAIGN_ID=ns-climbing-wall GOAL_USDC=2000 DEPOSIT_USDC=20 \
- *   DEADLINE_DAYS=30 BUILDOUT=<pubkey> USDC_MINT=<mint> \
+ *   DEADLINE_DAYS=90 BUILDOUT=<pubkey> USDC_MINT=<mint> \
  *   npx ts-node scripts/init_campaign.ts
  *
  * Prints the campaign PDA (paste into web/counter.js CAMPAIGN_ADDRESS).
@@ -22,7 +22,7 @@ async function main() {
 
   const id = process.env.CAMPAIGN_ID || "ns-climbing-wall";
   const goal = new BN(Math.round(parseFloat(process.env.GOAL_USDC || "2000") * 1e6));
-  const days = parseFloat(process.env.DEADLINE_DAYS || "30");
+  const days = parseFloat(process.env.DEADLINE_DAYS || "90");
   const deadline = new BN(Math.floor(Date.now() / 1000) + Math.round(days * 86400));
   const buildout = new PublicKey(process.env.BUILDOUT || provider.wallet.publicKey);
   const mint = new PublicKey(process.env.USDC_MINT || DEVNET_USDC);

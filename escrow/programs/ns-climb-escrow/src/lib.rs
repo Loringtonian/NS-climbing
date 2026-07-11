@@ -49,7 +49,9 @@ pub mod ns_climb_escrow {
         c.total_escrowed = 0;
         c.depositor_count = 0;
         c.tier_counts = [0; 3];
+        c.dissolve_votes = 0;
         c.approved = false;
+        c.dissolved = false;
         c.released = false;
         c.bump = ctx.bumps.campaign;
         Ok(())
@@ -61,6 +63,7 @@ pub mod ns_climb_escrow {
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
         let c = &mut ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
+        require!(!c.dissolved, EscrowError::Dissolved);
         require!(
             Clock::get()?.unix_timestamp <= c.deadline,
             EscrowError::CampaignEnded
@@ -86,6 +89,7 @@ pub mod ns_climb_escrow {
         r.campaign = c.key();
         r.depositor = ctx.accounts.depositor.key();
         r.amount = amount;
+        r.voted = false;
         r.bump = ctx.bumps.receipt;
 
         c.total_escrowed = c.total_escrowed.checked_add(amount).unwrap();
@@ -96,7 +100,9 @@ pub mod ns_climb_escrow {
 
     /// THE load-bearing trust property: the depositor gets their money back at
     /// any time before release. The ONLY condition is `!released`. Not the
-    /// deadline, not the goal, not admin approval — none of those can trap funds.
+    /// deadline, not the goal, not admin approval, not dissolution — none of
+    /// those can trap funds. Withdrawing also removes the depositor's dissolve
+    /// vote (if cast) and shrinks the electorate, atomically in this instruction.
     pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
         require!(!ctx.accounts.campaign.released, EscrowError::AlreadyReleased);
         pay_back(
@@ -106,8 +112,9 @@ pub mod ns_climb_escrow {
             &ctx.accounts.token_program,
             ctx.accounts.receipt.amount,
         )?;
-        let c = &mut ctx.accounts.campaign;
+        let voted = ctx.accounts.receipt.voted;
         let amount = ctx.accounts.receipt.amount;
+        let c = &mut ctx.accounts.campaign;
         let tier = TIER_AMOUNTS
             .iter()
             .position(|&t| t == amount)
@@ -115,17 +122,23 @@ pub mod ns_climb_escrow {
         c.total_escrowed = c.total_escrowed.checked_sub(amount).unwrap();
         c.depositor_count = c.depositor_count.checked_sub(1).unwrap();
         c.tier_counts[tier] = c.tier_counts[tier].checked_sub(1).unwrap();
+        if voted {
+            c.dissolve_votes = c.dissolve_votes.checked_sub(1).unwrap();
+        }
+        // Deliberate: a shrinking electorate can hand the remaining dissolve
+        // votes a majority — departures count as silence, not as "no" votes.
+        maybe_dissolve(c);
         Ok(())
     }
 
-    /// After the deadline, if funds were never released, ANYONE can push a
-    /// depositor's money back to them (permissionless refund crank). The tokens
-    /// can only go to the receipt's depositor — the caller just pays the gas.
+    /// Permissionless refund crank: after the deadline OR after a majority
+    /// dissolution, ANYONE can push a depositor's money back to them. The
+    /// tokens can only go to the receipt's depositor — the caller pays gas.
     pub fn refund(ctx: Context<Refund>) -> Result<()> {
         let now = Clock::get()?.unix_timestamp;
         require!(!ctx.accounts.campaign.released, EscrowError::AlreadyReleased);
         require!(
-            now > ctx.accounts.campaign.deadline,
+            now > ctx.accounts.campaign.deadline || ctx.accounts.campaign.dissolved,
             EscrowError::DeadlineNotPassed
         );
         pay_back(
@@ -135,8 +148,9 @@ pub mod ns_climb_escrow {
             &ctx.accounts.token_program,
             ctx.accounts.receipt.amount,
         )?;
-        let c = &mut ctx.accounts.campaign;
+        let voted = ctx.accounts.receipt.voted;
         let amount = ctx.accounts.receipt.amount;
+        let c = &mut ctx.accounts.campaign;
         let tier = TIER_AMOUNTS
             .iter()
             .position(|&t| t == amount)
@@ -144,14 +158,48 @@ pub mod ns_climb_escrow {
         c.total_escrowed = c.total_escrowed.checked_sub(amount).unwrap();
         c.depositor_count = c.depositor_count.checked_sub(1).unwrap();
         c.tier_counts[tier] = c.tier_counts[tier].checked_sub(1).unwrap();
+        if voted {
+            c.dissolve_votes = c.dissolve_votes.checked_sub(1).unwrap();
+        }
+        maybe_dissolve(c);
         Ok(())
     }
 
-    /// Admin's co-sign that the wall is greenlit. Must land before the deadline.
-    /// Approval alone moves no money — depositors can still withdraw.
+    /// Emergency brake: any depositor can vote to dissolve. A strict head-count
+    /// majority (votes * 2 > depositors) flips the campaign to DISSOLVED —
+    /// terminal: release becomes permanently impossible and refunds open to
+    /// everyone. The receipt (Supporter Badge) is the ballot: one per
+    /// depositor, non-transferable by construction, revocable while active.
+    pub fn vote_dissolve(ctx: Context<CastVote>) -> Result<()> {
+        let c = &mut ctx.accounts.campaign;
+        require!(!c.released, EscrowError::AlreadyReleased);
+        require!(!c.dissolved, EscrowError::Dissolved);
+        let r = &mut ctx.accounts.receipt;
+        require!(!r.voted, EscrowError::AlreadyVoted);
+        r.voted = true;
+        c.dissolve_votes = c.dissolve_votes.checked_add(1).unwrap();
+        maybe_dissolve(c);
+        Ok(())
+    }
+
+    /// Change your mind while the campaign is still active.
+    pub fn unvote_dissolve(ctx: Context<CastVote>) -> Result<()> {
+        let c = &mut ctx.accounts.campaign;
+        require!(!c.released, EscrowError::AlreadyReleased);
+        require!(!c.dissolved, EscrowError::Dissolved);
+        let r = &mut ctx.accounts.receipt;
+        require!(r.voted, EscrowError::NotVoted);
+        r.voted = false;
+        c.dissolve_votes = c.dissolve_votes.checked_sub(1).unwrap();
+        Ok(())
+    }
+
+    /// Admin's co-sign that the wall is greenlit. Must land before the deadline
+    /// and cannot land on a dissolved campaign.
     pub fn approve_release(ctx: Context<ApproveRelease>) -> Result<()> {
         let c = &mut ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
+        require!(!c.dissolved, EscrowError::Dissolved);
         require!(
             Clock::get()?.unix_timestamp <= c.deadline,
             EscrowError::CampaignEnded
@@ -162,9 +210,11 @@ pub mod ns_climb_escrow {
 
     /// Anyone can execute the release once BOTH gates are true: goal reached
     /// AND admin approved. Funds go to the buildout address fixed at creation.
+    /// A dissolved campaign can NEVER release — dissolution is terminal.
     pub fn release(ctx: Context<Release>) -> Result<()> {
         let c = &ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
+        require!(!c.dissolved, EscrowError::Dissolved);
         require!(c.approved, EscrowError::NotApproved);
         require!(c.total_escrowed >= c.goal, EscrowError::GoalNotReached);
 
@@ -187,8 +237,21 @@ pub mod ns_climb_escrow {
     }
 }
 
+/// Strict head-count majority check, run after every vote or electorate
+/// change: votes * 2 > depositors (exact integer form of "more than half").
+/// Once true the campaign is DISSOLVED — terminal by construction, because
+/// nothing ever sets `dissolved` back to false.
+fn maybe_dissolve(c: &mut Campaign) {
+    if !c.dissolved
+        && c.depositor_count > 0
+        && (c.dissolve_votes as u64) * 2 > c.depositor_count as u64
+    {
+        c.dissolved = true;
+    }
+}
+
 /// Vault → depositor transfer signed by the campaign PDA. Used by both
-/// `withdraw` (self-service) and `refund` (post-deadline crank).
+/// `withdraw` (self-service) and `refund` (deadline/dissolution crank).
 fn pay_back<'info>(
     campaign: &Account<'info, Campaign>,
     vault: &Account<'info, TokenAccount>,
@@ -229,17 +292,28 @@ pub struct Campaign {
     pub depositor_count: u32,
     /// Depositor count per tier, same order as TIER_AMOUNTS ($20/$100/$1000).
     pub tier_counts: [u32; 3],
+    /// Current dissolve votes among active depositors (badge-holders).
+    pub dissolve_votes: u32,
     pub approved: bool,
+    /// Terminal: set by a strict depositor majority; blocks deposit, approval
+    /// and release forever; opens the permissionless refund crank.
+    pub dissolved: bool,
     pub released: bool,
     pub bump: u8,
 }
 
+/// The Supporter Badge. One per depositor, derived from their pubkey — there
+/// is no instruction anywhere in this program that changes `depositor`, so
+/// the badge is non-transferable by construction ("soulbound"). It is
+/// simultaneously: proof of support (the plaque credential), the dissolve
+/// ballot (`voted`), and the record of exactly what withdraw returns.
 #[account]
 #[derive(InitSpace)]
 pub struct Receipt {
     pub campaign: Pubkey,
     pub depositor: Pubkey,
     pub amount: u64,
+    pub voted: bool,
     pub bump: u8,
 }
 
@@ -341,6 +415,20 @@ pub struct Refund<'info> {
 }
 
 #[derive(Accounts)]
+pub struct CastVote<'info> {
+    pub depositor: Signer<'info>,
+    #[account(mut, seeds = [b"campaign", campaign.campaign_id.as_bytes()], bump = campaign.bump)]
+    pub campaign: Account<'info, Campaign>,
+    #[account(
+        mut,
+        seeds = [b"receipt", campaign.key().as_ref(), depositor.key().as_ref()],
+        bump = receipt.bump,
+        has_one = depositor,
+    )]
+    pub receipt: Account<'info, Receipt>,
+}
+
+#[derive(Accounts)]
 pub struct ApproveRelease<'info> {
     pub admin: Signer<'info>,
     #[account(
@@ -385,4 +473,10 @@ pub enum EscrowError {
     NotApproved,
     #[msg("goal not reached")]
     GoalNotReached,
+    #[msg("campaign dissolved by depositor majority — refunds are open")]
+    Dissolved,
+    #[msg("this badge has already voted to dissolve")]
+    AlreadyVoted,
+    #[msg("this badge has no dissolve vote to remove")]
+    NotVoted,
 }

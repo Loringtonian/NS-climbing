@@ -49,10 +49,14 @@ offset 104  campaign_id  4-byte len L + L bytes   (VARIABLE — offsets below sh
 +16         total_escrowed  u64
 +24         depositor_count u32
 +28         tier_counts     [u32; 3]   ($20 / $100 / $1000 depositors)
-+40         approved        u8 (bool)
-+41         released        u8 (bool)
-+42         bump            u8
++40         dissolve_votes  u32
++44         approved        u8 (bool)
++45         dissolved       u8 (bool)
++46         released        u8 (bool)
++47         bump            u8
 ```
+Receipt/Badge: `8 disc | 32 campaign | 32 depositor | 8 amount | 1 voted | 1 bump`.
+Vote instructions + full v2 semantics: agents.md.
 
 Counter text: tier breakdown ("N supporters · M founders · K patrons") ·
 `total_escrowed / 1e6` dollars · `total/goal` percent. Poll every 15s; keep

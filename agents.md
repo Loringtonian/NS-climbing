@@ -60,7 +60,20 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
    the admin to get money back.
 5. **No other privileges exist.** The admin cannot withdraw funds, change the
    buildout address, change the goal, or block withdrawals. There is no
-   yield, no token, no fee.
+   yield, no transferable token, no fee.
+6. **Depositor majority can dissolve.** Every deposit issues a **Supporter
+   Badge** — the receipt PDA itself, non-transferable by construction (it is
+   derived from the depositor's pubkey and no instruction can reassign it),
+   serving simultaneously as proof-of-support and as the ballot. Any
+   badge-holder may `vote_dissolve` (revocable via `unvote_dissolve` while
+   active). A STRICT head-count majority (`votes * 2 > depositors`) flips the
+   campaign to DISSOLVED — terminal: deposit, approval and release become
+   permanently impossible and the permissionless `refund` crank opens
+   immediately (no waiting for the deadline). Withdrawing removes the
+   departing depositor's vote AND shrinks the electorate atomically, in the
+   same instruction; the majority is always measured against CURRENT
+   depositors, so votes standing while others leave can tip the threshold —
+   deliberate: departures count as silence, not as "no" votes.
 
 ## How to audit
 
@@ -104,14 +117,17 @@ offset 104  campaign_id  u32 len L, then L bytes utf8   <- variable; shifts ever
 +16         total_escrowed  u64
 +24         depositor_count u32
 +28         tier_counts     [u32; 3]  (depositors at $20 / $100 / $1000)
-+40         approved        u8 (bool)
-+41         released        u8 (bool)
-+42         bump            u8
++40         dissolve_votes  u32
++44         approved        u8 (bool)
++45         dissolved       u8 (bool)  <- terminal; refunds open when 1
++46         released        u8 (bool)
++47         bump            u8
 ```
 
-**Receipt** (PDA: seeds `["receipt", campaign_pda, depositor_pubkey]`):
-`8 disc | 32 campaign | 32 depositor | 8 amount | 1 bump`. Its existence =
-that wallet has an active deposit.
+**Receipt / Supporter Badge** (PDA: seeds `["receipt", campaign_pda,
+depositor_pubkey]`): `8 disc | 32 campaign | 32 depositor | 8 amount |
+1 voted | 1 bump`. Its existence = that wallet has an active deposit; it IS
+the non-transferable supporter credential and the dissolve ballot.
 
 **Vault** (PDA: seeds `["vault", campaign_pda]`): SPL token account owned by
 the campaign PDA.
@@ -125,6 +141,11 @@ Instruction discriminators (first 8 bytes of `sha256("global:<name>")`):
 | `deposit`   | `[242,35,198,137,82,225,242,182]` + `amount: u64 LE` (must be a tier amount) |
 | `withdraw`  | `[183,18,70,156,148,109,161,34]` (no args) |
 | `refund`    | `[2,96,183,251,63,208,46,46]` (no args) |
+| `vote_dissolve`   | `[180,224,232,226,59,166,81,63]` (no args) |
+| `unvote_dissolve` | `[244,70,201,208,63,92,167,83]` (no args) |
+
+`vote_dissolve` / `unvote_dissolve` accounts, in order: depositor (signer) ·
+campaign (writable) · receipt PDA (writable).
 
 `deposit` accounts, in order: depositor (signer, writable) · campaign
 (writable) · vault (writable) · depositor's USDC ATA (writable) · receipt PDA
@@ -193,9 +214,12 @@ closes the receipt, after which depositing again — at any tier — is allowed.
 3. `released == false` and `deadline` is in the future (else you're late).
 4. The tier amount you're signing matches what your human asked for
    ($20/$100/$1000), and their token balance covers it.
-5. You showed your human: current total, goal, deadline, buildout address,
-   and the sentence "you can withdraw at any time before release — the exact
-   amount you put in — and here's the withdraw command."
+5. `dissolved == false` (a dissolved campaign takes no deposits; if your human
+   already deposited, their money is refundable via withdraw or the crank).
+6. You showed your human: current total, goal, deadline, buildout address,
+   and the sentences "you can withdraw at any time before release — the exact
+   amount you put in" and "your deposit is also a ballot: a majority of
+   depositors can dissolve the campaign and open refunds for everyone."
 
 Human-facing page: <https://loringtonian.github.io/NS-climbing/> ·
 Escrow flow: <https://loringtonian.github.io/NS-climbing/escrow/web/demo.html>
