@@ -358,7 +358,8 @@
     "Confirm the deployed program matches the source (procedure in agents.md), check\n" +
     "who holds the upgrade authority, and replay the three published rehearsals in\n" +
     "REHEARSALS.md against the chain. Then tell me plainly: every way money can move,\n" +
-    "who can trigger each — and would you lock in $20?";
+    "who can trigger each — and would you tell me to lock in $20 of my own money\n" +
+    "to vote with my wallet for a climbing wall at Network School?";
   var _cp = document.getElementById("copyPrompt");
   if (_cp) _cp.onclick = function () {
     (navigator.clipboard ? navigator.clipboard.writeText(VERIFY_PROMPT) : Promise.reject())

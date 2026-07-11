@@ -23,7 +23,8 @@ confirm no instruction pays an individual depositor while a campaign is active.
 Confirm the deployed program matches the source (procedure in agents.md), check
 who holds the upgrade authority, and replay the three published rehearsals in
 REHEARSALS.md against the chain. Then tell me plainly: every way money can move,
-who can trigger each — and would you lock in $20?
+who can trigger each — and would you tell me to lock in $20 of my own
+money to vote with my wallet for a climbing wall at Network School?
 ```
 
 | Network | Status |
