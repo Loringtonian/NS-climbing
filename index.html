@@ -178,6 +178,9 @@
   .backtop:hover{border-color:var(--accent)}
   .backtop span{font-weight:700;font-size:16px}
   .backtop b{color:var(--accent);font-size:16px;white-space:nowrap}
+  .btn-connect{width:100%;justify-content:center;font-size:19px;padding:19px 24px;
+               box-shadow:0 10px 40px rgba(255,107,74,.25);animation:pulseit 2.4s ease-in-out infinite}
+  @keyframes pulseit{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
   .segrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
   .segrow .seg{margin-bottom:0}
   .copybtn2{border:1px solid var(--line);background:#141922;color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:9px 16px;border-radius:999px;cursor:pointer}
@@ -324,7 +327,8 @@
 
         </div>
         <div id="hasWallet">
-          <button class="btn" id="connect">Connect wallet</button>
+          <button class="btn btn-connect" id="connect">Connect wallet</button>
+          <div class="fine" style="margin-top:10px">Connecting shares <b>only your public address</b> — the same string you'd paste to anyone. It gives this page no power to move your funds: every deposit needs your signature, on that exact transaction. Balances are public on any blockchain, connected or not; we don't read, store, or send them anywhere.</div>
           <div id="inBadge" class="in hidden">You're on the board ✓</div>
       <div id="discordCta" class="fine hidden" style="text-align:center"></div>
       <div id="whoWrap" class="hidden">
@@ -404,7 +408,13 @@ who can trigger each — and would you lock in $20?</pre>
               ev.preventDefault();
               var box = document.getElementById("flowBox");
               box.classList.remove("hidden");
-              if (window.EscrowFlow) window.EscrowFlow.preselect(card.getAttribute("data-usd"));
+              var usd = card.getAttribute("data-usd");
+              var frag = { "20": "#v1", "100": "#v5", "1000": "#v10" }[usd] || "#ask";
+              history.replaceState(null, "", frag);
+              if (window.EscrowFlow) {
+                window.EscrowFlow.preselect(usd);
+                if (window.EscrowFlow.refreshDeepLinks) window.EscrowFlow.refreshDeepLinks();
+              }
               box.scrollIntoView({ behavior: "smooth", block: "center" });
             });
           });

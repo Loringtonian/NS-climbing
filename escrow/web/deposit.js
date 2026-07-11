@@ -73,12 +73,29 @@
   window.EscrowFlow = { preselect: preselect };
   var pre = { "#v1": "20", "#v5": "100", "#v10": "1000" }[location.hash];
   if (pre) preselect(pre);
+  // Returning from a wallet browser: open the flow and put it in front of the user.
+  if (pre || location.hash === "#ask") {
+    var fb = document.getElementById("flowBox");
+    if (fb) {
+      fb.classList.remove("hidden");
+      setTimeout(function () { fb.scrollIntoView({ behavior: "smooth", block: "center" }); }, 250);
+    }
+  }
 
-  // No injected wallet (plain mobile browser) -> deep-link into wallet browsers
+  // No injected wallet (plain mobile browser) -> deep-link into wallet browsers.
+  // The link carries the chosen tier as a fragment so the wallet browser lands
+  // back INSIDE the flow (not at the top of the page with everything collapsed).
+  function buildDeepLinks() {
+    if (provider()) return;
+    var frag = location.hash && /^#(v1|v5|v10|ask)$/.test(location.hash) ? location.hash : "#ask";
+    var here = location.origin + location.pathname + location.search + frag;
+    var pl = $("phantomLink"), sl = $("solflareLink");
+    if (pl) pl.href = "https://phantom.app/ul/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
+    if (sl) sl.href = "https://solflare.com/ul/v1/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
+  }
+  window.EscrowFlow.refreshDeepLinks = buildDeepLinks;
   if (!provider()) {
-    var here = location.href;
-    $("phantomLink").href = "https://phantom.app/ul/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
-    $("solflareLink").href = "https://solflare.com/ul/v1/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
+    buildDeepLinks();
     show("nowallet", true);
     show("hasWallet", false);
   }
