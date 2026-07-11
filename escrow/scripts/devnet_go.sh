@@ -35,7 +35,7 @@ CAMPAIGN_ID=$CAMPAIGN_ID GOAL_USDC=$GOAL_USDC DEADLINE_DAYS=$DEADLINE_DAYS \
 BUILDOUT=$BUILDOUT USDC_MINT=$MINT npx ts-node scripts/init_campaign.ts | tee /tmp/init_campaign.out
 PDA=$(grep "campaign PDA:" /tmp/init_campaign.out | awk '{print $3}')
 
-echo "== 4/5 rehearsal: $20 deposit -> withdraw -> $100 deposit (tier checks) =="
+echo '== 4/5 rehearsal: \$20 deposit -> withdraw -> \$100 deposit (tier checks) =='
 ANCHOR_PROVIDER_URL=$RPC ANCHOR_WALLET=~/.config/solana/id.json CAMPAIGN_ID=$CAMPAIGN_ID \
   USDC_MINT=$MINT ACTION=deposit AMOUNT_USD=20 WALLET_FILE=keys/demo1.json npx ts-node scripts/demo_flow.ts
 ANCHOR_PROVIDER_URL=$RPC ANCHOR_WALLET=~/.config/solana/id.json CAMPAIGN_ID=$CAMPAIGN_ID \
