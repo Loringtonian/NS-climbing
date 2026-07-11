@@ -18,11 +18,11 @@ CAMPAIGN_ID="${CAMPAIGN_ID:-ns-climbing-wall}"
 
 BAL=$(solana balance -u devnet | awk '{print $1}')
 echo "deployer balance: $BAL SOL"
-awk "BEGIN{exit !($BAL >= 2.7)}" || { echo "need >= 2.7 SOL, aborting"; exit 1; }
+awk "BEGIN{exit !($BAL >= 2.3)}" || { echo "need >= 2.3 SOL, aborting"; exit 1; }
 
 echo "== 1/5 deploy program =="
 solana program deploy target/deploy/ns_climb_escrow.so \
-  --program-id target/deploy/ns_climb_escrow-keypair.json -u devnet
+  --program-id target/deploy/ns_climb_escrow-keypair.json --max-len 320000 -u devnet
 
 echo "== 2/5 create demo USDC mint (6 decimals, we control minting) =="
 MINT=$(spl-token create-token --decimals 6 -u devnet --output json | python3 -c "import json,sys; print(json.load(sys.stdin)['commandOutput']['address'])")
