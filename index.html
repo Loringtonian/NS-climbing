@@ -178,6 +178,8 @@
   .backtop:hover{border-color:var(--accent)}
   .backtop span{font-weight:700;font-size:16px}
   .backtop b{color:var(--accent);font-size:16px;white-space:nowrap}
+  .warnbox{margin-top:12px;background:#241417;border:1px solid #5a2b30;border-left:3px solid #e0574f;border-radius:12px;padding:13px 15px;color:#f0b6b2;font-size:13.5px;line-height:1.6}
+  .warnbox b{color:#ffd9d6}
   .whatnext{margin-top:14px;background:#141922;border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--muted);font-size:13.5px;line-height:1.6}
   .whatnext b{color:var(--ink)}
   .whatnext ol{margin:8px 0 0;padding-left:18px}
@@ -340,7 +342,8 @@
               <li>Connecting shares <b>only your public address</b> — no power to move funds. Every deposit needs a separate signature from you.</li>
             </ol>
           </div>
-          <div class="fine">Deposits are signed inside your wallet's browser. One tap above reopens this page there, connected.</div>
+          <div class="fine" style="margin-top:10px"><b>Using a different wallet?</b> Any Solana wallet with a built-in browser works — Backpack, Glow, Trust, and others. Open your wallet app, find its browser, and paste this page's address into it.</div>
+          <div class="warnbox"><b>Never send USDC straight to a wallet address for this.</b> A deposit has to go through this page — that's what creates your badge, your vote, and your refund. Tokens sent directly to any address land nowhere and can't be recovered.</div>
       <div class="fine desktop-hint">On a computer? Install the <a href="https://phantom.com" style="color:#ffb24a">Phantom browser extension</a>, then reload.</div>
 
         </div>
