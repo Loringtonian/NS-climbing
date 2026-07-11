@@ -117,6 +117,7 @@
     #tally b{font-size:34px}
     h1{font-size:clamp(19px,5vw,24px)}
   }
+  .hidden-until-launch{display:none !important}
 </style>
 </head>
 <body>
@@ -136,7 +137,8 @@
 
 <div class="wrap">
 
-  <a class="cta" href="../../index.html">
+  <!-- CAMPAIGN CTA — hidden until mainnet is live (restore tomorrow: remove hidden class) -->
+  <a class="cta hidden-until-launch" href="../../index.html">
     <div class="k">Cheering is free. <em>Making it real isn't.</em></div>
     <div class="v">The wall gets built by money locked in escrow, not by taps. Lock in $20 — refunded in full if it never happens.</div>
     <span class="go">Lock in $20 →</span>
@@ -152,7 +154,7 @@
 
     <ol id="rows"><li class="skel">reading the chain…</li></ol>
 
-    <div class="honest">This ranks taps, so fast fingers count. What actually decides the wall is dollars locked. <a href="../../index.html">See the campaign →</a></div>
+    <div class="honest">This ranks taps, so fast fingers count. What actually decides the wall is dollars locked.</div>
 
     <div class="claim" id="claimBox" style="display:none">
       <h3>Want Lorin to know which face is you?</h3>
@@ -165,7 +167,8 @@
     </div>
   </section>
 
-  <a class="cta quiet" href="../../index.html">
+  <!-- CAMPAIGN CTA (repeat) — hidden until mainnet is live -->
+  <a class="cta quiet hidden-until-launch" href="../../index.html">
     <div class="k">Still here? <em>Put $20 where your thumbs are.</em></div>
     <div class="v">One Lemur board, one small room. Enough of us and it happens.</div>
     <span class="go">Back the wall →</span>
@@ -317,6 +320,7 @@
       seatOnHash(list.length);
 
       var box = $("youBox");
+      box.style.display = "none";   // Lorin: drop the which-face-is-you tile
       if (!myRank) {
         box.className = "empty";
         box.innerHTML = 'You are <span class="face">' + CheerBoard.faceFor(HL) + '</span> — no cheers on the board yet. Smash the button and you\'ll appear here.';
