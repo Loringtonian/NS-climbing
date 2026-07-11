@@ -272,12 +272,14 @@
     return m.slice(0, 140);
   }
 
-  var VERIFY_PROMPT = "Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md and\n" +
-    "escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the six claims\n" +
-    "in VERIFY_IT.md against the code, with line numbers. Confirm the deployed\n" +
-    "program matches the source (procedure in agents.md) and who holds the upgrade\n" +
-    "authority. Then tell me plainly: every way my money can move, who can trigger\n" +
-    "each — and would you let me deposit?";
+  var VERIFY_PROMPT = "Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md, SPEC.md,\n" +
+    "and escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the six\n" +
+    "claims in VERIFY_IT.md against the code, with line numbers — especially claim 1:\n" +
+    "confirm no instruction pays an individual depositor while a campaign is active.\n" +
+    "Confirm the deployed program matches the source (procedure in agents.md), check\n" +
+    "who holds the upgrade authority, and replay the three published rehearsals in\n" +
+    "REHEARSALS.md against the chain. Then tell me plainly: every way money can move,\n" +
+    "who can trigger each — and would you lock in $20?";
   var _cp = document.getElementById("copyPrompt");
   if (_cp) _cp.onclick = function () {
     (navigator.clipboard ? navigator.clipboard.writeText(VERIFY_PROMPT) : Promise.reject())

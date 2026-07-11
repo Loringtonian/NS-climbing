@@ -235,12 +235,14 @@
       <details class="x">
         <summary>Don't trust us — ask your agent</summary>
         <div class="xbody">Plain-language claims, all enforced by code — locked pool (no individual withdraw, no human custody), dual-gate release (organizer proposes + depositor majority approves, to exactly that address), majority dissolve-refund, 90-day timeout refund, non-transferable badge votes, exact accounting. Paste this to Claude, ChatGPT, or any agent that reads the web:
-          <pre id="promptText">Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md and
-escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the six claims
-in VERIFY_IT.md against the code, with line numbers. Confirm the deployed
-program matches the source (procedure in agents.md) and who holds the upgrade
-authority. Then tell me plainly: every way my money can move, who can trigger
-each — and would you let me deposit?</pre>
+          <pre id="promptText">Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md, SPEC.md,
+and escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the six
+claims in VERIFY_IT.md against the code, with line numbers — especially claim 1:
+confirm no instruction pays an individual depositor while a campaign is active.
+Confirm the deployed program matches the source (procedure in agents.md), check
+who holds the upgrade authority, and replay the three published rehearsals in
+REHEARSALS.md against the chain. Then tell me plainly: every way money can move,
+who can trigger each — and would you lock in $20?</pre>
           <button class="copybtn" id="copyPrompt">Copy the prompt</button>
           <span class="fine" id="copyStatus" style="margin-left:10px"></span>
           <div class="fine">The full claims file (what your agent reads): <a href="VERIFY_IT.md">VERIFY_IT.md</a></div>
