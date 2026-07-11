@@ -99,3 +99,20 @@ vote 2/2 strict majority (3rhNBUZA…) → PERMISSIONLESS release (5jVhKvzh…) 
 **120 USDC landed at exactly the proposed address's ATA**
 (9UZrd6RTSV2TZh9RzrUjKHno43yVG83xvGVoFR47KXCQ).
 Explorer: https://explorer.solana.com/address/9UZrd6RTSV2TZh9RzrUjKHno43yVG83xvGVoFR47KXCQ?cluster=devnet
+
+## v3-LOCKED correction (2026-07-11) — NO individual withdraw
+
+Devnet upgraded in place to the frozen locked artifact — on-chain dump trimmed
+to 294,736 bytes hashes to exactly
+43bd7ddf7e060dfa194e0ac7223a8cae4d2258825d55f43895853b21a74b26a9.
+Account layouts unchanged, so campaign ns-climbing-wall-v4 remains the live
+phone-test target ($120 / 2 depositors — now locked, as intended).
+
+LOCKED PROBE (live): refund crank against the ACTIVE v4 campaign fails with
+DeadlineNotPassed (lib.rs:119) — deposits are provably locked on-chain; the
+only exits are collective.
+
+VICTORY re-rehearsal on the frozen binary (scratch ns-wall-victory2, PDA
+EMdTYQXXZqJTpZnCW1jNNeYASifQt5pXaueATQRth8tT): deposits → propose DEUJCsLb…
+(4eBXU7Qe…) → vote 1/2 → 2/2 majority (3M1uYVfy…, Zwnqnonq…) → permissionless
+release (wyKpBaZh…) → funds landed at the proposed ATA.
