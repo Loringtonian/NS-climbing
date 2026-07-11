@@ -15,7 +15,7 @@
 <link rel="icon" href="favicon.ico">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="robots" content="noindex, nofollow">
-<title>A climbing gym at Network School — member petition</title>
+<title>A climbing gym at Network School</title>
 <style>
   :root{
     --bg:#0e1116; --panel:#161b22; --ink:#f2f4f7; --muted:#9aa4b2;
@@ -36,10 +36,13 @@
   .tagpill{font-size:13px;color:var(--muted);border:1px solid var(--line);padding:6px 13px;border-radius:999px}
 
   /* hero */
-  .hero{position:relative;border-radius:22px;overflow:hidden;min-height:480px;display:flex;align-items:flex-end;margin-top:6px;background:#1b1f27 center/cover no-repeat}
-  .hero img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.78}
-  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,17,22,.2),rgba(14,17,22,.93) 92%)}
-  .hero-inner{position:relative;z-index:2;padding:44px 40px}
+  .hero{position:relative;overflow:hidden;min-height:78vh;display:flex;align-items:flex-end;background:#1b1f27 center/cover no-repeat;
+        width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
+  @media(min-width:900px){.hero{min-height:82vh}}
+  .hero img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.92}
+  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,17,22,.15) 0%,rgba(14,17,22,.55) 55%,rgba(14,17,22,.97) 100%)}
+  .hero-inner{position:relative;z-index:2;width:100%;max-width:var(--maxw);margin:0 auto;padding:0 24px 54px}
+  .hero h1{text-shadow:0 2px 30px rgba(0,0,0,.6)}
   .eyebrow{display:inline-block;background:rgba(255,107,74,.16);color:var(--accent2);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:7px 13px;border-radius:999px;margin-bottom:16px}
   .hero h1{font-size:clamp(32px,6vw,52px);max-width:16ch}
 
@@ -173,11 +176,6 @@
 </head>
 <body>
 <div class="wrap">
-  <nav>
-    <div class="logo">climbing <span>at Network School</span></div>
-    <span class="tagpill">member petition</span>
-  </nav>
-
   <header class="hero">
     <!-- Landscape scene — actual wide Lemur board (image-to-image from lemurdesign.ca photos). -->
     <img class="bg" src="assets/hero_lemur_office.jpg" alt="A Lemur climbing board beside the desks — climbing steps from where we work">
@@ -191,18 +189,6 @@
     We all love to climb. But <b>Johor Bahru is too far</b> for it to be part of our daily flow.<br>
     <span class="us">We, the undersigned,</span> want a climbing gym at Network School — one Lemur board, in a small room, steps from where we live and work.
   </p>
-
-  <section class="board">
-    <div class="what">
-      <h2>The whole idea is small.</h2>
-      <ul>
-        <li>One adjustable <b>Lemur climbing board</b> — that's the gym.</li>
-        <li>A small, bright room: glass, plants, Forest City light.</li>
-        <li><b>Standing desks</b> along the back wall to work between sessions.</li>
-        <li>A couch, a couple of beanbags, a stool or two. Nothing more.</li>
-      </ul>
-    </div>
-  </section>
 
   <section class="board">
     <h2>One board does the work of a whole gym.</h2>
