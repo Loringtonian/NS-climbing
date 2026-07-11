@@ -354,12 +354,12 @@
     return m.slice(0, 140);
   }
 
-  var VERIFY_PROMPT = "I'm considering depositing ~$20 USDC into a community escrow. Verify it for me:\n\n" +
-    "1. Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md and the program source at https://github.com/Loringtonian/NS-climbing/blob/main/escrow/programs/ns-climb-escrow/src/lib.rs\n" +
-    "2. Check each of the six claims in https://github.com/Loringtonian/NS-climbing/blob/main/VERIFY_IT.md against the actual code. For each: HOLDS or BROKEN, with the line numbers.\n" +
-    "3. Follow the build-verification procedure in agents.md to confirm the deployed program's bytes match this source, and check who currently holds the upgrade authority.\n" +
-    "4. Tell me plainly: if I deposit, what are ALL the ways my money can move, and who can trigger each one?\n\n" +
-    "Report: claim-by-claim verdict, the deployed-code check result, and your overall call — would you let me deposit?";
+  var VERIFY_PROMPT = "Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md and\n" +
+    "escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the six claims\n" +
+    "in VERIFY_IT.md against the code, with line numbers. Confirm the deployed\n" +
+    "program matches the source (procedure in agents.md) and who holds the upgrade\n" +
+    "authority. Then tell me plainly: every way my money can move, who can trigger\n" +
+    "each — and would you let me deposit?";
   document.getElementById("copyPrompt").onclick = function () {
     (navigator.clipboard ? navigator.clipboard.writeText(VERIFY_PROMPT) : Promise.reject())
       .then(function () { document.getElementById("copyStatus").textContent = "Copied — paste it to Claude, ChatGPT, or any agent."; })
