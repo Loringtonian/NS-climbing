@@ -172,6 +172,13 @@
   .who h2{font-size:clamp(22px,3.4vw,30px);margin-bottom:10px}
   .who p{margin:0 0 12px;color:var(--muted);font-size:15px;line-height:1.65}
   .who b{color:var(--ink)}
+  .segrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+  .segrow .seg{margin-bottom:0}
+  .copybtn2{border:1px solid var(--line);background:#141922;color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:9px 16px;border-radius:999px;cursor:pointer}
+  .copybtn2:hover{border-color:var(--accent);color:var(--ink)}
+  .copybtn2.done{border-color:#2b4a3f;background:#12201a;color:#7fe0b2}
+  .repo-row{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .repo-row a{margin-top:0}
   .repo-cta{display:flex;gap:12px;align-items:flex-start;background:#141922;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:14px;line-height:1.6;color:var(--muted)}
   .repo-cta .ico{color:var(--accent);font-weight:800}
   .repo-cta b{color:var(--ink)}
@@ -250,7 +257,7 @@
       <div>
         <h2>Who's doing this.</h2>
         <p><b>Lorin Symington</b> — long time boulderer, and a builder of physical things long before software: years of construction and fabrication, from custom homes to welding to industrial machinery.</p>
-        <p>This thing runs through him. He holds the one key that can <i>propose</i> where the money goes — and nothing else; it can't move a cent on its own, and it can't move without a majority of participants.</p>
+        <p>This thing runs through him. He holds the one key that can <i>propose</i> where the money goes — and nothing else; it can't move a cent on its own, and it can't move without a majority of participants. <a href="#statement" style="color:var(--accent2);font-weight:700;text-decoration:underline;text-underline-offset:2px">How does it work?</a></p>
         <p>Also, he's <b>the first money in</b>: he funded the mainnet deployment, and his own deposit is the first on the board.</p>
       </div>
     </div>
@@ -403,10 +410,13 @@ who can trigger each — and would you lock in $20?</pre>
     <div class="statement">
       <h2>The whole thing, in full.</h2>
       <div class="sub2">The same eight facts, said twice. Pick your register.</div>
-      <div class="repo-cta"><span class="ico">⌥</span><div><b>Everything is public.</b> The contract, the tests, the audits, the on-chain rehearsals — all of it lives in the repo. Read it yourself, or paste it to your own AI and let it check us.<br><a href="https://github.com/Loringtonian/NS-climbing" target="_blank" rel="noopener">github.com/Loringtonian/NS-climbing →</a></div></div>
-      <div class="seg" role="tablist">
-        <button id="segPlain" class="on" onclick="document.getElementById('regPlain').classList.add('on');document.getElementById('regCrypto').classList.remove('on');this.classList.add('on');document.getElementById('segCrypto').classList.remove('on')">Plain English</button>
-        <button id="segCrypto" onclick="document.getElementById('regCrypto').classList.add('on');document.getElementById('regPlain').classList.remove('on');this.classList.add('on');document.getElementById('segPlain').classList.remove('on')">Crypto-native</button>
+      <div class="repo-cta"><span class="ico">⌥</span><div><b>Everything is public.</b> The contract, the tests, the audits, the on-chain rehearsals — all of it lives in the repo. Read it yourself, or paste it to your own AI and let it check us.<br><span class="repo-row"><a href="https://github.com/Loringtonian/NS-climbing" target="_blank" rel="noopener">github.com/Loringtonian/NS-climbing →</a><button class="copybtn2" id="copyRepo" title="Copy the repo link">Copy</button></span></div></div>
+      <div class="segrow">
+        <div class="seg" role="tablist">
+          <button id="segPlain" class="on" onclick="document.getElementById('regPlain').classList.add('on');document.getElementById('regCrypto').classList.remove('on');this.classList.add('on');document.getElementById('segCrypto').classList.remove('on')">Plain English</button>
+          <button id="segCrypto" onclick="document.getElementById('regCrypto').classList.add('on');document.getElementById('regPlain').classList.remove('on');this.classList.add('on');document.getElementById('segPlain').classList.remove('on')">Crypto-native</button>
+        </div>
+        <button class="copybtn2" id="copyStatement" title="Copy the selected version">Copy</button>
       </div>
       <div id="regPlain" class="reg on">
         <p><b>What it is.</b> A way for a community to fund shared things — first up: a climbing wall at Network School. You put in $20, $100, or $1000 of USDC (one deposit per person). The money genuinely leaves your account and goes into a shared jar that no human being holds — not us, not anyone. The jar is run by a small computer program with fixed rules that nobody can talk out of anything.</p>
@@ -433,5 +443,24 @@ who can trigger each — and would you lock in $20?</pre>
     <div><a href="https://github.com/Loringtonian/NS-climbing" target="_blank" rel="noopener" style="color:var(--muted)">Source code</a> · Board photos © Lemur Design</div>
   </footer>
 </div>
+
+  <script>
+    (function () {
+      function flash(btn, txt) { var o = btn.textContent; btn.textContent = txt; btn.classList.add("done"); setTimeout(function () { btn.textContent = o; btn.classList.remove("done"); }, 1600); }
+      function copy(text, btn) {
+        if (navigator.clipboard) { navigator.clipboard.writeText(text).then(function () { flash(btn, "Copied ✓"); }).catch(function () { flash(btn, "Select + copy"); }); }
+        else { flash(btn, "Select + copy"); }
+      }
+      var cs = document.getElementById("copyStatement");
+      if (cs) cs.onclick = function () {
+        var on = document.querySelector(".statement .reg.on");
+        if (!on) return;
+        var txt = Array.prototype.map.call(on.querySelectorAll("p"), function (p) { return p.innerText.trim(); }).join("\n\n");
+        copy(txt + "\n\n" + location.origin + location.pathname, cs);
+      };
+      var cr = document.getElementById("copyRepo");
+      if (cr) cr.onclick = function () { copy("https://github.com/Loringtonian/NS-climbing", cr); };
+    })();
+  </script>
 </body>
 </html>
