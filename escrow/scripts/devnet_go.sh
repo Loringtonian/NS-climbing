@@ -47,7 +47,7 @@ cat > DEVNET_STATE.md <<EOF
 
 | What         | Value |
 |--------------|-------|
-| Program      | 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw |
+| Program      | 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD |
 | Campaign ID  | $CAMPAIGN_ID |
 | Campaign PDA | $PDA |
 | Demo mint    | $MINT (we control minting — fund a phone wallet: \`spl-token mint $MINT 20 <their-ata> -u devnet\` or scripts/demo_flow.ts) |

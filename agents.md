@@ -26,7 +26,7 @@ and no human ever holds the money.
 | Field                | Value |
 |----------------------|-------|
 | Cluster              | **mainnet deploy imminent** (2026-07-11) — DO NOT act until this table pins the campaign PDA + mint; re-read this file |
-| Program ID           | `7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw` |
+| Program ID           | `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD` |
 | Campaign ID (string) | `ns-climbing-wall` |
 | Campaign PDA         | derive: `["campaign", "ns-climbing-wall"]` (see below) — will be pinned here at deploy |
 | USDC mint            | PENDING devnet campaign init — will be pinned here; on mainnet it will be `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Circle USDC) |
@@ -94,7 +94,7 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
    ```bash
    git clone https://github.com/Loringtonian/NS-climbing && cd NS-climbing/escrow
    anchor build                       # anchor-cli 1.0.2, rustc 1.92, solana 4.1.1
-   solana program dump 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw onchain.so -u <cluster>
+   solana program dump 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD onchain.so -u <cluster>
    # on-chain programdata is zero-padded; truncate to the built size, then compare
    SIZE=$(stat -f%z target/deploy/ns_climb_escrow.so 2>/dev/null || stat -c%s target/deploy/ns_climb_escrow.so)
    head -c "$SIZE" onchain.so > onchain.trimmed.so
@@ -106,7 +106,7 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
    `verify-from-repo`.
 3. **Check upgrade authority** (can the code change under you?):
    ```bash
-   solana program show 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw -u <cluster>
+   solana program show 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD -u <cluster>
    ```
    Current, disclosed state: the upgrade authority is HELD BY THE ORGANIZER's
    key (`84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2`) and will be locked to
@@ -177,7 +177,7 @@ import { Connection, Keypair, PublicKey, SystemProgram, Transaction, Transaction
 import { getAssociatedTokenAddressSync, createAssociatedTokenAccountIdempotentInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 const RPC = "<cluster rpc>";                 // see Live campaign parameters
-const PROGRAM = new PublicKey("7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw");
+const PROGRAM = new PublicKey("42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD");
 const USDC = new PublicKey("<mint from Live campaign parameters>");
 const wallet = /* the human's Keypair or wallet-adapter signer */ null as unknown as Keypair;
 

@@ -10,7 +10,7 @@
 > Devnet campaign values land in `DEVNET_STATE.md` when `scripts/devnet_go.sh`
 > runs (blocked on devnet SOL as of 2026-07-11 midday).
 
-Program: `ns_climb_escrow` — ID `7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw`
+Program: `ns_climb_escrow` — ID `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD`
 (regenerate per DEPLOY.md if you redeploy fresh; the ID is the program keypair's pubkey).
 
 The IDL (needed by any Anchor JS client) is at `target/idl/ns_climb_escrow.json`

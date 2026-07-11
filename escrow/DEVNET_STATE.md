@@ -1,3 +1,8 @@
+> **DEPRECATED CHAIN.** Everything below ran on the OLD program ID
+> `7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw` during development.
+> The CLEAN chain (program `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD`,
+> binary b6fdd452…, unpolluted history) is documented in REHEARSALS.md.
+
 # Devnet deployment state (2026-07-11)
 
 | What         | Value |

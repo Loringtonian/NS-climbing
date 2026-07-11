@@ -51,7 +51,7 @@ cat > MAINNET_STATE.md <<EOF
 
 | What         | Value |
 |--------------|-------|
-| Program      | 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw |
+| Program      | 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD |
 | Campaign ID  | $CAMPAIGN_ID |
 | Campaign PDA | $PDA |
 | USDC mint    | $USDC (Circle) |
@@ -86,8 +86,8 @@ echo "== UPGRADE AUTHORITY — scheduled within the week (disclosed; not launch-
 echo "Current authority: the deployer key (held by Lorin, disclosed in agents.md)."
 echo "Within a week of launch, run ONE of:"
 echo "  # hand to a multisig:"
-echo "  solana program set-upgrade-authority 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw \\"
+echo "  solana program set-upgrade-authority 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD \\"
 echo "    --new-upgrade-authority <MULTISIG_PUBKEY> -u \$RPC"
 echo "  # or burn it (program becomes immutable forever):"
-echo "  solana program set-upgrade-authority 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw --final -u \$RPC"
+echo "  solana program set-upgrade-authority 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD --final -u \$RPC"
 echo "Then update the disclosure lines in agents.md + demo.html."

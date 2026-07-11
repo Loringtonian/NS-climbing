@@ -43,16 +43,16 @@ of one, so he can exercise the full collective machinery solo, with real money,
 After the smoke test: update agents.md Live-campaign-parameters (cluster,
 PDA, mint), push, and selling can start.
 
-Binary: `target/deploy/ns_climb_escrow.so` — **294,736 bytes**, v3-LOCKED build (dual-gate destination vote, NO individual withdraw)
+Binary: `target/deploy/ns_climb_escrow.so` — **295,112 bytes**, v3.1-FINAL build (locked pool + dual-gate + refunds-only post-deadline)
 (tiers + dissolve vote + Supporter Badge; 2026-07-11, anchor-cli 1.0.2 /
 anchor-lang 1.1.2 / solana 4.1.1 / rustc 1.92.0).
-**sha256 `43bd7ddf7e060dfa194e0ac7223a8cae4d2258825d55f43895853b21a74b26a9`** —
+**sha256 `b6fdd452de20636b7e5a16025bbf16b5e972e4ffef8686d55d1ea2ac9cacd7f7`** —
 this exact artifact passed 31/31 on localnet via --skip-build (auditor freeze protocol, 2026-07-11; hash byte-identical before and after the run, and reproducible across clean rebuilds); deploys ship this
 file. Fits the existing --max-len 320000 devnet allocation, so devnet upgrades
 in place (NOTE: v1 campaign accounts don't parse under the v2 layout — create
 a fresh campaign after upgrading). Auditors: `solana program dump`, truncate
-to 294,736 bytes, sha256 must match (procedure in agents.md).
-Program ID `7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw` = pubkey of the
+to 295,112 bytes, sha256 must match (procedure in agents.md).
+Program ID `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD` = pubkey of the
 gitignored keypair `target/deploy/ns_climb_escrow-keypair.json`. If that file is
 ever lost or you want a fresh ID: `solana-keygen new -o target/deploy/ns_climb_escrow-keypair.json`,
 put the new pubkey in `declare_id!` (lib.rs), `Anchor.toml`, `web/counter.js`,
