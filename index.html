@@ -235,7 +235,7 @@
       <p style="color:var(--muted);max-width:56ch;margin:10px 0 0">Not a waitlist, not a donation — an escrow. Put your money where your mouth is.</p>
 
       <div class="lanes">
-        <a class="lane hot" href="#deposit"><span class="ico">🤑</span><span>Shut up and take my money<small>Straight to the tiers. It's $20.</small></span></a>
+        <a class="lane hot lane-go" href="#deposit" data-usd="20"><span class="ico">🤑</span><span>Shut up and take my money<small>Straight to the tiers. It's $20.</small></span></a>
         <a class="lane" href="#statement"><span class="ico">🧐</span><span>Explain it properly first<small>The whole thing, in plain English or crypto.</small></span></a>
       </div>
 
@@ -359,7 +359,7 @@ who can trigger each — and would you lock in $20?</pre>
       <script>
         // tier cards open the inline flow with that tier pre-selected — no navigation
         document.addEventListener("DOMContentLoaded", function () {
-          Array.prototype.forEach.call(document.querySelectorAll(".tier-card"), function (card) {
+          Array.prototype.forEach.call(document.querySelectorAll(".tier-card, .lane-go"), function (card) {
             card.addEventListener("click", function (ev) {
               ev.preventDefault();
               var box = document.getElementById("flowBox");
