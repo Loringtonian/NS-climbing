@@ -3,22 +3,23 @@
 You are probably here because a human said something like *"read this and, if
 it's safe, escrow $20 for me."* This file gives you everything needed to do
 that responsibly: what the contract is, how to audit it, and how to execute a
-deposit or withdrawal. It is written to be sufficient on its own — no IDL or
+deposit or, when a refund path is open, cranking refunds. It is written to be sufficient on its own — no IDL or
 SDK required.
 
 ## What this is (one paragraph)
 
-Members of Network School (Forest City, Malaysia) are signaling demand for a
+Members of Network School (Forest City, Malaysia) are pooling money for a
 small climbing gym by escrowing USDC on Solana at one of three tiers — $20,
 $100, or $1000 (tier perks are social/off-chain; the chain only records the
-amount). It is a **deposit, not a donation**: every depositor can withdraw
-their exact deposit at any moment until
-funds are released, and release can only happen if the campaign goal is
-reached AND the campaign admin co-signs (representing the wall actually being
-greenlit), in which case the pooled funds move to a buildout address that was
-fixed publicly when the campaign was created. If the deadline passes without
-release, anyone can trigger refunds. The point is priced demand: a counter of
-people with real skin in the game.
+amount). Deposits are **locked in a shared pool** — there is no individual
+withdraw; committing together is the point. Money leaves the pool by exactly
+three collective paths: (1) the organizer proposes a payout address and a
+strict head-count majority of depositors votes yes — then anyone can release
+the whole pool to that address; (2) a strict majority votes to dissolve —
+terminal, and a permissionless crank refunds every deposit exactly; (3) the
+90-day deadline passes without release — the same crank refunds everyone.
+Neither the organizer nor a majority alone can move funds to a third party,
+and no human ever holds the money.
 
 ## Live campaign parameters
 
@@ -29,7 +30,7 @@ people with real skin in the game.
 | Campaign ID (string) | `ns-climbing-wall` |
 | Campaign PDA         | derive: `["campaign", "ns-climbing-wall"]` (see below) — will be pinned here at deploy |
 | USDC mint            | PENDING devnet campaign init — will be pinned here; on mainnet it will be `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Circle USDC) |
-| Deposit tiers        | exactly $20 / $100 / $1000 USDC (`20_000_000` / `100_000_000` / `1_000_000_000` base units); other amounts rejected (`InvalidTierAmount`); one deposit per wallet — to change tier, withdraw then redeposit |
+| Deposit tiers        | exactly $20 / $100 / $1000 USDC (`20_000_000` / `100_000_000` / `1_000_000_000` base units); other amounts rejected (`InvalidTierAmount`); one deposit per wallet, locked as-is (no tier changes) |
 | Goal                 | NONE — raise-as-much-as-possible mode; nothing gates on amount raised |
 | Deadline             | stored on-chain (layout below); 90 days from init for this campaign |
 
@@ -41,12 +42,13 @@ initialized and smoke-tested.
 
 Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/ns-climb-escrow/src/lib.rs) (~350 lines, reads in minutes).
 
-1. **Withdraw-anytime is unconditional.** `withdraw` checks exactly one thing:
-   `!campaign.released`. Not the deadline, not the goal, not admin approval.
-   After admin approval but before release, withdrawal still works, and it
-   returns exactly the amount recorded on your receipt ($20/$100/$1000).
+1. **Deposits are LOCKED — individual exit does not exist.** There is no
+   withdraw instruction in the program at all. Money leaves the vault through
+   exactly three collective paths: dual-gate release (property 3), majority
+   dissolve (property 6), or the deadline refund crank (property 4). Every
+   refund path returns exactly the amount recorded on your receipt.
 2. **Funds can only move to two places.** Vault outflows exist in exactly
-   three instructions: `withdraw` / `refund` (back to the receipt's depositor,
+   two instructions: `refund` (back to the receipt's depositor,
    token-account ownership enforced by Anchor constraints) and `release` (to a
    token account owned by exactly `campaign.proposed_payout` — an account
    constraint, checked before any handler code runs).
@@ -150,7 +152,6 @@ Instruction discriminators (first 8 bytes of `sha256("global:<name>")`):
 | Instruction | Bytes |
 |-------------|-------|
 | `deposit`   | `[242,35,198,137,82,225,242,182]` + `amount: u64 LE` (must be a tier amount) |
-| `withdraw`  | `[183,18,70,156,148,109,161,34]` (no args) |
 | `refund`    | `[2,96,183,251,63,208,46,46]` (no args) |
 | `vote_dissolve`   | `[180,224,232,226,59,166,81,63]` (no args) |
 | `unvote_dissolve` | `[244,70,201,208,63,92,167,83]` (no args) |
@@ -165,8 +166,6 @@ accounts, in order: depositor (signer) · campaign (writable) · receipt PDA
 `deposit` accounts, in order: depositor (signer, writable) · campaign
 (writable) · vault (writable) · depositor's USDC ATA (writable) · receipt PDA
 (writable) · SPL Token program · System program.
-
-`withdraw` accounts: same minus the System program (first five identical).
 
 Runnable snippet (plain `@solana/web3.js`, no Anchor client needed):
 
@@ -203,8 +202,6 @@ const deposit = new TransactionInstruction({
     (() => { const b = Buffer.alloc(8); b.writeBigUInt64LE(20_000_000n); return b; })(), // $20; use 100_000_000n / 1_000_000_000n for higher tiers
   ]),
 });
-// withdraw: same keys minus the last (SystemProgram) entry,
-// data: Buffer.from([183,18,70,156,148,109,161,34])
 
 const conn = new Connection(RPC, "confirmed");
 const tx = new Transaction().add(
@@ -216,10 +213,10 @@ await conn.sendTransaction(tx, [wallet]);
 
 Preconditions your human needs: at least the chosen tier in USDC (of the
 exact mint above) and a little SOL for fees (~0.003; the receipt's ~0.0015 SOL
-rent comes back on withdraw). The program transfers exactly the tier amount
+rent comes back when a refund path closes the badge). The program transfers exactly the tier amount
 you pass and rejects anything outside the {20, 100, 1000} menu. A second
-deposit from the same wallet fails (receipt PDA already exists); withdraw
-closes the receipt, after which depositing again — at any tier — is allowed.
+deposit from the same wallet fails (receipt PDA already exists), and there
+are no tier changes — the deposit is locked as-is until the campaign resolves.
 
 ## Recommended agent checklist before signing
 
@@ -230,7 +227,7 @@ closes the receipt, after which depositing again — at any tier — is allowed.
 4. The tier amount you're signing matches what your human asked for
    ($20/$100/$1000), and their token balance covers it.
 5. `dissolved == false` (a dissolved campaign takes no deposits; if your human
-   already deposited, their money is refundable via withdraw or the crank).
+   already deposited, their money returns via the collective refund crank when dissolution or the deadline opens it).
 5b. `campaign.admin` equals the organizer key
    `84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2` (offset 8 — creation is
    program-restricted to it, so a mismatch means the wrong account). There is
@@ -238,10 +235,12 @@ closes the receipt, after which depositing again — at any tier — is allowed.
    read `proposed_payout` from the campaign bytes and confirm it is the
    address they intend to approve — a majority vote is what authorizes the
    money to move there.
-6. You showed your human: current total, goal, deadline, buildout address,
-   and the sentences "you can withdraw at any time before release — the exact
-   amount you put in" and "your deposit is also a ballot: a majority of
-   depositors can dissolve the campaign and open refunds for everyone."
+6. You showed your human, verbatim: "your deposit is LOCKED — you cannot
+   individually withdraw it. It comes back only if a majority dissolves the
+   campaign or the 90-day timer expires (exact amount, permissionless crank),
+   and it funds the wall only if the organizer proposes an address AND a
+   majority of depositors — including possibly you — votes yes. Your badge is
+   your ballot."
 
 Human-facing page: <https://loringtonian.github.io/NS-climbing/> ·
 Escrow flow: <https://loringtonian.github.io/NS-climbing/escrow/web/demo.html>

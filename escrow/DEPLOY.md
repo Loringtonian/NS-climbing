@@ -18,22 +18,27 @@ QR goes on the wall.** Devnet instructions kept further down for reference only.
    preferred when it exists.
 3. Run the smoke test below. Only then publish the QR.
 
-## MAINNET SMOKE TEST — Lorin is depositor #1 (before any QR goes up)
+## MAINNET SMOKE TEST — Lorin rehearses the collective loop alone (before any QR)
 
-Real-money loop test, ~10 minutes, from Lorin's phone with ~$25 USDC + ~0.01 SOL
-in Phantom (mainnet, no network switching needed):
+Deposits are LOCKED (no individual withdraw), so the smoke test uses a SCRATCH
+campaign where Lorin is the sole depositor — one person IS a strict majority
+of one, so he can exercise the full collective machinery solo, with real money,
+~15 minutes, ~$25 USDC + ~0.01 SOL in mainnet Phantom:
 
-1. Open the deposit page URL printed by mainnet_go.sh (MAINNET_STATE.md) →
-   "Open in Phantom" → connect.
-2. **Deposit $20 (V1).** Confirm: wallet shows -20 USDC; page flips to
-   "You're on the board — $20 escrowed ✓"; counter reads "1 × V1 · $20 escrowed".
-3. **Withdraw.** Confirm: wallet shows +20 USDC back (exact); counter returns
-   to zero; receipt rent (~0.0015 SOL) came back too.
-4. **Re-deposit $20** and leave it in — campaign opens with its first real deposit.
-5. Sanity on the explorer link in MAINNET_STATE.md: vault balance = 20 USDC,
-   depositor_count = 1.
-If ANY step misbehaves: stop, do not distribute the QR, report exactly what
-happened (tx signatures + screenshots) — funds are withdrawable the whole time.
+1. Init a scratch campaign (e.g. CAMPAIGN_ID=ns-wall-smoke) via init_campaign.ts.
+2. Point a LOCAL copy of the deposit page at it (do not push); deposit $20 (V1).
+   Confirm: wallet -20 USDC; badge shows "$20 locked in the pool ✓"; counter
+   reads "1 × V1 · $20 raised".
+3. VICTORY leg: propose_payout to a second wallet Lorin controls
+   (`ACTION=propose PAYOUT=… admin.ts`), vote yes from Phantom (1/1 = majority),
+   release (`ACTION=release PAYOUT_TOKEN=…`). Confirm exactly $20 lands there.
+4. DISSOLVE leg (fresh scratch campaign #2): deposit $20 → vote dissolve from
+   the page (1/1 majority → DISSOLVED) → run the refund crank
+   (`scripts/refund_crank.ts`) → confirm exactly $20 returns to his wallet.
+5. Explorer sanity on both campaigns. If ANY step misbehaves: stop, no QR,
+   report signatures.
+6. THEN init the REAL campaign (ns-climbing-wall), flip the web config to it,
+   push, verify live — and selling starts.
 
 After the smoke test: update agents.md Live-campaign-parameters (cluster,
 PDA, mint), push, and selling can start.

@@ -220,9 +220,8 @@
           <button class="btn hidden tier" data-usd="20">V1 — $20<small>Get on the board. Your name on the founding plaque.</small></button>
           <button class="btn hidden tier" data-usd="100">V5 — $100<small>First-ascent night. First-week priority.</small></button>
           <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
-          <div class="fine hidden" id="tierFine">All deposits withdrawable anytime. Perks exist when the wall exists — if it dies, you withdraw, nobody loses a cent.</div>
-          <button class="btn ghost hidden" id="withdraw">Withdraw my deposit</button>
-          <div class="fine hidden" id="upgradeHint">To change tier: withdraw, then deposit again at the new size. Withdrawing also removes your dissolve vote, if you cast one.</div>
+          <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by community majority (fund or dissolve-refund) or the 90-day timeout refund. Perks exist when the wall exists.</div>
+          <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (majority + organizer), everyone-refunded (majority dissolve), everyone-refunded (90-day timeout).</div>
           <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
         </div>
         <div id="status"></div>
@@ -230,12 +229,12 @@
 
       <details class="x">
         <summary>How your money is protected</summary>
-        <div class="xbody">Funds sit in a program-owned escrow. They can only ever move (1) back to you, on your signature, any time before release, or (2) to the buildout address fixed at campaign creation — and only if the goal is reached AND the greenlight co-sign lands. If the deadline passes first, refunds open to everyone; a majority of depositors can dissolve the whole thing at any point. No yield, no token, no fees. The contract is currently upgradeable by the organizer (disclosed; lock/burn within the week). Source: <a href="https://github.com/Loringtonian/NS-climbing">github.com/Loringtonian/NS-climbing</a></div>
+        <div class="xbody">No person holds the money — it sits locked in a program-owned pool. It moves in exactly three ways: (1) the organizer proposes a payout address AND a majority of depositors votes yes → the pool funds the wall; (2) a majority votes dissolve → everyone refunded; (3) 90 days pass without release → everyone refunded. There is no individual withdraw — locking in together IS the commitment. The organizer alone can move nothing; a majority can't send funds anywhere the organizer didn't propose. No yield, no token, no fees. The contract is currently upgradeable by the organizer (disclosed; lock/burn within the week). Source: <a href="https://github.com/Loringtonian/NS-climbing">github.com/Loringtonian/NS-climbing</a></div>
       </details>
 
       <details class="x">
         <summary>Don't trust us — ask your agent</summary>
-        <div class="xbody">Six plain-language claims, all enforced by code — withdraw-anytime, double-locked release, welded buildout address, deadline refunds, majority dissolve, exact accounting. Paste this to Claude, ChatGPT, or any agent that reads the web:
+        <div class="xbody">Plain-language claims, all enforced by code — locked pool (no individual withdraw, no human custody), dual-gate release (organizer proposes + depositor majority approves, to exactly that address), majority dissolve-refund, 90-day timeout refund, non-transferable badge votes, exact accounting. Paste this to Claude, ChatGPT, or any agent that reads the web:
           <pre id="promptText">Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md and
 escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the six claims
 in VERIFY_IT.md against the code, with line numbers. Confirm the deployed
@@ -250,10 +249,10 @@ each — and would you let me deposit?</pre>
 
       <details class="x">
         <summary>Tier perks, in full</summary>
-        <div class="xbody">Cumulative — each tier includes everything below it.<br><b>V1 · $20</b> — name on the founding plaque; counted in the live number.<br><b>V5 · $100</b> — first-ascent night invite; first-week priority booking.<br><b>V10 · $1000</b> — name one of the first routes; top billing on the plaque; opening night's first climb goes to a V10.<br><span class="fine">Perks exist when the wall exists — never promised. If it dies, you withdraw; nobody loses a cent. A V10's $1000 is as withdrawable as a V1's $20.</span></div>
+        <div class="xbody">Cumulative — each tier includes everything below it.<br><b>V1 · $20</b> — name on the founding plaque; counted in the live number.<br><b>V5 · $100</b> — first-ascent night invite; first-week priority booking.<br><b>V10 · $1000</b> — name one of the first routes; top billing on the plaque; opening night's first climb goes to a V10.<br><span class="fine">Perks exist when the wall exists — never promised. If it dies, the majority dissolves and everyone is refunded in full — a V10's $1000 comes back exactly like a V1's $20.</span></div>
       </details>
 
-      <div class="trustline">Withdraw your exact deposit anytime before release; a majority of depositors can dissolve it all; if the timer runs out, refunds open to everyone — enforced by code, details above.</div>
+      <div class="trustline">Your deposit is locked until the community decides or the clock runs out — money moves only as everyone-funded (majority + organizer), everyone-refunded (majority dissolve), or everyone-refunded (90-day timeout). Enforced by code, details above.</div>
       <div class="fine" style="margin-top:10px">Deposit, not donation · one Lemur board, one small room — enough of us, and it happens. <a href="agents.md" style="color:#7a8595">agents.md</a></div>
       <div id="escrow-counter" class="fine" style="display:none"></div>
       <script>

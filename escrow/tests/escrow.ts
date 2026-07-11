@@ -83,20 +83,6 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
       .signers([who])
       .rpc();
 
-  const withdraw = (who: Keypair, whoUsdc: PublicKey, camp = campaign()) =>
-    program.methods
-      .withdraw()
-      .accounts({
-        depositor: who.publicKey,
-        campaign: camp,
-        vault: vaultPda(camp),
-        depositorToken: whoUsdc,
-        receipt: receiptPda(camp, who.publicKey),
-        tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
-      })
-      .signers([who])
-      .rpc();
-
   const castVote = (method: string, who: Keypair, camp = campaign()) =>
     (program.methods as any)[method]()
       .accounts({ depositor: who.publicKey, campaign: camp, receipt: receiptPda(camp, who.publicKey) })
@@ -191,14 +177,28 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
     assert.ok(c.totalEscrowed.eq(USDC(1120)));
   });
 
-  it("withdraw returns the exact tier amount and re-deposit works", async () => {
-    const before = await getAccount(conn, bobUsdc);
-    await withdraw(bob, bobUsdc);
-    const after = await getAccount(conn, bobUsdc);
-    assert.equal(Number(after.amount - before.amount), 100_000_000);
-    await deposit(bob, bobUsdc, 100);
-    const c = await fetchC();
-    assert.equal(c.depositorCount, 3);
+  it("DEPOSITS ARE LOCKED: no withdraw instruction exists; the refund crank rejects an active campaign", async () => {
+    // the instruction is gone from the program surface entirely
+    assert.isUndefined((program.methods as any).withdraw);
+    // and the only per-depositor exit path is hard-gated to dissolved/deadline
+    try {
+      await program.methods
+        .refund()
+        .accounts({
+          cranker: stranger.publicKey,
+          depositor: bob.publicKey,
+          campaign: campaign(),
+          vault: vaultPda(campaign()),
+          depositorToken: bobUsdc,
+          receipt: receiptPda(campaign(), bob.publicKey),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+        })
+        .signers([stranger])
+        .rpc();
+      assert.fail("refund on an active campaign should fail");
+    } catch (e: any) {
+      assert.include(e.toString(), "DeadlineNotPassed");
+    }
   });
 
   it("release impossible with NO proposal", async () => {
@@ -270,31 +270,25 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
     }
   });
 
-  it("withdraw removes BOTH votes atomically", async () => {
+  it("changing your mind = un-vote (both ballots), badge stays put", async () => {
     await castVote("votePayout", alice); // payout vote on epoch 2
     await castVote("voteDissolve", alice); // dissolve vote (1/3 — safe)
     let c = await fetchC();
     assert.equal(c.payoutVotes, 1);
     assert.equal(c.dissolveVotes, 1);
-    await withdraw(alice, aliceUsdc);
+    await castVote("unvotePayout", alice);
+    await castVote("unvoteDissolve", alice);
     c = await fetchC();
-    assert.equal(c.depositorCount, 2);
     assert.equal(c.payoutVotes, 0);
     assert.equal(c.dissolveVotes, 0);
-    await deposit(alice, aliceUsdc, 20); // back in with a fresh badge
-  });
-
-  it("vote after withdraw impossible (badge gone)", async () => {
-    await withdraw(carol, carolUsdc);
-    try {
-      await castVote("votePayout", carol);
-      assert.fail("vote without badge should fail");
-    } catch (_e) { /* receipt closed */ }
-    await deposit(carol, carolUsdc, 1000);
+    assert.equal(c.depositorCount, 3); // nobody left — deposits are locked
+    const badge = await (program.account as any).receipt.fetch(receiptPda(campaign(), alice.publicKey));
+    assert.equal(badge.depositor.toBase58(), alice.publicKey.toBase58()); // badge permanent
   });
 
   it("new deposits dilute a standing majority until they vote", async () => {
     await castVote("votePayout", alice);
+    // bob's epoch-1 vote was reset by the re-propose; he votes on epoch 2 now
     await castVote("votePayout", bob); // 2 of 3 — majority stands
     await deposit(stranger, strangerUsdc, 20); // electorate 4 — 2 of 4 is NOT strict majority
     try {
@@ -319,10 +313,22 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
     assert.isTrue(c.released);
   });
 
-  it("withdraw and vote blocked after release", async () => {
+  it("refund and vote blocked after release", async () => {
     try {
-      await withdraw(bob, bobUsdc);
-      assert.fail("withdraw after release should fail");
+      await program.methods
+        .refund()
+        .accounts({
+          cranker: stranger.publicKey,
+          depositor: bob.publicKey,
+          campaign: campaign(),
+          vault: vaultPda(campaign()),
+          depositorToken: bobUsdc,
+          receipt: receiptPda(campaign(), bob.publicKey),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+        })
+        .signers([stranger])
+        .rpc();
+      assert.fail("refund after release should fail");
     } catch (e: any) {
       assert.include(e.toString(), "AlreadyReleased");
     }
@@ -381,9 +387,21 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
         .rpc();
       const after = await getAccount(conn, aliceUsdc);
       assert.equal(Number(after.amount - before.amount), 20_000_000);
-      // withdraw also still works in DISSOLVED
+      // every depositor exits through the same collective crank — exact amounts
       const b4 = await getAccount(conn, carolUsdc);
-      await withdraw(carol, carolUsdc, camp());
+      await program.methods
+        .refund()
+        .accounts({
+          cranker: stranger.publicKey,
+          depositor: carol.publicKey,
+          campaign: camp(),
+          vault: vaultPda(camp()),
+          depositorToken: carolUsdc,
+          receipt: receiptPda(camp(), carol.publicKey),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+        })
+        .signers([stranger])
+        .rpc();
       const a4 = await getAccount(conn, carolUsdc);
       assert.equal(Number(a4.amount - b4.amount), 1_000_000_000);
     });
@@ -401,9 +419,23 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
         assert.fail("vote with foreign badge should fail");
       } catch (_e) { /* seeds + has_one reject */ }
       try {
-        await withdraw(stranger as any, bobUsdc, camp);
-        assert.fail("withdraw with foreign badge should fail");
-      } catch (_e) { /* receipt PDA derived from signer */ }
+        // theft attempt on the ONLY exit path: crank bob's refund but point
+        // the destination at the stranger's own token account
+        await program.methods
+          .refund()
+          .accounts({
+            cranker: stranger.publicKey,
+            depositor: bob.publicKey,
+            campaign: camp,
+            vault: vaultPda(camp),
+            depositorToken: strangerUsdc, // not bob's — must be rejected
+            receipt: receiptPda(camp, bob.publicKey),
+            tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+          })
+          .signers([stranger])
+          .rpc();
+        assert.fail("refund to a foreign token account should fail");
+      } catch (_e) { /* token::authority = receipt.depositor rejects */ }
     });
   });
 
@@ -466,22 +498,4 @@ describe("ns-climb-escrow v3 (dual-gate destination vote)", () => {
     });
   });
 
-  describe("electorate shrink edge (dissolve)", () => {
-    const ID4 = "ns-wall-shrink";
-    const camp = () => campaignPda(ID4);
-
-    it("a standing minority dissolve vote becomes the majority as others withdraw", async () => {
-      await init(ID4, 3600);
-      await deposit(alice, aliceUsdc, 20, camp());
-      await deposit(bob, bobUsdc, 100, camp());
-      await deposit(carol, carolUsdc, 1000, camp());
-      await castVote("voteDissolve", alice, camp()); // 1 of 3
-      await withdraw(bob, bobUsdc, camp()); // 1 of 2 — exactly half, not strict
-      let c = await fetchC(camp());
-      assert.isFalse(c.dissolved);
-      await withdraw(carol, carolUsdc, camp()); // 1 of 1 — dissolves on the withdraw
-      c = await fetchC(camp());
-      assert.isTrue(c.dissolved);
-    });
-  });
 });

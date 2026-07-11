@@ -1,4 +1,4 @@
-/* NS climbing wall — the deposit/withdraw/vote flow. ONE audited code path,
+/* NS climbing wall — the deposit/vote flow (deposits are LOCKED; exits are collective). ONE audited code path,
  * loaded by BOTH the standalone deposit page (demo.html, the QR target) and
  * the inline embed on index.html. Config comes from window.ESCROW_CONFIG set
  * by the including page — hardcoded there, never from URL params (audit fix).
@@ -28,7 +28,6 @@
     [enc.encode("vault"), campaign.toBytes()], pid)[0];
 
   var DISC_DEPOSIT = new Uint8Array([242,35,198,137,82,225,242,182]);
-  var DISC_WITHDRAW = new Uint8Array([183,18,70,156,148,109,161,34]);
   var DISC_VOTE = new Uint8Array([180,224,232,226,59,166,81,63]);
   var DISC_UNVOTE = new Uint8Array([244,70,201,208,63,92,167,83]);
   var DISC_VOTE_PAYOUT = new Uint8Array([253,223,29,124,122,195,50,5]);
@@ -79,7 +78,7 @@
       [enc.encode("receipt"), campaign.toBytes(), depositor.toBytes()], pid)[0];
   }
 
-  // Receipt existence drives the UI: deposited -> badge (with tier) + withdraw;
+  // Receipt existence drives the UI: deposited -> locked badge + vote controls;
   // not deposited -> the three tier buttons.
   var tierBtns = Array.prototype.slice.call(document.querySelectorAll(".tier"));
   function refreshState() {
@@ -94,14 +93,12 @@
         var amt = dvR.getBigUint64(72, true);
         voted = acct.data[80] === 1;
         payoutSeq = dvR.getUint32(81, true);
-        $("inBadge").textContent = "Supporter Badge — $" + (Number(amt / 10000n) / 100).toLocaleString() + " escrowed ✓";
+        $("inBadge").textContent = "Supporter Badge — $" + (Number(amt / 10000n) / 100).toLocaleString() + " locked in the pool ✓";
       }
       show("inBadge", deposited);
-      show("withdraw", deposited);
-      show("upgradeHint", deposited);
+      show("lockedNote", deposited);
       tierBtns.forEach(function (b) { b.classList.toggle("hidden", deposited); b.disabled = false; });
       show("tierFine", !deposited);
-      $("withdraw").disabled = false;
       // votes: campaign v3 parse (dissolve + payout proposal state)
       conn.getAccountInfo(campaign).then(function (cAcct) {
         if (!cAcct) return;
@@ -123,7 +120,7 @@
         if (el) {
           if (!deposited) { show("voteLink", false); }
           else if (dissolved) {
-            el.textContent = "Campaign dissolved by depositor vote — withdraw above.";
+            el.textContent = "Campaign dissolved by depositor vote — refunds open; anyone can crank them and your deposit returns to your wallet.";
             el.style.pointerEvents = "none";
             show("voteLink", true);
           } else {
@@ -268,43 +265,6 @@
       refreshState();
     };
   });
-
-  $("withdraw").onclick = async function () {
-    $("withdraw").disabled = true;
-    try {
-      var mint = new W.PublicKey(USDC_MINT);
-      var myAta = ata(wallet.pk, mint);
-      var createAta = new W.TransactionInstruction({
-        programId: ATA_PID,
-        keys: [
-          { pubkey: wallet.pk, isSigner: true, isWritable: true },
-          { pubkey: myAta, isSigner: false, isWritable: true },
-          { pubkey: wallet.pk, isSigner: false, isWritable: false },
-          { pubkey: mint, isSigner: false, isWritable: false },
-          { pubkey: W.SystemProgram.programId, isSigner: false, isWritable: false },
-          { pubkey: TOKEN_PID, isSigner: false, isWritable: false },
-        ],
-        data: new Uint8Array([1]), // CreateIdempotent — covers a closed ATA
-      });
-      var ix = new W.TransactionInstruction({
-        programId: pid,
-        keys: [
-          { pubkey: wallet.pk, isSigner: true, isWritable: true },
-          { pubkey: campaign, isSigner: false, isWritable: true },
-          { pubkey: vault, isSigner: false, isWritable: true },
-          { pubkey: myAta, isSigner: false, isWritable: true },
-          { pubkey: receiptPda(wallet.pk), isSigner: false, isWritable: true },
-          { pubkey: TOKEN_PID, isSigner: false, isWritable: false },
-        ],
-        data: DISC_WITHDRAW,
-      });
-      var sig = await send([createAta, ix]);
-      status("Withdrawn — your deposit is back in your wallet. " + sig.slice(0, 12) + "…");
-    } catch (e) {
-      status("Withdraw failed: " + shortErr(e));
-    }
-    refreshState();
-  };
 
   function shortErr(e) {
     var m = (e && e.message) || String(e);

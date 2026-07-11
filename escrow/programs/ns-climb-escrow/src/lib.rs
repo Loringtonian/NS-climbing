@@ -1,15 +1,16 @@
 // NS Climbing Wall — refundable escrow, v3: dual-gate destination vote.
 //
 // Trust model, in one paragraph: a depositor puts a tier amount ($20/$100/$1000
-// USDC) into a program-owned vault and can withdraw it back AT ANY TIME until
-// the moment funds are released — `withdraw` checks nothing except "not
-// released yet", and returns exactly what the receipt recorded. There is no
-// goal and no fixed destination: money leaves the vault to a third party ONLY
-// through the dual gate — the organizer proposes a payout address, and a
-// strict head-count majority of current depositors approves THAT proposal.
-// Neither side alone can move funds. A depositor majority can instead dissolve
-// the campaign (terminal), and after the deadline anyone can crank refunds.
-// No yield, no fees, no admin withdrawal.
+// USDC) into a program-owned pool. Deposits are LOCKED — there is no
+// individual withdraw; commitment is the product. Money leaves the vault by
+// exactly three collective paths and nothing else: (1) the dual gate — the
+// organizer proposes a payout address and a strict head-count majority of
+// current depositors approves THAT proposal, then anyone can release the
+// whole vault to it; (2) a strict majority votes DISSOLVE (terminal) and the
+// permissionless refund crank returns every deposit to its depositor;
+// (3) the deadline passes without release and the same refund crank opens.
+// Neither the organizer nor a majority alone can move funds to a third party.
+// No yield, no fees, no admin withdrawal, no human custody.
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
@@ -62,8 +63,9 @@ pub mod ns_climb_escrow {
     }
 
     /// One deposit per wallet, at exactly one of the TIER_AMOUNTS ($20/$100/
-    /// $1000). Blocked after release, dissolution, or deadline. To change
-    /// tier: withdraw, then deposit again at the new size. Note: a new
+    /// $1000), LOCKED until a collective path closes the campaign — no
+    /// individual withdraw exists, and no tier changes (kept deliberately
+    /// simple). Blocked after release, dissolution, or deadline. Note: a new
     /// depositor enlarges the electorate, which can un-make a standing payout
     /// majority until they vote — releases only execute while a majority of
     /// CURRENT depositors stands.
@@ -106,31 +108,11 @@ pub mod ns_climb_escrow {
         Ok(())
     }
 
-    /// THE load-bearing trust property: the depositor gets their money back at
-    /// any time before release. The ONLY condition is `!released`. Withdrawing
-    /// atomically shrinks the electorate and removes BOTH of the departing
-    /// depositor's votes (dissolve + payout), then re-checks the dissolve
-    /// majority. The payout majority is evaluated at release time against
-    /// current depositors, so no payout re-check is needed here.
-    pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
-        require!(!ctx.accounts.campaign.released, EscrowError::AlreadyReleased);
-        pay_back(
-            &ctx.accounts.campaign,
-            &ctx.accounts.vault,
-            &ctx.accounts.depositor_token,
-            &ctx.accounts.token_program,
-            ctx.accounts.receipt.amount,
-        )?;
-        let r_voted = ctx.accounts.receipt.voted;
-        let r_amount = ctx.accounts.receipt.amount;
-        let r_payout_seq = ctx.accounts.receipt.payout_voted_seq;
-        remove_depositor(&mut ctx.accounts.campaign, r_amount, r_voted, r_payout_seq)?;
-        Ok(())
-    }
-
-    /// Permissionless refund crank: after the deadline OR after a majority
-    /// dissolution, ANYONE can push a depositor's money back to them. The
-    /// tokens can only go to the receipt's depositor — the caller pays gas.
+    /// The ONLY per-depositor exit, and it is collective by construction:
+    /// after the deadline OR after a majority dissolution, ANYONE can push a
+    /// depositor's money back to them (permissionless crank). The tokens can
+    /// only go to the receipt's depositor — the caller pays gas. On an active
+    /// campaign this instruction is a hard error: deposits are locked.
     pub fn refund(ctx: Context<Refund>) -> Result<()> {
         let now = Clock::get()?.unix_timestamp;
         require!(!ctx.accounts.campaign.released, EscrowError::AlreadyReleased);
@@ -280,10 +262,10 @@ fn maybe_dissolve(c: &mut Campaign) {
     }
 }
 
-/// Shared exit bookkeeping for withdraw + refund: shrink totals/tiers and
-/// remove BOTH of the departing depositor's votes atomically, then re-check
-/// the dissolve majority (a shrinking electorate can hand the remaining
-/// dissolve votes a majority — departures count as silence, not "no").
+/// Refund-crank bookkeeping: shrink totals/tiers and clear the departing
+/// depositor's votes. Refunds only run post-dissolution or post-deadline, so
+/// this never shifts a live election — it keeps the public counters honest
+/// while the crank drains the pool.
 fn remove_depositor(
     c: &mut Campaign,
     amount: u64,
@@ -307,8 +289,8 @@ fn remove_depositor(
     Ok(())
 }
 
-/// Vault → depositor transfer signed by the campaign PDA. Used by both
-/// `withdraw` (self-service) and `refund` (deadline/dissolution crank).
+/// Vault → depositor transfer signed by the campaign PDA.
+/// Used only by `refund` (the collective deadline/dissolution crank).
 fn pay_back<'info>(
     campaign: &Account<'info, Campaign>,
     vault: &Account<'info, TokenAccount>,
@@ -368,7 +350,7 @@ pub struct Campaign {
 /// the badge is non-transferable by construction ("soulbound"). It is
 /// simultaneously: proof of support (the plaque credential), BOTH ballots
 /// (`voted` for dissolve, `payout_voted_seq` for the current payout
-/// proposal), and the record of exactly what withdraw returns.
+/// proposal), and the record of exactly what the refund crank returns.
 #[account]
 #[derive(InitSpace)]
 pub struct Receipt {
@@ -428,27 +410,6 @@ pub struct Deposit<'info> {
     pub receipt: Account<'info, Receipt>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct Withdraw<'info> {
-    #[account(mut)]
-    pub depositor: Signer<'info>,
-    #[account(mut, seeds = [b"campaign", campaign.campaign_id.as_bytes()], bump = campaign.bump)]
-    pub campaign: Account<'info, Campaign>,
-    #[account(mut, seeds = [b"vault", campaign.key().as_ref()], bump)]
-    pub vault: Account<'info, TokenAccount>,
-    #[account(mut, token::mint = campaign.mint, token::authority = depositor)]
-    pub depositor_token: Account<'info, TokenAccount>,
-    #[account(
-        mut,
-        close = depositor,
-        seeds = [b"receipt", campaign.key().as_ref(), depositor.key().as_ref()],
-        bump = receipt.bump,
-        has_one = depositor,
-    )]
-    pub receipt: Account<'info, Receipt>,
-    pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
