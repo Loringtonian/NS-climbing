@@ -38,15 +38,15 @@ happened (tx signatures + screenshots) — funds are withdrawable the whole time
 After the smoke test: update agents.md Live-campaign-parameters (cluster,
 PDA, mint), push, and selling can start.
 
-Binary: `target/deploy/ns_climb_escrow.so` — **301,896 bytes**, v2 build
+Binary: `target/deploy/ns_climb_escrow.so` — **303,504 bytes**, v2+audit build
 (tiers + dissolve vote + Supporter Badge; 2026-07-11, anchor-cli 1.0.2 /
 anchor-lang 1.1.2 / solana 4.1.1 / rustc 1.92.0).
-**sha256 `780bf7588ea251407fb5fb3c960f71c221e3513fe98603e96c4711f870f2a6cf`** —
-this exact artifact passed the full 30/30 suite on localnet; deploys ship this
+**sha256 `5f2c7dd682d693d743c4803205816a29ac9b07733049ccc4f6131751b081324e`** —
+this exact artifact passes the full suite on localnet (31 tests as of the audit-fix build); deploys ship this
 file. Fits the existing --max-len 320000 devnet allocation, so devnet upgrades
 in place (NOTE: v1 campaign accounts don't parse under the v2 layout — create
 a fresh campaign after upgrading). Auditors: `solana program dump`, truncate
-to 301,896 bytes, sha256 must match (procedure in agents.md).
+to 303,504 bytes, sha256 must match (procedure in agents.md).
 Program ID `7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw` = pubkey of the
 gitignored keypair `target/deploy/ns_climb_escrow-keypair.json`. If that file is
 ever lost or you want a fresh ID: `solana-keygen new -o target/deploy/ns_climb_escrow-keypair.json`,
@@ -131,7 +131,7 @@ Mainnet switch checklist:
 
 ## Verification record (2026-07-11)
 
-- Localnet: **15/15 tests passing** (`tests/escrow.ts`, run 2026-07-11), covering
+- Localnet: **full suite passing** (test count grows with features; the binary-pinned run lives in the Binary line above) (`tests/escrow.ts`, run 2026-07-11), covering
   deposit/withdraw counter ticks, withdraw-AFTER-approval, dual release gates,
   wrong-destination rejection, post-release freeze, and the post-deadline
   permissionless refund crank. Re-run:

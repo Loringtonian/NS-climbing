@@ -72,3 +72,13 @@ EOF
 cat MAINNET_STATE.md
 echo
 echo "PHONE URL (QR this AFTER the smoke test): $PAGE"
+echo
+echo "== UPGRADE AUTHORITY — scheduled within the week (disclosed; not launch-blocking) =="
+echo "Current authority: the deployer key (held by Lorin, disclosed in agents.md)."
+echo "Within a week of launch, run ONE of:"
+echo "  # hand to a multisig:"
+echo "  solana program set-upgrade-authority 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw \\"
+echo "    --new-upgrade-authority <MULTISIG_PUBKEY> -u \$RPC"
+echo "  # or burn it (program becomes immutable forever):"
+echo "  solana program set-upgrade-authority 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw --final -u \$RPC"
+echo "Then update the disclosure lines in agents.md + demo.html."

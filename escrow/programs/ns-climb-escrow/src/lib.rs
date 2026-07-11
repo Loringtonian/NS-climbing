@@ -19,6 +19,12 @@ declare_id!("7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw");
 /// tier live off-chain.
 pub const TIER_AMOUNTS: [u64; 3] = [20_000_000, 100_000_000, 1_000_000_000];
 
+/// Only this key can create campaigns. Closes the deploy→init front-running
+/// window (program ID and campaign_id strings are public before init lands);
+/// without it, anyone could squat the canonical campaign PDA with themselves
+/// as admin. This is the organizer's disclosed key.
+pub const ORGANIZER: Pubkey = anchor_lang::pubkey!("84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2");
+
 #[program]
 pub mod ns_climb_escrow {
     use super::*;
@@ -320,7 +326,7 @@ pub struct Receipt {
 #[derive(Accounts)]
 #[instruction(campaign_id: String)]
 pub struct InitializeCampaign<'info> {
-    #[account(mut)]
+    #[account(mut, address = ORGANIZER @ EscrowError::UnauthorizedInitializer)]
     pub admin: Signer<'info>,
     pub mint: Account<'info, Mint>,
     #[account(
@@ -479,4 +485,6 @@ pub enum EscrowError {
     AlreadyVoted,
     #[msg("this badge has no dissolve vote to remove")]
     NotVoted,
+    #[msg("only the organizer key can create campaigns")]
+    UnauthorizedInitializer,
 }

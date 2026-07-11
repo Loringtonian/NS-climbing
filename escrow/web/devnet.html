@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Back the wall — $20 escrow</title>
+<title>Back the wall — DEVNET TEST</title>
 <style>
   :root{--bg:#0e1116;--panel:#161b22;--ink:#f2f4f7;--muted:#9aa4b2;--accent:#ff6b4a;--accent2:#ffb24a;--line:#262c36;--teal:#39c2b8}
   *{box-sizing:border-box;margin:0;padding:0}
@@ -31,6 +31,7 @@
 </style>
 </head>
 <body>
+<div style="background:#5a2d00;color:#ffb24a;font-weight:800;text-align:center;padding:8px 12px;font-size:13px;letter-spacing:.06em">DEVNET TEST MODE — test tokens, not real money. Config comes from URL parameters on this page only.</div>
 <div class="wrap">
   <h1>Skin in the game <span>· $20 / $100 / $1000</span></h1>
   <div class="sub">Escrow USDC toward the climbing wall at the tier you mean. It's a deposit, not a donation — pull it back any time until the wall is greenlit.</div>
@@ -75,13 +76,17 @@
 </div>
 
 <script>
-  // one source of truth for this page + counter.js (never URL params)
-  window.ESCROW_CONFIG = {
-    rpc: "https://api.devnet.solana.com",
-    program: "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw",
-    campaign: "ns-climbing-wall-v2",
-    mint: "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD"
-  };
+  // DEVNET TEST PAGE: URL params drive the config (the production page
+  // demo.html hardcodes everything — audit fix).
+  (function () {
+    var q = new URLSearchParams(location.search);
+    window.ESCROW_CONFIG = {
+      rpc: q.get("rpc") || "https://api.devnet.solana.com",
+      program: q.get("program") || "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw",
+      campaign: q.get("campaign") || "ns-climbing-wall-v2",
+      mint: q.get("mint") || "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD"
+    };
+  })();
 </script>
 <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
 <script src="counter.js"></script>

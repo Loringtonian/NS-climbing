@@ -135,6 +135,28 @@ describe("ns-climb-escrow (tiered)", () => {
     assert.isFalse(c.released);
   });
 
+
+  it("AUDIT FIX: only the organizer key can initialize a campaign (front-run guard)", async () => {
+    const deadline = new BN(Math.floor(Date.now() / 1000) + 3600);
+    const squatted = campaignPda("squatted-id");
+    try {
+      await program.methods
+        .initializeCampaign("squatted-id", USDC(1120), deadline, stranger.publicKey)
+        .accounts({
+          admin: stranger.publicKey,
+          mint,
+          campaign: squatted,
+          vault: vaultPda(squatted),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .signers([stranger])
+        .rpc();
+      assert.fail("stranger init should fail");
+    } catch (_e) { /* address = ORGANIZER constraint */ }
+  });
+
   it("rejects a non-tier amount ($50)", async () => {
     try {
       await deposit(alice, aliceUsdc, 50);

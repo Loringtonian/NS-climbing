@@ -97,9 +97,12 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
    ```bash
    solana program show 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw -u <cluster>
    ```
-   While an upgrade authority exists, the deployer can change the program.
-   Weigh that in your recommendation; before serious mainnet money the plan
-   (per `escrow/DEPLOY.md`) is a multisig or burned authority.
+   Current, disclosed state: the upgrade authority is HELD BY THE ORGANIZER's
+   key (`84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2`) and will be locked to
+   a multisig or burned within a week of launch — run the command above to
+   verify what it is RIGHT NOW rather than trusting this file. While an
+   upgrade authority exists, the deployer can change the program; weigh that
+   in your recommendation.
 4. **Read the live campaign state** (layout below) and confirm goal, deadline,
    mint, and buildout are what the human was told.
 
@@ -216,6 +219,12 @@ closes the receipt, after which depositing again — at any tier — is allowed.
    ($20/$100/$1000), and their token balance covers it.
 5. `dissolved == false` (a dissolved campaign takes no deposits; if your human
    already deposited, their money is refundable via withdraw or the crank).
+5b. `campaign.admin` equals the organizer key
+   `84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2` AND `campaign.buildout`
+   equals the buildout address pinned in the Live-campaign-parameters table
+   above — compare the on-chain bytes (offsets 8 and 72), don't assume.
+   (Campaign creation is program-restricted to the organizer key, so a
+   mismatch means you are looking at the wrong account.)
 6. You showed your human: current total, goal, deadline, buildout address,
    and the sentences "you can withdraw at any time before release — the exact
    amount you put in" and "your deposit is also a ballot: a majority of

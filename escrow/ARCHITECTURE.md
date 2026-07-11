@@ -33,3 +33,21 @@ deposit gate on it, and the refund crank treats it exactly like a passed
 deadline. One deposit = one vote regardless of tier — a $1000 patron and a
 $20 supporter have the same ballot weight (head-count, not capital-weighted,
 matching the "counter of people" premise).
+
+## Stray-transfer dust
+
+Anyone can send USDC directly to the vault token account outside `deposit`.
+Such dust is NOT tracked by `total_escrowed` and belongs to no receipt. On
+`release`, the full vault balance (deposits + dust) goes to the buildout
+address. On dissolution or deadline, receipts refund exactly their recorded
+amounts and any dust stays in the vault permanently (the campaign PDA has no
+instruction to sweep it). Don't send tokens straight to the vault.
+
+## Campaign creation is organizer-gated (audit fix)
+
+`initialize_campaign` requires the signer to be the pinned ORGANIZER key.
+Without this, the canonical campaign PDA (derived from the public program ID
++ the public campaign_id string) could be front-run in the deploy->init gap
+by anyone, installing themselves as admin. The pin closes the race; the cost
+is that new campaigns need the organizer's signature, which is the intended
+governance anyway.

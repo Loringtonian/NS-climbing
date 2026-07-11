@@ -3,21 +3,21 @@
 | What         | Value |
 |--------------|-------|
 | Program      | 7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw |
-| Campaign ID  | ns-climbing-wall |
-| Campaign PDA | DSfvk5DvR5svT53r5EHwRTqx1sQqQXpGuQrNpmZSCjVU |
+| Campaign ID  | ns-climbing-wall-v2 (v1 campaign retired at the v2 layout upgrade) |
+| Campaign PDA | 4e9dSFwGj9MNniuaCCDRoor8gGN7xUfaffUnuPcuTic5 |
 | Demo mint    | 4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD (we control minting — fund a phone wallet: `bash scripts/fund_phone.sh <address>`) |
 | Buildout     | 84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2 (deployer; devnet rehearsal only) |
 | Goal         | 2000 USDC (rehearsal number — real goal is Lorin's call) |
-| Deposit page | https://loringtonian.github.io/NS-climbing/escrow/web/demo.html?mint=4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD |
+| Deposit page | https://loringtonian.github.io/NS-climbing/escrow/web/demo.html (config hardcoded in-page — audit fix; params page: devnet.html) |
 | Explorer (program)  | https://explorer.solana.com/address/7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw?cluster=devnet |
-| Explorer (campaign) | https://explorer.solana.com/address/DSfvk5DvR5svT53r5EHwRTqx1sQqQXpGuQrNpmZSCjVU?cluster=devnet |
-| Explorer (vault)    | https://explorer.solana.com/address/13vkCa8LbA3ksg6mCM9yFVSD3uCoZ41xMc1UxcrDXrsX?cluster=devnet |
+| Explorer (campaign) | https://explorer.solana.com/address/4e9dSFwGj9MNniuaCCDRoor8gGN7xUfaffUnuPcuTic5?cluster=devnet |
+| Explorer (vault)    | https://explorer.solana.com/address/SEmCbggXwdT9pmNYePLqTRRirjwRKobUBU3YtohzWQv?cluster=devnet |
 
-Deployed with --max-len 320000. Deadline: 30 days from init (unix 1786336312).
+Program upgraded IN PLACE 2026-07-11 to the v2+audit binary (sha 5f2c7dd6…, 303,504 B). Deadline: 90 days from v2 init.
 Rehearsal: $20 deposit -> withdraw -> $100 deposit via scripts/demo_flow.ts
 (result recorded in session log).
 
-PHONE URL (QR this): https://loringtonian.github.io/NS-climbing/escrow/web/demo.html?mint=4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD
+PHONE URL (QR this): https://loringtonian.github.io/NS-climbing/escrow/web/demo.html
 
 ## Cheer board (devnet, MagicBlock ER router) — 2026-07-11
 

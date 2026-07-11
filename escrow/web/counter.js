@@ -10,15 +10,19 @@
  * Config: edit the three constants below when the campaign goes live.
  */
 (function () {
-  // ---- config (URL params override: ?rpc= &program= &campaign= &pda=) ------
-  var q = new URLSearchParams(location.search);
-  var RPC = q.get("rpc") || "https://api.devnet.solana.com"; // mainnet: https://api.mainnet-beta.solana.com (or a private RPC)
-  var PROGRAM_ID = q.get("program") || "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw";
-  var CAMPAIGN_ID = q.get("campaign") || "ns-climbing-wall"; // must match the id used at initialize_campaign
-  var CAMPAIGN_ADDRESS = q.get("pda") || ""; // OPTIONAL: campaign PDA printed by scripts/init_campaign.ts — skips auto-derivation
+  // ---- config ---------------------------------------------------------------
+  // SECURITY (audit 2026-07-11): config comes from baked defaults or an explicit
+  // window.ESCROW_CONFIG set by the INCLUDING PAGE — never from URL params, so a
+  // crafted link on the trusted domain cannot repoint the page at a fake
+  // program/mint. devnet.html is the only params-driven page, and it is labeled.
+  var CFG = window.ESCROW_CONFIG || {};
+  var RPC = CFG.rpc || "https://api.devnet.solana.com"; // mainnet: https://api.mainnet-beta.solana.com (or a private RPC)
+  var PROGRAM_ID = CFG.program || "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw";
+  var CAMPAIGN_ID = CFG.campaign || "ns-climbing-wall"; // must match the id used at initialize_campaign
+  var CAMPAIGN_ADDRESS = CFG.pda || ""; // OPTIONAL: campaign PDA — skips auto-derivation
   var REFRESH_MS = 15000;
   var EL_ID = "escrow-counter";
-  // -------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   // base58 (Bitcoin alphabet) — encode/decode, enough for one PDA derivation
   var ALPHA = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
