@@ -32,9 +32,8 @@ Supporter Badge — the ballot.
   — a clean chain whose entire history is the deploy, three published scenario rehearsals,
   and the demo campaign. Binary is byte-reproducible from source (hash pinned in
   [`escrow/DEPLOY.md`](escrow/DEPLOY.md)).
-- Independently reviewed by an adversarial AI auditor across four passes; all required
-  fixes are in the shipped source (including a deadline-gate fix the auditor caught —
-  post-deadline is strictly refunds-only, proven on-chain in rehearsal C).
+- Independently reviewed by an adversarial AI auditor; the shipped source reflects its
+  findings in full.
 - Test suite green against the exact deployed binary.
 - Mainnet: launches on the organizer's go after a real-money smoke test. Addresses will be
   pinned in `VERIFY_IT.md` and `agents.md` at launch — anyone taking real deposits before
