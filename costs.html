@@ -32,7 +32,13 @@
   section{padding:34px 0}
   .small-note{color:var(--muted);font-size:16px;max-width:62ch}
 
-  /* option cards */
+  /* the decided system */
+  .spec{background:linear-gradient(180deg,#1d1712,#161b22 60%);border:1px solid #7a3a28;border-radius:18px;padding:26px 24px;margin-top:20px}
+  .spec h3{font-size:20px}
+  .spec p{color:#d7dde6;font-size:15.5px;margin-top:10px;line-height:1.6;max-width:64ch}
+  .spec .fine{margin-top:12px}
+
+  /* scenario cards */
   .options{display:grid;gap:14px;margin-top:22px}
   .opt{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px 22px}
   .opt.lead{border-color:#7a3a28;background:linear-gradient(180deg,#1d1712,#161b22 60%)}
@@ -47,6 +53,7 @@
   td .src{display:block;font-size:12px;color:#5d6675;margin-top:2px}
   td .src a{color:#7a8595}
   tr.total td{border-top:2px solid #3a2a20;font-weight:900;color:var(--ink);font-size:16px;padding-top:12px}
+  tr.sub td{color:var(--accent2);font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;border-top:1px solid #3a2a20;padding-top:12px}
   .est{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;padding:2px 8px;border-radius:999px;background:rgba(57,194,184,.14);color:#57cfc6;vertical-align:1px;margin-left:6px}
 
   /* room requirements */
@@ -72,9 +79,9 @@
 
   footer{border-top:1px solid var(--line);padding:28px 0;color:#5d6675;font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 
-  @media(min-width:760px){.options{grid-template-columns:1fr}}
   @media(max-width:640px){
     .opt{padding:20px 16px}
+    .spec{padding:22px 18px}
     header.head{padding:18px 0 0}
     table{font-size:13.5px}
   }
@@ -89,73 +96,66 @@
 
   <header class="head">
     <h1>What the wall <span class="accent">actually costs</span>.</h1>
-    <p class="lede">The campaign goal is <b>$5,000</b>. The full build costs more than that — this page is the under-the-hood math: the wall, the holds, the pads, the shipping, the duty, the install. Ranges in USD; every number carries its source or is marked as an estimate. None of this promises a wall. It prices one.</p>
+    <p class="lede">The campaign goal is <b>$5,000</b>. The full build costs more than that — this page is the under-the-hood math. The decision is made on the hardware: <b>full commercial Lemur, the widest board in the lineup, manual adjustment</b>. No half measures. Ranges in USD; every number carries its source or is marked as an estimate. None of this promises a wall. It prices one.</p>
   </header>
 
   <section>
-    <h2>Three ways to build it</h2>
-    <p class="small-note" style="margin-top:10px">Same idea at three price points: a wall, a set of Kilter holds, pads on the floor. Option B is the one we'd argue for — a real adjustable Lemur wall without the full commercial system.</p>
+    <h2>The system</h2>
+    <div class="spec">
+      <h3>Kilter Original 16×12 on a Lemur adjustable frame — manual.</h3>
+      <p>16 feet wide, 12 feet tall: the largest layout Kilter makes. Wide enough for several climbers at once, with the full Original hold set — 646 holds, 1,300 LEDs, the complete app catalogue from beginner to world-cup. The frame is Lemur's adjustable steel, vertical to steep. Manual adjustment instead of motors: same angles, fewer parts, less to break, less to pay.</p>
+      <p class="fine">One honest caveat: Lemur's current commercial line ships motorized (electric frame from $20,700); a manual frame at 16-ft width is a quote conversation, priced below the electric anchor. <b>The formal Lemur quote is THE open item — every number in the scenarios below is ± that quote.</b></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two ways to install it</h2>
+    <p class="small-note" style="margin-top:10px">Same system either way. What changes is the room around it.</p>
 
     <div class="options">
-
-      <div class="opt">
-        <div class="head-row">
-          <div>
-            <h3>Option A — DIY frame + Kilter holds</h3>
-            <div class="sub">Fixed-angle wall built locally in Johor from lumber and plywood; the Kilter hold kit ships in. The floor of what a real board costs.</div>
-          </div>
-          <span class="badge" style="background:rgba(154,164,178,.14);color:#9aa4b2">Floor</span>
-        </div>
-        <table>
-          <tr><th>Line item</th><th class="num">USD</th></tr>
-          <tr><td>Wall — DIY fixed-angle frame, built locally<span class="src">Lemur Design pricing guide: DIY wall $500–2,000</span></td><td class="num">500 – 2,000</td></tr>
-          <tr><td>Holds — Kilter Full Ride 7×10 layout, with lights<span class="src">Setter Closet: Full Ride $3,000–14,800; Lemur guide: home system from $3,400</span></td><td class="num">3,000 – 3,400</td></tr>
-          <tr><td>Pads — crash pads<span class="src">Lemur Design pricing guide</span></td><td class="num">500 – 1,000</td></tr>
-          <tr><td>Freight — holds only, US → Johor<span class="est">estimate</span></td><td class="num">500 – 1,500</td></tr>
-          <tr><td>Duty + SST on imported holds (~6.1% avg + 5–10% SST)<span class="est">estimate</span><span class="src">trade.gov Malaysia tariff guide; final rate depends on HS code (0–60%)</span></td><td class="num">400 – 900</td></tr>
-          <tr><td>Install — local build labor<span class="est">estimate</span></td><td class="num">800 – 2,000</td></tr>
-          <tr class="total"><td>Total</td><td class="num">5,700 – 10,800</td></tr>
-        </table>
-      </div>
 
       <div class="opt lead">
         <div class="head-row">
           <div>
-            <h3>Option B — Lemur adjustable wall</h3>
-            <div class="sub">A real Lemur manually adjustable wall, shipped from Canada, with the same Kilter hold kit. Any angle from vertical to steep — the board the campaign renders show.</div>
+            <h3>Scenario 1 — In the gym</h3>
+            <div class="sub">The board goes into the existing gym: a wall, a slab, pads. No room works, no furniture — the space is already finished.</div>
           </div>
-          <span class="badge">Recommended</span>
+          <span class="badge">Cost-efficient</span>
         </div>
         <table>
           <tr><th>Line item</th><th class="num">USD</th></tr>
-          <tr><td>Wall — Lemur small manually adjustable wall<span class="src">Lemur Design pricing guide: $4,000–12,000</span></td><td class="num">4,000 – 12,000</td></tr>
-          <tr><td>Holds — Kilter Full Ride 7×10 layout, with lights<span class="src">Setter Closet / Lemur guide</span></td><td class="num">3,000 – 3,400</td></tr>
-          <tr><td>Pads — crash pads<span class="src">Lemur Design pricing guide</span></td><td class="num">500 – 1,000</td></tr>
-          <tr><td>Freight — sea + ground, Canada → Malaysia<span class="src">Lemur FAQ quotes $500–3,000 by destination; Malaysia sits at the far end</span></td><td class="num">2,000 – 3,000</td></tr>
-          <tr><td>Duty + SST on CIF value (~6.1% avg + 5–10% SST)<span class="est">estimate</span><span class="src">trade.gov Malaysia tariff guide; HS-code dependent</span></td><td class="num">1,000 – 2,500</td></tr>
-          <tr><td>Install — 10 concrete anchors, 1–2 days, 2–3 people<span class="est">estimate</span><span class="src">Lemur FAQ install specs; community labor can take this near zero</span></td><td class="num">500 – 1,500</td></tr>
-          <tr class="total"><td>Total</td><td class="num">11,000 – 23,400</td></tr>
+          <tr><td>Holds + LEDs — Kilter Original 16×12 layout<span class="src">Setter Closet: $19,362 (largest layout; excludes frame, panels, mats, shipping). EU dealers cross-check at €21,580–25,650</span></td><td class="num">19,362</td></tr>
+          <tr><td>Frame — Lemur adjustable, 16-ft, manual<span class="est">estimate</span><span class="src">quote required; anchors: Lemur electric frame from $20,700 (FAQ), small manual walls $4,000–12,000 (Lemur pricing guide) — manual at this width should land between</span></td><td class="num">12,000 – 20,000</td></tr>
+          <tr><td>Panels + mounting bolts — board surface, local ply + hardware<span class="est">estimate</span><span class="src">Kilter kits exclude panels; ~440 bolts + 500 screws per the 16×12 kit spec</span></td><td class="num">1,500 – 3,000</td></tr>
+          <tr><td>Pads — commercial safety matting, 16-ft fall zone<span class="est">estimate</span><span class="src">Lemur FAQ: commercial matting from $8,500; sized up for a 16-ft board</span></td><td class="num">8,500 – 12,000</td></tr>
+          <tr><td>Freight — Canada → Johor, sea + ground<span class="est">estimate</span><span class="src">crated steel frame + mats ≈ a 20-ft-container-class shipment; Quebec → Pasir Gudang door-to-door incl. insurance; Lemur's published range ($500–3,000) covers smaller systems</span></td><td class="num">4,000 – 7,000</td></tr>
+          <tr><td>Duty + SST on ~$45–55k CIF (~6.1% avg + 5–10% SST)<span class="est">estimate</span><span class="src">trade.gov Malaysia tariff guide; final rate is HS-code dependent (0–60%)</span></td><td class="num">5,000 – 8,000</td></tr>
+          <tr><td>Install — 10 concrete anchors, local crew, 2–3 days<span class="est">estimate</span><span class="src">Lemur FAQ install specs; community labor shrinks this</span></td><td class="num">1,500 – 3,000</td></tr>
+          <tr class="total"><td>Total</td><td class="num">51,862 – 72,362</td></tr>
         </table>
+        <p class="fine" style="margin-top:12px">Sanity check: Kilter's own bundles (holds + pads + adjustable frame) run $14,000–75,000+ depending on size — a maxed-out 16×12 sits exactly where this lands.</p>
       </div>
 
       <div class="opt">
         <div class="head-row">
           <div>
-            <h3>Option C — Full commercial Lemur system</h3>
-            <div class="sub">The push-button 12×12 system with connected LED holds and commercial matting. What it becomes if usage proves out — not where it needs to start.</div>
+            <h3>Scenario 2 — Own room</h3>
+            <div class="sub">Everything in Scenario 1, plus finishing a dedicated room to Network School standards: proper finishing, couches and tables, a finished professional space.</div>
           </div>
-          <span class="badge" style="background:rgba(255,178,74,.16);color:#ffc266">Later</span>
+          <span class="badge" style="background:rgba(255,178,74,.16);color:#ffc266">+ Room</span>
         </div>
         <table>
           <tr><th>Line item</th><th class="num">USD</th></tr>
-          <tr><td>Wall — Lemur adjustable frame<span class="src">Lemur FAQ: from $20,700</span></td><td class="num">from 20,700</td></tr>
-          <tr><td>Holds — connected LED holds<span class="src">Lemur FAQ: from $13,750</span></td><td class="num">from 13,750</td></tr>
-          <tr><td>Pads — commercial safety matting<span class="src">Lemur FAQ: from $8,500; complete 12×12 system ≈ $43,000</span></td><td class="num">from 8,500</td></tr>
-          <tr><td>Freight — sea + ground, Canada → Malaysia<span class="est">estimate</span><span class="src">top of Lemur's $500–3,000 quoted range, likely beyond it at this size</span></td><td class="num">3,000+</td></tr>
-          <tr><td>Duty + SST on ~$46k CIF<span class="est">estimate</span></td><td class="num">4,500 – 7,500</td></tr>
-          <tr><td>Install — local crew<span class="est">estimate</span><span class="src">Lemur's pro install package runs $7,000–15,000 instead</span></td><td class="num">1,500 – 3,000</td></tr>
-          <tr class="total"><td>Total</td><td class="num">from ≈ 52,000</td></tr>
+          <tr><td>The system, landed + installed (Scenario 1)</td><td class="num">51,862 – 72,362</td></tr>
+          <tr class="sub"><td>Room finishing</td><td class="num"></td></tr>
+          <tr><td>Flooring — rubber/vinyl beyond the pad zone<span class="est">estimate</span></td><td class="num">1,000 – 2,500</td></tr>
+          <tr><td>Walls + paint + finishing work<span class="est">estimate</span></td><td class="num">800 – 2,000</td></tr>
+          <tr><td>Furniture — couches, tables, standing desks<span class="est">estimate</span></td><td class="num">1,500 – 3,500</td></tr>
+          <tr><td>Lighting<span class="est">estimate</span></td><td class="num">300 – 800</td></tr>
+          <tr><td>AC / ventilation check + any duct work<span class="est">estimate</span></td><td class="num">500 – 2,000</td></tr>
+          <tr class="total"><td>Total</td><td class="num">55,962 – 83,162</td></tr>
         </table>
+        <p class="fine" style="margin-top:12px">Room-finishing subtotal: $4,100–10,800 — all local retail and trades in Johor, no imports.</p>
       </div>
 
     </div>
@@ -165,31 +165,28 @@
     <div class="what">
       <h2>What any candidate room must have</h2>
       <ul>
-        <li><b>Ceiling height:</b> 10.8–15.4 ft (3.3–4.7 m) depending on model — a normal-tall room, not a hall.</li>
+        <li><b>Width:</b> the board is 16 ft wide — the room wants ~18+ ft of clear wall.</li>
+        <li><b>Ceiling height:</b> 13.3–15.4 ft (4.1–4.7 m) for Lemur's full-size adjustable walls.</li>
         <li><b>Floor:</b> concrete slab; ~90% of Lemur installs use 10 heavy-duty anchors straight into it.</li>
-        <li><b>Power:</b> 100–240V universal — a wall socket. No special electrical work.</li>
+        <li><b>Power:</b> 100–240V wall socket for the LEDs. Manual frame — no motor circuit at all.</li>
         <li><b>Clearance:</b> pad coverage extending well past the fall zone; desks and furniture far from the board.</li>
       </ul>
-      <p class="fine" style="margin-top:14px">Source: Lemur Design FAQ. Lead time is 8–12 weeks manufacture; install is 1–2 days for the structure plus a day for holds.</p>
+      <p class="fine" style="margin-top:14px">Source: Lemur Design FAQ + commercial wall specs. Lead time is 8–12 weeks manufacture; install is 1–2 days for the structure plus a day for holds.</p>
     </div>
   </section>
 
   <section>
     <div class="ask">
       <h2>What <span class="accent nums">$5,000</span> gets us</h2>
-      <p>The escrow is <b>priced demand plus seed capital</b> — not the whole build. Here's the honest mapping of the goal against each option, and who covers the rest.</p>
+      <p>The escrow is <b>priced demand plus seed capital</b> — not the whole build. Here's the honest mapping against both scenarios, and who covers the rest.</p>
 
       <div class="maprow">
-        <h3>Under Option A</h3>
-        <p class="nums">$5,000 of a $5,700 low-end build — the community's escrow nearly builds the entire thing. Remainder: <b>$700–5,800</b>, closeable by a small top-up or a second round.</p>
+        <h3>Under Scenario 1 — in the gym</h3>
+        <p class="nums">$5,000 covers the install, the panels, and a piece of the freight — roughly the whole "landing it in Johor" layer. The hardware itself, landed (<b>$45,000–59,000</b>), is a capital decision for Network School; the escrow is the demand proof attached to it, about 7–10% of the build.</p>
       </div>
       <div class="maprow">
-        <h3>Under Option B</h3>
-        <p class="nums">$5,000 covers the holds, the pads, and the install — roughly everything except the wall itself and its shipping. Remainder: <b>$6,000–18,400</b>, which falls to Network School or a sponsor.</p>
-      </div>
-      <div class="maprow">
-        <h3>Under Option C</h3>
-        <p class="nums">$5,000 is seed capital — about 10% of the low end. This option is a capital decision for Network School; the escrow is the demand proof attached to it.</p>
+        <h3>Under Scenario 2 — own room</h3>
+        <p class="nums">$5,000 covers the room finishing at the low end ($4,100) and most of it at the high — <b>the community pays for its own room</b>: floor, paint, couches, tables, lights. The system itself is the same NS capital line as Scenario 1.</p>
       </div>
 
       <p style="margin-top:22px">Either way the mechanics hold: deposits stay withdrawable until release, and release needs the goal <b>and</b> the greenlight. If the wall isn't approved, every cent goes back. The number this page can't produce is how much the community wants it — <a href="index.html">the counter on the main page</a> is doing that.</p>
@@ -197,19 +194,27 @@
   </section>
 
   <section>
+    <h2>Paths we considered</h2>
+    <p class="small-note" style="margin-top:10px">Two cheaper builds were on the table before committing to the full system: <b>a DIY fixed-angle frame with a Kilter Full Ride kit</b> ($5,700–10,800 landed) and <b>a small Lemur manual wall with the same kit</b> ($11,000–23,400 landed). Both work; both are half measures — a 7×10 board is a queue, not a gym. The decision went to the widest board Lemur will sell us.</p>
+  </section>
+
+  <section>
     <h2>Still open</h2>
     <ul class="what" style="list-style:none;display:grid;gap:11px;margin-top:16px;padding:24px 26px">
-      <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>Insurance quote</b> — the cost of adding a bouldering wall to the facility's coverage. The single most persuasive missing number.</li>
-      <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>Candidate room</b> — a confirmed room with the ceiling height and slab above.</li>
-      <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>Formal freight quote</b> — Lemur quote to Johor to replace the estimate lines.</li>
+      <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>The Lemur quote</b> — formal quote for a 16-ft manual frame + 16×12 Original kit + matting, crated to Johor. THE open item; every scenario number above is ± this quote.</li>
+      <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>Insurance quote</b> — the cost of adding a bouldering wall to the facility's coverage. The most persuasive missing number after the quote itself.</li>
+      <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>Candidate room / gym wall</b> — a confirmed spot with the width, height and slab above.</li>
     </ul>
 
     <div class="fine sources">
       Sources (retrieved 2026-07-11):
       <ul>
-        <li><a href="https://www.lemurdesign.ca/blog/lemur-design-1/how-much-does-an-adjustable-climbing-wall-cost-3">Lemur Design — How much does an adjustable climbing wall cost?</a></li>
-        <li><a href="https://www.lemurdesign.ca/faq">Lemur Design — FAQ (system pricing, shipping, install, room specs)</a></li>
-        <li><a href="https://settercloset.com/collections/kilter-board">Setter Closet — Kilter Board layouts</a></li>
+        <li><a href="https://settercloset.com/collections/kilter-board">Setter Closet — Kilter Board layouts ($2,769–19,362; Original 16×12 = $19,362; bundles $14,000–75,000+)</a></li>
+        <li><a href="https://www.lemurdesign.ca/faq">Lemur Design — FAQ (frame from $20,700, matting from $8,500, shipping $500–3,000, install + room specs)</a></li>
+        <li><a href="https://www.lemurdesign.ca/blog/lemur-design-1/how-much-does-an-adjustable-climbing-wall-cost-3">Lemur Design — How much does an adjustable climbing wall cost? (manual walls $4,000–12,000, DIY $500–2,000, crash pads $500–1,000)</a></li>
+        <li><a href="https://www.lemurdesign.ca/collections/murs-commerciaux">Lemur Design — commercial adjustable walls (sizes 8–24 ft wide, current line motorized)</a></li>
+        <li><a href="https://www.jegrimpe.com/gb/panels/4701-prises-et-led-kilterboard-original-16x12.html">jegrimpe.com — Kilter Original 16×12 kit contents (646 holds, 1,300 LEDs, bolt counts; €25,650 EU cross-check)</a></li>
+        <li><a href="https://climbing-culture.com/en/Boulder-walls-mats/Kilterboard/">Kletterkultur — EU Kilter pricing cross-check (16×12 Original €21,580)</a></li>
         <li><a href="https://www.trade.gov/country-commercial-guides/malaysia-import-tariffs">trade.gov — Malaysia import tariffs</a></li>
       </ul>
     </div>
