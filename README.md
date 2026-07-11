@@ -14,6 +14,7 @@ Supporter Badge — the ballot.
 
 | You want to…                        | Read                                       |
 |-------------------------------------|--------------------------------------------|
+| **Launch day checklist**            | [`TOMORROW.md`](TOMORROW.md)               |
 | See the plan + task board           | [`ROADMAP.md`](ROADMAP.md)                 |
 | The contract, stated as law         | [`SPEC.md`](SPEC.md)                       |
 | On-chain proof of all three endings | [`REHEARSALS.md`](REHEARSALS.md)           |
