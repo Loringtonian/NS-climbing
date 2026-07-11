@@ -30,7 +30,8 @@ people with real skin in the game.
 | Campaign PDA         | derive: `["campaign", "ns-climbing-wall"]` (see below) — will be pinned here at deploy |
 | USDC mint            | PENDING devnet campaign init — will be pinned here; on mainnet it will be `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Circle USDC) |
 | Deposit tiers        | exactly $20 / $100 / $1000 USDC (`20_000_000` / `100_000_000` / `1_000_000_000` base units); other amounts rejected (`InvalidTierAmount`); one deposit per wallet — to change tier, withdraw then redeposit |
-| Goal / deadline      | stored on-chain in the campaign account; read them (layout below) |
+| Goal                 | NONE — raise-as-much-as-possible mode; nothing gates on amount raised |
+| Deadline             | stored on-chain (layout below); 90 days from init for this campaign |
 
 **Do not execute a deposit until this table shows the live campaign PDA and
 the Circle USDC mint** — the program may be deployed before the campaign is
@@ -47,14 +48,20 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
 2. **Funds can only move to two places.** Vault outflows exist in exactly
    three instructions: `withdraw` / `refund` (back to the receipt's depositor,
    token-account ownership enforced by Anchor constraints) and `release` (to a
-   token account owned by `campaign.buildout`, which was fixed at
-   `initialize_campaign` and is immutable afterwards).
-3. **Release is double-gated.** `release` requires `campaign.approved == true`
-   (admin co-sign via `approve_release`, `has_one = admin`) AND
-   `campaign.total_escrowed >= campaign.goal`. Anyone may execute it once both
-   gates are true; executing moves funds only to the fixed buildout address.
+   token account owned by exactly `campaign.proposed_payout` — an account
+   constraint, checked before any handler code runs).
+3. **Release is DUAL-GATED — organizer proposes, depositors dispose.** There
+   is no goal and no pre-set destination. `propose_payout` is organizer-only
+   (`has_one = admin`, and campaign creation is pinned to the ORGANIZER key);
+   proposing or RE-proposing bumps a proposal epoch, which resets all payout
+   votes (receipts vote per-epoch — stale votes stop counting). `release`
+   requires a live proposal AND a strict head-count majority of CURRENT
+   depositors (`payout_votes × 2 > depositor_count`). Neither side alone can
+   move funds: the organizer has no votes to cast, and depositors cannot
+   choose an address the organizer didn't propose. New deposits enlarge the
+   electorate and can un-make a standing majority until they vote.
 4. **Deadline failure mode is permissionless refund.** After
-   `campaign.deadline`, `approve_release` is blocked and `refund` opens:
+   `campaign.deadline`, `propose_payout` is blocked and `refund` opens:
    anyone can push any depositor's 20 USDC back to that depositor's own token
    account (`has_one = depositor` on the receipt). Depositors never depend on
    the admin to get money back.
@@ -113,24 +120,25 @@ Source of truth: [`escrow/programs/ns-climb-escrow/src/lib.rs`](escrow/programs/
 ```
 offset 8    admin        Pubkey (32)
 offset 40   mint         Pubkey (32)
-offset 72   buildout     Pubkey (32)
-offset 104  campaign_id  u32 len L, then L bytes utf8   <- variable; shifts everything below
-+0          goal            u64   (USDC base units)
-+8          deadline        i64   (unix seconds)
-+16         total_escrowed  u64
-+24         depositor_count u32
-+28         tier_counts     [u32; 3]  (depositors at $20 / $100 / $1000)
-+40         dissolve_votes  u32
-+44         approved        u8 (bool)
-+45         dissolved       u8 (bool)  <- terminal; refunds open when 1
-+46         released        u8 (bool)
-+47         bump            u8
+offset 72   campaign_id  u32 len L, then L bytes utf8   <- variable; shifts everything below
++0          deadline        i64   (unix seconds)
++8          total_escrowed  u64   (USDC base units)
++16         depositor_count u32
++20         tier_counts     [u32; 3]  (depositors at $20 / $100 / $1000)
++32         dissolve_votes  u32
++36         proposed_payout Pubkey (32; all-zeros = never proposed)
++68         proposal_id     u32   (epoch; bumps per propose, 0 = none)
++72         payout_votes    u32   (yes-votes on the CURRENT epoch)
++76         dissolved       u8 (bool)  <- terminal; refunds open when 1
++77         released        u8 (bool)
++78         bump            u8
 ```
 
 **Receipt / Supporter Badge** (PDA: seeds `["receipt", campaign_pda,
-depositor_pubkey]`): `8 disc | 32 campaign | 32 depositor | 8 amount |
-1 voted | 1 bump`. Its existence = that wallet has an active deposit; it IS
-the non-transferable supporter credential and the dissolve ballot.
+depositor_pubkey]`, 86 bytes): `8 disc | 32 campaign | 32 depositor |
+8 amount | 1 voted | 4 payout_voted_seq | 1 bump`. Its existence = that
+wallet has an active deposit; it IS the non-transferable supporter credential
+and BOTH ballots (dissolve + current payout proposal).
 
 **Vault** (PDA: seeds `["vault", campaign_pda]`): SPL token account owned by
 the campaign PDA.
@@ -146,9 +154,13 @@ Instruction discriminators (first 8 bytes of `sha256("global:<name>")`):
 | `refund`    | `[2,96,183,251,63,208,46,46]` (no args) |
 | `vote_dissolve`   | `[180,224,232,226,59,166,81,63]` (no args) |
 | `unvote_dissolve` | `[244,70,201,208,63,92,167,83]` (no args) |
+| `vote_payout`     | `[253,223,29,124,122,195,50,5]` (no args) |
+| `unvote_payout`   | `[93,70,124,191,216,185,62,248]` (no args) |
+| `propose_payout`  | `[200,59,138,55,239,125,31,165]` + `payout: Pubkey (32)` — organizer-only |
 
-`vote_dissolve` / `unvote_dissolve` accounts, in order: depositor (signer) ·
-campaign (writable) · receipt PDA (writable).
+`vote_dissolve` / `unvote_dissolve` / `vote_payout` / `unvote_payout`
+accounts, in order: depositor (signer) · campaign (writable) · receipt PDA
+(writable).
 
 `deposit` accounts, in order: depositor (signer, writable) · campaign
 (writable) · vault (writable) · depositor's USDC ATA (writable) · receipt PDA
@@ -220,11 +232,12 @@ closes the receipt, after which depositing again — at any tier — is allowed.
 5. `dissolved == false` (a dissolved campaign takes no deposits; if your human
    already deposited, their money is refundable via withdraw or the crank).
 5b. `campaign.admin` equals the organizer key
-   `84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2` AND `campaign.buildout`
-   equals the buildout address pinned in the Live-campaign-parameters table
-   above — compare the on-chain bytes (offsets 8 and 72), don't assume.
-   (Campaign creation is program-restricted to the organizer key, so a
-   mismatch means you are looking at the wrong account.)
+   `84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2` (offset 8 — creation is
+   program-restricted to it, so a mismatch means the wrong account). There is
+   NO fixed destination: if your human plans to VOTE on a payout proposal,
+   read `proposed_payout` from the campaign bytes and confirm it is the
+   address they intend to approve — a majority vote is what authorizes the
+   money to move there.
 6. You showed your human: current total, goal, deadline, buildout address,
    and the sentences "you can withdraw at any time before release — the exact
    amount you put in" and "your deposit is also a ballot: a majority of

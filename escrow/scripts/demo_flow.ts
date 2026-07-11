@@ -84,7 +84,7 @@ async function main() {
   }
 
   const c = await (program.account as any).campaign.fetch(campaign);
-  console.log("state:", c.depositorCount, "people, total", c.totalEscrowed.toString(), "of goal", c.goal.toString());
+  console.log("state:", c.depositorCount, "people, total", c.totalEscrowed.toString(), "raised (no goal — dual-gate payout)");
 }
 
 main().then(() => process.exit(0), (e) => { console.error(e); process.exit(1); });

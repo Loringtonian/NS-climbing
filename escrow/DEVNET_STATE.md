@@ -76,3 +76,26 @@ migration exposure).
 All pages point at v3 (hardcoded ESCROW_CONFIG). The v2 campaign still parses
 under the deployed binary (same layout) — its two $-deposits can be withdrawn by
 the demo wallets any time; not blocking anything.
+
+## v4 campaign — v3 PROGRAM (dual-gate destination vote), 2026-07-11
+
+Devnet upgraded IN PLACE to the frozen v3 artifact — on-chain dump trimmed to
+310,120 bytes hashes to exactly 1527b07f21a1907f83bcedddefb350115a29c1f1ca0598d92b7d5a9879cd17ae.
+
+| What         | Value |
+|--------------|-------|
+| Campaign ID  | ns-climbing-wall-v4 (phone-test target; v3 campaign superseded by the layout change) |
+| Campaign PDA | 4qbSon25ofENbATDhrm44v1Qu6hoxSQMzwj74AtjcGvi |
+| Vault PDA    | 5duUDxfefksW7Eki7FVioq5MXbBar6C4MrRTBJK9MHCb |
+| Mode         | raise-max: NO goal, NO fixed destination — dual-gate payout vote |
+| Seeded       | $100 (demo1) + $20 (demo2) = $120, 2 depositors |
+| Explorer     | https://explorer.solana.com/address/4qbSon25ofENbATDhrm44v1Qu6hoxSQMzwj74AtjcGvi?cluster=devnet |
+
+### VICTORY rehearsal (scratch campaign ns-wall-victory, live signatures)
+
+deposits $100+$20 (2SGfZL1y…, 57WTQj7U…) → propose_payout DEUJCsLb… (4oYkL1WD…,
+epoch 1, votes reset 0) → vote 1/2 (36Hb2biG… — release impossible at half) →
+vote 2/2 strict majority (3rhNBUZA…) → PERMISSIONLESS release (5jVhKvzh…) →
+**120 USDC landed at exactly the proposed address's ATA**
+(9UZrd6RTSV2TZh9RzrUjKHno43yVG83xvGVoFR47KXCQ).
+Explorer: https://explorer.solana.com/address/9UZrd6RTSV2TZh9RzrUjKHno43yVG83xvGVoFR47KXCQ?cluster=devnet
