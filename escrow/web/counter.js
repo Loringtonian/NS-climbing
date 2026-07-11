@@ -18,7 +18,7 @@
   var CFG = window.ESCROW_CONFIG || {};
   var RPC = CFG.rpc || "https://api.devnet.solana.com"; // mainnet: https://api.mainnet-beta.solana.com (or a private RPC)
   var PROGRAM_ID = CFG.program || "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw";
-  var CAMPAIGN_ID = CFG.campaign || "ns-climbing-wall-v2"; // must match the id used at initialize_campaign
+  var CAMPAIGN_ID = CFG.campaign || "ns-climbing-wall-v3"; // must match the id used at initialize_campaign
   var CAMPAIGN_ADDRESS = CFG.pda || ""; // OPTIONAL: campaign PDA — skips auto-derivation
   var REFRESH_MS = 15000;
   var EL_ID = "escrow-counter";

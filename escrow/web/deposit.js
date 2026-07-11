@@ -1,96 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>Back the wall — DEVNET TEST</title>
-<style>
-  :root{--bg:#0e1116;--panel:#161b22;--ink:#f2f4f7;--muted:#9aa4b2;--accent:#ff6b4a;--accent2:#ffb24a;--line:#262c36;--teal:#39c2b8}
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:linear-gradient(rgba(10,12,16,.84),rgba(10,12,16,.9)),url(../../assets/bg_wall.jpg) center/cover no-repeat #0e1116;color:var(--ink);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:480px;margin:0 auto;padding:28px 20px}
-  h1{font-size:26px;line-height:1.15;letter-spacing:-.02em;font-weight:800;margin-bottom:6px}
-  h1 span{color:var(--accent)}
-  .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:16px}
-  #escrow-counter{font-weight:800;font-size:18px;min-height:24px}
-  .bar{height:8px;border-radius:999px;background:#242a34;overflow:hidden;margin-top:12px}
-  .bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s}
-  .btn{display:block;width:100%;text-align:center;font-weight:800;border:0;cursor:pointer;padding:16px;border-radius:999px;font-size:17px;background:var(--accent);color:#0e1116;margin-top:10px;text-decoration:none}
-  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
-  .btn:disabled{opacity:.45;cursor:default}
-  .btn.tier small{display:block;font-weight:600;font-size:12.5px;opacity:.75;margin-top:3px}
-  .hidden{display:none}
-  .fine{color:#7a8595;font-size:13px;margin-top:12px}
-  #status{font-size:14px;margin-top:12px;min-height:20px;color:var(--accent2);word-break:break-all}
-  .trust{font-size:14px;color:#d7dde6}
-  .trust b{color:var(--ink)}
-  .trust a{color:var(--accent2)}
-  .in{border:1px solid #2b4a3f;background:#12201a;color:#7fe0b2;border-radius:12px;padding:12px 16px;font-weight:700;margin-top:10px;text-align:center}
-</style>
-</head>
-<body>
-<div style="background:#5a2d00;color:#ffb24a;font-weight:800;text-align:center;padding:8px 12px;font-size:13px;letter-spacing:.06em">DEVNET TEST MODE — test tokens, not real money. Config comes from URL parameters on this page only.</div>
-<div class="wrap">
-  <h1>Skin in the game <span>· $20 / $100 / $1000</span></h1>
-  <div class="sub">Escrow USDC toward the climbing wall at the tier you mean. It's a deposit, not a donation — pull it back any time until the wall is greenlit.</div>
-
-  <div class="card">
-    <div id="escrow-counter">loading…</div>
-    <div class="bar"><i id="bar"></i></div>
-  </div>
-
-  <div class="card">
-    <!-- no injected wallet: hand off to the wallet's in-app browser -->
-    <div id="nowallet" class="hidden">
-      <a class="btn" id="phantomLink" href="#">Open in Phantom</a>
-      <a class="btn ghost" id="solflareLink" href="#">Open in Solflare</a>
-      <div class="fine">This page needs to run inside your wallet's browser to sign the deposit. One tap above brings you right back here, connected.</div>
-    </div>
-    <div id="hasWallet">
-      <button class="btn" id="connect">Connect wallet</button>
-      <div id="inBadge" class="in hidden">You're on the board ✓</div>
-      <!-- tier names + copy: sales_kit/TIERS.md (bouldering grades, final) -->
-      <button class="btn hidden tier" data-usd="20">V1 — $20<small>Get on the board. Your name on the founding plaque.</small></button>
-      <button class="btn hidden tier" data-usd="100">V5 — $100<small>First-ascent night. First-week priority.</small></button>
-      <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
-      <div class="fine hidden" id="tierFine">All deposits withdrawable anytime. Perks exist when the wall exists — if it dies, you withdraw, nobody loses a cent.</div>
-      <button class="btn ghost hidden" id="withdraw">Withdraw my deposit</button>
-      <div class="fine hidden" id="upgradeHint">To change tier: withdraw, then deposit again at the new size. Withdrawing also removes your dissolve vote, if you cast one.</div>
-      <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
-    </div>
-    <div id="status"></div>
-  </div>
-
-  <div class="card trust">
-    <b>How your money is protected:</b> funds sit in a program-owned escrow.
-    They can only ever move (1) back to you, on your signature, any time before
-    release, or (2) to the buildout address fixed at campaign creation — and only
-    if the goal is reached AND the greenlight co-sign lands. If the deadline
-    passes first, refunds open to everyone. No yield, no token, no fees.
-    The contract is currently upgradeable by the organizer (disclosed;
-    lock/burn within the week).
-    <div class="fine">Contract source &amp; agent instructions: <a href="https://github.com/Loringtonian/NS-climbing">github.com/Loringtonian/NS-climbing</a> · <a href="../../agents.md">agents.md</a></div>
-  </div>
-</div>
-
-<script>
-  // DEVNET TEST PAGE: URL params drive the config (the production page
-  // demo.html hardcodes everything — audit fix).
-  (function () {
-    var q = new URLSearchParams(location.search);
-    window.ESCROW_CONFIG = {
-      rpc: q.get("rpc") || "https://api.devnet.solana.com",
-      program: q.get("program") || "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw",
-      campaign: q.get("campaign") || "ns-climbing-wall-v3",
-      mint: q.get("mint") || "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD"
-    };
-  })();
-</script>
-<script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
-<script src="counter.js"></script>
-<script>
+/* NS climbing wall — the deposit/withdraw/vote flow. ONE audited code path,
+ * loaded by BOTH the standalone deposit page (demo.html, the QR target) and
+ * the inline embed on index.html. Config comes from window.ESCROW_CONFIG set
+ * by the including page — hardcoded there, never from URL params (audit fix).
+ * Elements are bound only if present, so pages can include a subset.
+ * Exposes window.EscrowFlow.preselect(usd) for the inline tier cards.
+ */
 (function () {
   // ---- config: HARDCODED (audit fix — URL-param config was a phishing
   //      primitive on the trusted domain; devnet.html is the params page).
@@ -128,6 +42,22 @@
       : window.solflare ? window.solflare
       : window.solana ? window.solana : null;
   }
+
+  // Tier pre-select — callable (inline tier cards) and via fragment
+  // (#v1/#v5/#v10 on the standalone page; a fragment is presentation, not
+  // config, so it stays inside the audit's no-URL-param rule).
+  function preselect(usd) {
+    Array.prototype.forEach.call(document.querySelectorAll(".tier"), function (b) {
+      var mine = b.getAttribute("data-usd") === String(usd);
+      b.style.boxShadow = mine ? "0 0 0 3px rgba(255,178,74,.6)" : "";
+      var tag = b.querySelector(".pick-tag");
+      if (tag) tag.remove();
+      if (mine) b.insertAdjacentHTML("beforeend", '<small class="pick-tag" style="opacity:.9">Your pick — confirm below</small>');
+    });
+  }
+  window.EscrowFlow = { preselect: preselect };
+  var pre = { "#v1": "20", "#v5": "100", "#v10": "1000" }[location.hash];
+  if (pre) preselect(pre);
 
   // No injected wallet (plain mobile browser) -> deep-link into wallet browsers
   if (!provider()) {
@@ -339,13 +269,24 @@
     return m.slice(0, 140);
   }
 
+  var VERIFY_PROMPT = "Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md and\n" +
+    "escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the six claims\n" +
+    "in VERIFY_IT.md against the code, with line numbers. Confirm the deployed\n" +
+    "program matches the source (procedure in agents.md) and who holds the upgrade\n" +
+    "authority. Then tell me plainly: every way my money can move, who can trigger\n" +
+    "each — and would you let me deposit?";
+  var _cp = document.getElementById("copyPrompt");
+  if (_cp) _cp.onclick = function () {
+    (navigator.clipboard ? navigator.clipboard.writeText(VERIFY_PROMPT) : Promise.reject())
+      .then(function () { document.getElementById("copyStatus").textContent = "Copied — paste it to Claude, ChatGPT, or any agent."; })
+      .catch(function () { document.getElementById("copyStatus").textContent = "Copy blocked — open VERIFY_IT.md and copy from there."; });
+  };
+
   // progress bar rides the counter's numbers
   setInterval(function () {
-    var t = $("escrow-counter").textContent;
-    var m = t.match(/(\d+)% of goal/);
-    if (m) $("bar").style.width = m[1] + "%";
+    var tEl = $("escrow-counter"), bEl = $("bar");
+    if (!tEl || !bEl) return;
+    var m = tEl.textContent.match(/(\d+)% of goal/);
+    if (m) bEl.style.width = m[1] + "%";
   }, 3000);
 })();
-</script>
-</body>
-</html>

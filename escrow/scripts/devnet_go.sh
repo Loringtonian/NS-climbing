@@ -3,16 +3,15 @@
 # deploy program -> create demo USDC mint -> init campaign -> scripted
 # deposit+withdraw rehearsal -> print state, page URLs, and DEVNET_STATE.md.
 #
-#   GOAL_USDC=2000 DEADLINE_DAYS=90 BUILDOUT=<pubkey> bash scripts/devnet_go.sh
+#   GOAL_USDC=5000 DEADLINE_DAYS=90 BUILDOUT=<pubkey> bash scripts/devnet_go.sh
 #
-# GOAL_USDC defaults to 2000 ($20 x 100 people) — A REHEARSAL NUMBER; the real
-# goal is Lorin's decision. BUILDOUT defaults to the deployer wallet.
+# GOAL_USDC defaults to 5000 — Lorin's chosen goal (2026-07-11). BUILDOUT defaults to the deployer wallet.
 set -euo pipefail
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH"
 cd "$(dirname "$0")/.."
 
 RPC=https://api.devnet.solana.com
-GOAL_USDC="${GOAL_USDC:-2000}"
+GOAL_USDC="${GOAL_USDC:-5000}"
 DEADLINE_DAYS="${DEADLINE_DAYS:-90}"
 CAMPAIGN_ID="${CAMPAIGN_ID:-ns-climbing-wall}"
 

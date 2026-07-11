@@ -61,3 +61,18 @@ page both pin ns-climbing-wall-v2 via hardcoded ESCROW_CONFIG. Lesson banked
 for mainnet: NEVER change account layouts under a live campaign; deploy new
 program logic only between campaigns (mainnet launches directly on v2, so no
 migration exposure).
+
+## v3 campaign — GOAL RAISED TO $5,000 (Lorin, 2026-07-11)
+
+| What         | Value |
+|--------------|-------|
+| Campaign ID  | ns-climbing-wall-v3 (v2 superseded — goal change requires a fresh campaign; goal is immutable) |
+| Campaign PDA | BKoWqUPTHqqFvPNvumZBQEVxcgFPXm6npVicutLxvDy6 |
+| Vault PDA    | AJadtMR4kuQVtsvL89bhdXtgNnhMgXcvkp4iM6qdpvfX |
+| Goal         | 5,000 USDC · 90 days |
+| Seeded       | $100 (demo1) + $20 (demo2) = $120, 2 depositors |
+| Explorer     | https://explorer.solana.com/address/BKoWqUPTHqqFvPNvumZBQEVxcgFPXm6npVicutLxvDy6?cluster=devnet |
+
+All pages point at v3 (hardcoded ESCROW_CONFIG). The v2 campaign still parses
+under the deployed binary (same layout) — its two $-deposits can be withdrawn by
+the demo wallets any time; not blocking anything.
