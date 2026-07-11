@@ -10,11 +10,12 @@
  * Config: edit the three constants below when the campaign goes live.
  */
 (function () {
-  // ---- config -------------------------------------------------------------
-  var RPC = "https://api.devnet.solana.com"; // mainnet: https://api.mainnet-beta.solana.com (or a private RPC)
-  var PROGRAM_ID = "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw";
-  var CAMPAIGN_ID = "ns-climbing-wall"; // must match the id used at initialize_campaign
-  var CAMPAIGN_ADDRESS = ""; // OPTIONAL: paste the campaign PDA printed by scripts/init_campaign.ts to skip auto-derivation
+  // ---- config (URL params override: ?rpc= &program= &campaign= &pda=) ------
+  var q = new URLSearchParams(location.search);
+  var RPC = q.get("rpc") || "https://api.devnet.solana.com"; // mainnet: https://api.mainnet-beta.solana.com (or a private RPC)
+  var PROGRAM_ID = q.get("program") || "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw";
+  var CAMPAIGN_ID = q.get("campaign") || "ns-climbing-wall"; // must match the id used at initialize_campaign
+  var CAMPAIGN_ADDRESS = q.get("pda") || ""; // OPTIONAL: campaign PDA printed by scripts/init_campaign.ts — skips auto-derivation
   var REFRESH_MS = 15000;
   var EL_ID = "escrow-counter";
   // -------------------------------------------------------------------------

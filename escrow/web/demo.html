@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Climbing at NS — $20 escrow demo</title>
+<title>Back the wall — $20 escrow</title>
 <style>
-  :root{--bg:#0e1116;--panel:#161b22;--ink:#f2f4f7;--muted:#9aa4b2;--accent:#ff6b4a;--accent2:#ffb24a;--line:#262c36}
+  :root{--bg:#0e1116;--panel:#161b22;--ink:#f2f4f7;--muted:#9aa4b2;--accent:#ff6b4a;--accent2:#ffb24a;--line:#262c36;--teal:#39c2b8}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--ink);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
   .wrap{max-width:480px;margin:0 auto;padding:28px 20px}
@@ -17,13 +17,16 @@
   #escrow-counter{font-weight:800;font-size:18px;min-height:24px}
   .bar{height:8px;border-radius:999px;background:#242a34;overflow:hidden;margin-top:12px}
   .bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s}
-  .btn{display:block;width:100%;text-align:center;font-weight:800;border:0;cursor:pointer;padding:16px;border-radius:999px;font-size:17px;background:var(--accent);color:#0e1116;margin-top:10px}
+  .btn{display:block;width:100%;text-align:center;font-weight:800;border:0;cursor:pointer;padding:16px;border-radius:999px;font-size:17px;background:var(--accent);color:#0e1116;margin-top:10px;text-decoration:none}
   .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
   .btn:disabled{opacity:.45;cursor:default}
+  .hidden{display:none}
   .fine{color:#7a8595;font-size:13px;margin-top:12px}
   #status{font-size:14px;margin-top:12px;min-height:20px;color:var(--accent2);word-break:break-all}
   .trust{font-size:14px;color:#d7dde6}
   .trust b{color:var(--ink)}
+  .trust a{color:var(--accent2)}
+  .in{border:1px solid #2b4a3f;background:#12201a;color:#7fe0b2;border-radius:12px;padding:12px 16px;font-weight:700;margin-top:10px;text-align:center}
 </style>
 </head>
 <body>
@@ -37,11 +40,19 @@
   </div>
 
   <div class="card">
-    <button class="btn" id="connect">Connect wallet</button>
-    <button class="btn" id="deposit" disabled>Escrow $20</button>
-    <button class="btn ghost" id="withdraw" disabled>Withdraw my $20</button>
+    <!-- no injected wallet: hand off to the wallet's in-app browser -->
+    <div id="nowallet" class="hidden">
+      <a class="btn" id="phantomLink" href="#">Open in Phantom</a>
+      <a class="btn ghost" id="solflareLink" href="#">Open in Solflare</a>
+      <div class="fine">This page needs to run inside your wallet's browser to sign the deposit. One tap above brings you right back here, connected.</div>
+    </div>
+    <div id="hasWallet">
+      <button class="btn" id="connect">Connect wallet</button>
+      <div id="inBadge" class="in hidden">You're on the board — $20 escrowed ✓</div>
+      <button class="btn hidden" id="deposit">Escrow $20</button>
+      <button class="btn ghost hidden" id="withdraw">Withdraw my $20</button>
+    </div>
     <div id="status"></div>
-    <div class="fine">Open this page inside your wallet's browser (Phantom/Solflare). Devnet demo — test USDC, not real money.</div>
   </div>
 
   <div class="card trust">
@@ -50,6 +61,7 @@
     release, or (2) to the buildout address fixed at campaign creation — and only
     if the goal is reached AND the greenlight co-sign lands. If the deadline
     passes first, refunds open to everyone. No yield, no token, no fees.
+    <div class="fine">Contract source &amp; agent instructions: <a href="https://github.com/Loringtonian/NS-climbing">github.com/Loringtonian/NS-climbing</a> · <a href="../../agents.md">agents.md</a></div>
   </div>
 </div>
 
@@ -57,12 +69,14 @@
 <script src="counter.js"></script>
 <script>
 (function () {
-  // ---- config (keep in sync with counter.js) ----
-  var RPC = "https://api.devnet.solana.com";
-  var PROGRAM_ID = "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw";
-  var CAMPAIGN_ID = "ns-climbing-wall";
-  var USDC_MINT = "REPLACE_WITH_MINT"; // printed by init_campaign.ts / DEVNET_STATE.md
-  // -----------------------------------------------
+  // ---- config: URL params override defaults, so the campaign can be pointed
+  //      at devnet/mainnet without editing files ----
+  var q = new URLSearchParams(location.search);
+  var RPC = q.get("rpc") || "https://api.devnet.solana.com";
+  var PROGRAM_ID = q.get("program") || "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw";
+  var CAMPAIGN_ID = q.get("campaign") || "ns-climbing-wall";
+  var USDC_MINT = q.get("mint") || "REPLACE_WITH_MINT"; // set at campaign init (DEVNET_STATE.md)
+  // ---------------------------------------------------------
 
   var W = solanaWeb3;
   var conn = new W.Connection(RPC, "confirmed");
@@ -82,6 +96,7 @@
   var wallet = null;
   var $ = function (id) { return document.getElementById(id); };
   function status(msg) { $("status").textContent = msg; }
+  function show(id, on) { $(id).classList.toggle("hidden", !on); }
 
   function provider() {
     return window.phantom && window.phantom.solana ? window.phantom.solana
@@ -89,18 +104,14 @@
       : window.solana ? window.solana : null;
   }
 
-  $("connect").onclick = async function () {
-    var p = provider();
-    if (!p) { status("No wallet found — open this page inside Phantom or Solflare's in-app browser."); return; }
-    try {
-      var res = await p.connect();
-      wallet = { p: p, pk: new W.PublicKey((res.publicKey || p.publicKey).toString()) };
-      $("connect").textContent = wallet.pk.toBase58().slice(0, 4) + "…" + wallet.pk.toBase58().slice(-4);
-      $("deposit").disabled = false;
-      $("withdraw").disabled = false;
-      status("");
-    } catch (e) { status("Connect cancelled."); }
-  };
+  // No injected wallet (plain mobile browser) -> deep-link into wallet browsers
+  if (!provider()) {
+    var here = location.href;
+    $("phantomLink").href = "https://phantom.app/ul/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
+    $("solflareLink").href = "https://solflare.com/ul/v1/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
+    show("nowallet", true);
+    show("hasWallet", false);
+  }
 
   function ata(owner, mint) {
     return W.PublicKey.findProgramAddressSync(
@@ -110,6 +121,31 @@
     return W.PublicKey.findProgramAddressSync(
       [enc.encode("receipt"), campaign.toBytes(), depositor.toBytes()], pid)[0];
   }
+
+  // Receipt existence drives the UI: deposited -> badge + withdraw; not -> deposit
+  function refreshState() {
+    if (!wallet) return;
+    conn.getAccountInfo(receiptPda(wallet.pk)).then(function (acct) {
+      var deposited = !!acct;
+      show("inBadge", deposited);
+      show("withdraw", deposited);
+      show("deposit", !deposited);
+      $("deposit").disabled = false;
+      $("withdraw").disabled = false;
+    }).catch(function () {});
+  }
+
+  $("connect").onclick = async function () {
+    var p = provider();
+    if (!p) { status("No wallet found — use the buttons above to open this page inside your wallet."); return; }
+    try {
+      var res = await p.connect();
+      wallet = { p: p, pk: new W.PublicKey((res.publicKey || p.publicKey).toString()) };
+      $("connect").textContent = wallet.pk.toBase58().slice(0, 4) + "…" + wallet.pk.toBase58().slice(-4);
+      status("");
+      refreshState();
+    } catch (e) { status("Connect cancelled."); }
+  };
 
   async function send(ixs) {
     var tx = new W.Transaction();
@@ -124,12 +160,12 @@
   }
 
   $("deposit").onclick = async function () {
-    if (USDC_MINT.indexOf("REPLACE") === 0) { status("Demo not configured: USDC_MINT missing."); return; }
+    if (USDC_MINT.indexOf("REPLACE") === 0) { status("Not configured yet: campaign USDC mint missing."); return; }
+    $("deposit").disabled = true;
     try {
       var mint = new W.PublicKey(USDC_MINT);
       var myAta = ata(wallet.pk, mint);
       var ixs = [];
-      // create the depositor's token account if needed (idempotent)
       ixs.push(new W.TransactionInstruction({
         programId: ATA_PID,
         keys: [
@@ -156,11 +192,15 @@
         data: DISC_DEPOSIT,
       }));
       var sig = await send(ixs);
-      status("Escrowed. You're on the board. " + sig.slice(0, 12) + "…");
-    } catch (e) { status("Deposit failed: " + (e.message || e)); }
+      status("Escrowed — you're on the board. " + sig.slice(0, 12) + "…");
+    } catch (e) {
+      status("Deposit failed: " + shortErr(e));
+    }
+    refreshState();
   };
 
   $("withdraw").onclick = async function () {
+    $("withdraw").disabled = true;
     try {
       var mint = new W.PublicKey(USDC_MINT);
       var ix = new W.TransactionInstruction({
@@ -177,8 +217,17 @@
       });
       var sig = await send([ix]);
       status("Withdrawn — your $20 is back in your wallet. " + sig.slice(0, 12) + "…");
-    } catch (e) { status("Withdraw failed: " + (e.message || e)); }
+    } catch (e) {
+      status("Withdraw failed: " + shortErr(e));
+    }
+    refreshState();
   };
+
+  function shortErr(e) {
+    var m = (e && e.message) || String(e);
+    if (m.indexOf("insufficient funds") >= 0) return "not enough USDC in this wallet (need $20).";
+    return m.slice(0, 140);
+  }
 
   // progress bar rides the counter's numbers
   setInterval(function () {

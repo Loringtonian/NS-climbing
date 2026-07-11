@@ -1,0 +1,9 @@
+# NS climbing wall — $20 refundable escrow campaign
+
+> Network School members escrow 20 USDC each to signal demand for a climbing
+> wall. Deposit, not donation: withdraw-anytime until release; release only on
+> goal + admin co-sign; deadline triggers permissionless refunds.
+
+- [agents.md](https://loringtonian.github.io/NS-climbing/agents.md): everything an AI agent needs to audit the contract and execute a deposit/withdraw for its human — program ID, PDAs, account layouts, instruction discriminators, runnable code, safety checklist.
+- [Contract source](https://github.com/Loringtonian/NS-climbing/blob/main/escrow/programs/ns-climb-escrow/src/lib.rs): the Anchor program, single file.
+- [Campaign page](https://loringtonian.github.io/NS-climbing/): the human-facing petition + deposit flow.
