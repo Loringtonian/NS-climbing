@@ -266,6 +266,16 @@
   var lastTotal = null;
   function bump(el) { el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
 
+  // Arriving at #leaderboard (from /board.html) races the rows: the browser jumps to
+  // an anchor that is still an empty skeleton, then the page grows above it and the
+  // board slides out from under the viewport. Re-seat once real rows exist.
+  var seated = false;
+  function seatOnHash(rowCount) {
+    if (seated || !rowCount || location.hash !== "#leaderboard") return;
+    seated = true;
+    requestAnimationFrame(function () { $("leaderboard").scrollIntoView({ block: "start" }); });
+  }
+
   var cb = new CheerBoard({
     rpc: ER_URL, board: BOARD, program: PROGRAM_ID,
     onUpdate: function (s) {
@@ -302,6 +312,7 @@
         ol.appendChild(li);
       });
       if (!list.length) ol.innerHTML = '<li class="skel">no cheers yet — be the first</li>';
+      seatOnHash(list.length);
 
       var box = $("youBox");
       if (!myRank) {
@@ -324,9 +335,6 @@
     if (snap && snap.generatedAt) {
       $("stamp").textContent = "history rebuilt " + new Date(snap.generatedAt).toISOString().slice(0, 16).replace("T", " ") + "Z · live from there";
     }
-    // #leaderboard (e.g. from /board.html) fires before the rows exist, so the browser
-    // jumps to an anchor that then grows underneath it — re-seat it once it's populated
-    if (location.hash === "#leaderboard") $("leaderboard").scrollIntoView({ block: "start" });
   });
 
   // smooth-scroll the cue even where CSS scroll-behavior is off
