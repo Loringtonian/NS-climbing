@@ -26,7 +26,7 @@
 
   /* hero */
   .hero{position:relative;border-radius:22px;overflow:hidden;min-height:480px;display:flex;align-items:flex-end;margin-top:6px;background:#1b1f27 center/cover no-repeat}
-  .hero img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+  .hero img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.78}
   .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,17,22,.2),rgba(14,17,22,.93) 92%)}
   .hero-inner{position:relative;z-index:2;padding:44px 40px}
   .eyebrow{display:inline-block;background:rgba(255,107,74,.16);color:var(--accent2);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:7px 13px;border-radius:999px;margin-bottom:16px}
@@ -75,9 +75,9 @@
 
   <header class="hero">
     <!-- Landscape scene — actual wide Lemur board (image-to-image from lemurdesign.ca photos). -->
-    <img class="bg" src="assets/landscape_v3.png" alt="A wide Lemur climbing board in a Forest City room at Network School">
+    <img class="bg" src="assets/hero_lemur_office.jpg" alt="A Lemur climbing board beside the desks — climbing steps from where we work">
     <div class="hero-inner">
-      <span class="eyebrow">We, the undersigned</span>
+      <span class="eyebrow">Member initiative</span>
       <h1>We want a climbing gym <span class="accent">at Network School</span>.</h1>
     </div>
   </header>
@@ -112,7 +112,7 @@
   <section>
     <div class="ask">
       <h2>Add your voice.</h2>
-      <p>Not a waitlist, not a donation — an escrow. Put $20 — or $100, or $1000 — of USDC behind the demand. You can pull it back <b>any time</b> until the wall is greenlit; if it never is, everyone gets refunded. Priced demand is the signal.</p>
+      <p>Not a waitlist, not a donation — an escrow. Put $20 — or $100, or $1000 — of USDC behind the demand. You can pull it back <b>any time</b> before the money is actually released to the buildout — even after a greenlight. If 90 days pass without goal + greenlight, or a majority of depositors votes to dissolve, refunds open for everyone. Priced demand is the signal.</p>
       <div id="escrow-counter" class="fine" style="font-weight:800;color:#f2f4f7;font-size:16px"></div>
       <a class="btn" href="escrow/web/demo.html">Escrow $20+ — I want this wall <small>→</small></a>
       <div class="fine">Deposit, not donation · one Lemur board, one small room — enough of us, and it happens. <a href="agents.md" style="color:#7a8595">agents.md</a></div>
