@@ -324,6 +324,9 @@
     if (snap && snap.generatedAt) {
       $("stamp").textContent = "history rebuilt " + new Date(snap.generatedAt).toISOString().slice(0, 16).replace("T", " ") + "Z · live from there";
     }
+    // #leaderboard (e.g. from /board.html) fires before the rows exist, so the browser
+    // jumps to an anchor that then grows underneath it — re-seat it once it's populated
+    if (location.hash === "#leaderboard") $("leaderboard").scrollIntoView({ block: "start" });
   });
 
   // smooth-scroll the cue even where CSS scroll-behavior is off
