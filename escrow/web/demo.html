@@ -72,6 +72,14 @@
     lock/burn within the week).
     <div class="fine">Contract source &amp; agent instructions: <a href="https://github.com/Loringtonian/NS-climbing">github.com/Loringtonian/NS-climbing</a> · <a href="../../agents.md">agents.md</a></div>
   </div>
+
+  <div class="card trust">
+    <b>Don't trust us — ask your agent.</b> Six plain-language claims, honest
+    caveats, and a paste-able verification prompt any AI agent can run against
+    the actual code: <a href="../../VERIFY_IT.md">VERIFY_IT.md</a>
+    <button class="btn ghost" id="copyPrompt" style="margin-top:12px;padding:10px;font-size:14px">Copy the verification prompt</button>
+    <div class="fine" id="copyStatus"></div>
+  </div>
 </div>
 
 <script>
@@ -333,6 +341,18 @@
     if (m.indexOf("insufficient funds") >= 0) return "not enough USDC in this wallet for that tier.";
     return m.slice(0, 140);
   }
+
+  var VERIFY_PROMPT = "I'm considering depositing ~$20 USDC into a community escrow. Verify it for me:\n\n" +
+    "1. Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md and the program source at https://github.com/Loringtonian/NS-climbing/blob/main/escrow/programs/ns-climb-escrow/src/lib.rs\n" +
+    "2. Check each of the six claims in https://github.com/Loringtonian/NS-climbing/blob/main/VERIFY_IT.md against the actual code. For each: HOLDS or BROKEN, with the line numbers.\n" +
+    "3. Follow the build-verification procedure in agents.md to confirm the deployed program's bytes match this source, and check who currently holds the upgrade authority.\n" +
+    "4. Tell me plainly: if I deposit, what are ALL the ways my money can move, and who can trigger each one?\n\n" +
+    "Report: claim-by-claim verdict, the deployed-code check result, and your overall call — would you let me deposit?";
+  document.getElementById("copyPrompt").onclick = function () {
+    (navigator.clipboard ? navigator.clipboard.writeText(VERIFY_PROMPT) : Promise.reject())
+      .then(function () { document.getElementById("copyStatus").textContent = "Copied — paste it to Claude, ChatGPT, or any agent."; })
+      .catch(function () { document.getElementById("copyStatus").textContent = "Copy blocked — open VERIFY_IT.md and copy from there."; });
+  };
 
   // progress bar rides the counter's numbers
   setInterval(function () {
