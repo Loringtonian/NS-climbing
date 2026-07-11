@@ -73,6 +73,14 @@
   .maprow p{margin-top:8px;font-size:15px}
   .nums{font-variant-numeric:tabular-nums}
 
+  /* inline expandable (same pattern as the main page) */
+  details.x{background:#141922;border:1px solid var(--line);border-radius:14px;margin-top:14px;overflow:hidden}
+  details.x summary{cursor:pointer;list-style:none;padding:14px 18px;font-weight:800;font-size:15px;display:flex;align-items:center;gap:10px}
+  details.x summary::before{content:"+";color:var(--accent2);font-weight:900;width:14px}
+  details.x[open] summary::before{content:"–"}
+  details.x summary::-webkit-details-marker{display:none}
+  details.x .xbody{padding:0 18px 16px;color:#d7dde6;font-size:14px;line-height:1.6}
+
   .fine{font-size:13px;color:#7a8595;line-height:1.6}
   .sources{margin-top:14px}
   .sources li{margin-top:6px;word-break:break-all}
@@ -96,7 +104,7 @@
 
   <header class="head">
     <h1>What the wall <span class="accent">actually costs</span>.</h1>
-    <p class="lede">The campaign goal is <b>$5,000</b>. The full build costs more than that — this page is the under-the-hood math. The decision is made on the hardware: <b>full commercial Lemur, the widest board in the lineup, manual adjustment</b>. No half measures. Ranges in USD; every number carries its source or is marked as an estimate. None of this promises a wall. It prices one.</p>
+    <p class="lede">There is no fundraising target — the campaign raises what it raises, and <b>every dollar raised goes to the build</b>. This page is the under-the-hood math it chips away at. The plan is committed: <b>full commercial Lemur, the widest board in the lineup, manual adjustment, into the existing gym</b>. No half measures. Ranges in USD; every number carries its source or is marked as an estimate. None of this promises a wall. It prices one.</p>
   </header>
 
   <section>
@@ -104,23 +112,23 @@
     <div class="spec">
       <h3>Kilter Original 16×12 on a Lemur adjustable frame — manual.</h3>
       <p>16 feet wide, 12 feet tall: the largest layout Kilter makes. Wide enough for several climbers at once, with the full Original hold set — 646 holds, 1,300 LEDs, the complete app catalogue from beginner to world-cup. The frame is Lemur's adjustable steel, vertical to steep. Manual adjustment instead of motors: same angles, fewer parts, less to break, less to pay.</p>
-      <p class="fine">One honest caveat: Lemur's current commercial line ships motorized (electric frame from $20,700); a manual frame at 16-ft width is a quote conversation, priced below the electric anchor. <b>The formal Lemur quote is THE open item — every number in the scenarios below is ± that quote.</b></p>
+      <p class="fine">One honest caveat: Lemur's current commercial line ships motorized (electric frame from $20,700); a manual frame at 16-ft width is a quote conversation, priced below the electric anchor. <b>The formal Lemur quote is THE open item — every number below is ± that quote.</b></p>
     </div>
   </section>
 
   <section>
-    <h2>Two ways to install it</h2>
-    <p class="small-note" style="margin-top:10px">Same system either way. What changes is the room around it.</p>
+    <h2>The build</h2>
+    <p class="small-note" style="margin-top:10px">The board goes into the existing gym. One shipment, one install, climbing in a space that's already finished.</p>
 
     <div class="options">
 
       <div class="opt lead">
         <div class="head-row">
           <div>
-            <h3>Scenario 1 — In the gym</h3>
-            <div class="sub">The board goes into the existing gym: a wall, a slab, pads. No room works, no furniture — the space is already finished.</div>
+            <h3>In the gym</h3>
+            <div class="sub">A wall, a slab, pads. No room works, no furniture — the space is already finished.</div>
           </div>
-          <span class="badge">Cost-efficient</span>
+          <span class="badge">The plan</span>
         </div>
         <table>
           <tr><th>Line item</th><th class="num">USD</th></tr>
@@ -139,23 +147,15 @@
       <div class="opt">
         <div class="head-row">
           <div>
-            <h3>Scenario 2 — Own room</h3>
-            <div class="sub">Everything in Scenario 1, plus finishing a dedicated room to Network School standards: proper finishing, couches and tables, a finished professional space.</div>
+            <h3>If the gym doesn't work out</h3>
+            <div class="sub">Contingency: <b style="color:var(--ink)">+$15,000</b> budgeted for room finishing + air-conditioning units, whatever room it is — proper finishing, couches and tables, a finished professional space. Build total with the room: <span class="nums" style="color:var(--ink);font-weight:800">$66,862 – 87,362</span>.</div>
           </div>
-          <span class="badge" style="background:rgba(255,178,74,.16);color:#ffc266">+ Room</span>
+          <span class="badge" style="background:rgba(255,178,74,.16);color:#ffc266">+ $15,000</span>
         </div>
-        <table>
-          <tr><th>Line item</th><th class="num">USD</th></tr>
-          <tr><td>The system, landed + installed (Scenario 1)</td><td class="num">51,862 – 72,362</td></tr>
-          <tr class="sub"><td>Room finishing</td><td class="num"></td></tr>
-          <tr><td>Flooring — rubber/vinyl beyond the pad zone<span class="est">estimate</span></td><td class="num">1,000 – 2,500</td></tr>
-          <tr><td>Walls + paint + finishing work<span class="est">estimate</span></td><td class="num">800 – 2,000</td></tr>
-          <tr><td>Furniture — couches, tables, standing desks<span class="est">estimate</span></td><td class="num">1,500 – 3,500</td></tr>
-          <tr><td>Lighting<span class="est">estimate</span></td><td class="num">300 – 800</td></tr>
-          <tr><td>AC / ventilation check + any duct work<span class="est">estimate</span></td><td class="num">500 – 2,000</td></tr>
-          <tr class="total"><td>Total</td><td class="num">55,962 – 83,162</td></tr>
-        </table>
-        <p class="fine" style="margin-top:12px">Room-finishing subtotal: $4,100–10,800 — all local retail and trades in Johor, no imports.</p>
+        <details class="x">
+          <summary>What's inside the $15,000</summary>
+          <div class="xbody">Estimated detail — the flat budget deliberately overshoots to absorb AC units and surprises: flooring beyond the pad zone $1,000–2,500 · walls + paint $800–2,000 · couches, tables, standing desks $1,500–3,500 · lighting $300–800 · AC / ventilation work $500–2,000. All estimates, all local retail and trades in Johor, no imports.</div>
+        </details>
       </div>
 
     </div>
@@ -177,19 +177,15 @@
 
   <section>
     <div class="ask">
-      <h2>What <span class="accent nums">$5,000</span> gets us</h2>
-      <p>The escrow is <b>priced demand plus seed capital</b> — not the whole build. Here's the honest mapping against both scenarios, and who covers the rest.</p>
+      <h2>Where the money <span class="accent">goes</span></h2>
+      <p>There is no goal and no cap. <b>Every dollar raised goes to the build</b> — the escrow raises what it raises, and whatever lands is the community's opening bid against a <b class="nums">$51,862–72,362</b> build (<span class="nums">$66,862–87,362</span> if a room is needed).</p>
 
       <div class="maprow">
-        <h3>Under Scenario 1 — in the gym</h3>
-        <p class="nums">$5,000 covers the install, the panels, and a piece of the freight — roughly the whole "landing it in Johor" layer. The hardware itself, landed (<b>$45,000–59,000</b>), is a capital decision for Network School; the escrow is the demand proof attached to it, about 7–10% of the build.</p>
-      </div>
-      <div class="maprow">
-        <h3>Under Scenario 2 — own room</h3>
-        <p class="nums">$5,000 covers the room finishing at the low end ($4,100) and most of it at the high — <b>the community pays for its own room</b>: floor, paint, couches, tables, lights. The system itself is the same NS capital line as Scenario 1.</p>
+        <h3>The honest split</h3>
+        <p class="nums">Whatever the community escrows chips directly off that number; the remainder is a capital decision for Network School, with the raise attached to it as demand proof. Every dollar in the pot is a considered, refundable yes — which is worth more per dollar than any signature list.</p>
       </div>
 
-      <p style="margin-top:22px">Either way the mechanics hold: deposits stay withdrawable until release, and release needs the goal <b>and</b> the greenlight. If the wall isn't approved, every cent goes back. The number this page can't produce is how much the community wants it — <a href="index.html">the counter on the main page</a> is doing that.</p>
+      <p style="margin-top:22px">The mechanics hold throughout: deposits stay withdrawable until release, and release still needs the greenlight. If the wall isn't approved, every cent goes back. The number this page can't produce is how much the community wants it — <a href="index.html">the counter on the main page</a> is doing that.</p>
     </div>
   </section>
 
@@ -201,7 +197,7 @@
   <section>
     <h2>Still open</h2>
     <ul class="what" style="list-style:none;display:grid;gap:11px;margin-top:16px;padding:24px 26px">
-      <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>The Lemur quote</b> — formal quote for a 16-ft manual frame + 16×12 Original kit + matting, crated to Johor. THE open item; every scenario number above is ± this quote.</li>
+      <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>The Lemur quote</b> — formal quote for a 16-ft manual frame + 16×12 Original kit + matting, crated to Johor. THE open item; every number above is ± this quote.</li>
       <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>Insurance quote</b> — the cost of adding a bouldering wall to the facility's coverage. The most persuasive missing number after the quote itself.</li>
       <li style="padding-left:28px;position:relative;color:#d7dde6"><span style="position:absolute;left:0;color:var(--accent)">—</span><b>Candidate room / gym wall</b> — a confirmed spot with the width, height and slab above.</li>
     </ul>
@@ -223,7 +219,7 @@
 
 <div class="wrap">
   <footer>
-    <div>An independent member initiative.</div>
+    <div>An independent member initiative. Where released funds land is chosen at the end by depositor majority + organizer co-sign — full mechanics on the <a href="index.html" style="color:#7a8595">main page</a>.</div>
     <div><a href="index.html" style="color:#5d6675">← back to the campaign</a></div>
   </footer>
 </div>
