@@ -1,2 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>Cheer leaderboard</title>
-<meta http-equiv="refresh" content="0;url=cheerboard/web/cheer.html?board=4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C&rpc=https%3A%2F%2Fdevnet-router.magicblock.app#leaderboard">
+<!-- goto=board, not #leaderboard: a native hash jump fires against the empty skeleton
+     and then overrides the scroll we do once the rows exist. A query param has no
+     such behaviour, so the page seats itself and stays put. -->
+<meta http-equiv="refresh" content="0;url=cheerboard/web/cheer.html?board=4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C&rpc=https%3A%2F%2Fdevnet-router.magicblock.app&goto=board">
