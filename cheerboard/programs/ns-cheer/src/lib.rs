@@ -62,6 +62,25 @@ pub mod ns_cheer {
         Ok(())
     }
 
+    /// ER, authority-only. Pushes the running tally to the base layer WITHOUT
+    /// undelegating: the board stays on the ER and keeps taking cheers. Safe to
+    /// call repeatedly mid-session ("bank the number") — the button never pauses.
+    pub fn commit_board(ctx: Context<CommitBoard>) -> Result<()> {
+        require!(
+            ctx.accounts.board.authority == ctx.accounts.payer.key(),
+            CheerError::Unauthorized
+        );
+        ctx.accounts.board.exit(&crate::ID)?;
+        MagicIntentBundleBuilder::new(
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.magic_context.to_account_info(),
+            ctx.accounts.magic_program.to_account_info(),
+        )
+        .commit(&[ctx.accounts.board.to_account_info()])
+        .build_and_invoke()?;
+        Ok(())
+    }
+
     /// ER, authority-only. Commits the final tally to the base layer and
     /// returns the PDA to this program. The ER copy evaporates.
     pub fn undelegate_board(ctx: Context<UndelegateBoard>) -> Result<()> {
@@ -116,6 +135,15 @@ pub struct DelegateBoard<'info> {
     pub pda: UncheckedAccount<'info>,
     #[account(seeds = [BOARD_SEED, &board_id.to_le_bytes()], bump)]
     pub board_state: Account<'info, Board>,
+}
+
+#[commit]
+#[derive(Accounts)]
+pub struct CommitBoard<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    #[account(mut)]
+    pub board: Account<'info, Board>,
 }
 
 #[commit]

@@ -10,6 +10,8 @@ record.
 
 ```
 initialize (base) ──► delegate (base→ER) ──► cheer × N (ER, gasless, ~10ms)
+                                              │     │
+        snapshot, board keeps cheering ◄── commit   │
                                                     │
         base layer permanent record ◄── undelegate (ER commits state back)
 ```
@@ -18,10 +20,13 @@ initialize (base) ──► delegate (base→ER) ──► cheer × N (ER, gasle
 
 - `programs/ns-cheer/` — Anchor program (program ID `FxkompVBzfCN6HsZpbwGW72AanCaFkAFiEcMqoi9c3Wz`):
   `initialize`, `cheer(nonce)` (nonce only uniquifies rapid-tap signatures),
-  `delegate_board` (authority-only), `undelegate_board` (authority-only).
+  `delegate_board` (authority-only), `commit_board` (authority-only),
+  `undelegate_board` (authority-only).
 - `scripts/lifecycle.cjs` — full automated test (see verification below).
 - `scripts/init_board.cjs` — start a live session: init + delegate, prints the
   board PDA and ready-to-open phone/projector URLs.
+- `scripts/commit_board.cjs` — **bank the cheers** mid-session (below).
+- `scripts/commit_proof.cjs` — proves commit-without-pause on a throwaway board.
 - `scripts/end_board.cjs` — end it: undelegate, print final base-layer tally.
 - `web/cheer.html` — phone button page (config via `?board=<pda>&rpc=<er-url>`).
 - `web/tally.html` — projector view, 300ms polling (same query params).
@@ -50,6 +55,34 @@ BOTH the page URL and its `rpc=` param. Devnet path: deploy with the same
 commands against devnet (needs ~2.4 SOL) and drop the env overrides — the
 Magic Router (`https://devnet-router.magicblock.app`) routes cheers to the ER
 automatically; use it as `rpc=` in the page URLs.
+
+## Bank the cheers (snapshot to Solana, without pausing the button)
+
+`commit_board` pushes the running tally to the base layer and **leaves the board
+delegated** — the ER copy stays live and people keep smashing the button. Run it
+as often as you like during a session (e.g. after each promo push):
+
+```bash
+cd cheerboard && node scripts/commit_board.cjs     # board from .board.json
+BOARD=<pda> node scripts/commit_board.cjs          # or an explicit board
+```
+
+It prints the ER tally, the commit signature, the new base-layer tally, and
+re-checks that the board is still delegated. `end_board.cjs` is the *other*
+thing — it undelegates, which is final and stops the cheering until you
+re-delegate. Use `commit_board` for snapshots; use `end_board` once, at the end.
+
+## Verification record (2026-07-11, devnet — commit_board)
+
+- **Scratch board** `C2gNbkEQU3ubiKpic7Np3dzLid91BaUba5hJGmGgCL6d` (`commit_proof.cjs`):
+  init → delegate → 3 cheers on the ER → `commit_board` → base-layer tally **0 → 3**,
+  base account **still owned by the delegation program**, and 2 further ER cheers
+  **still incremented (3 → 5)**. A second `commit_board` banked 5 and left it
+  delegated. **COMMIT PROOF OK.**
+- **Live board** `4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C`: ER tally 3,195
+  → `commit_board` (sig `s8asuvcwn4i46htme4RzQ6NXajxtQCGJhQ6dwDmKpss9zrB4FCygsVQcGmZGfXFBiyWi9FPzgzn1TjCvBCYifR1`)
+  → **base-layer tally 3,195** (it was 0 — never committed before), still
+  delegated, and a post-commit test cheer still incremented (3,195 → 3,196).
 
 ## Verification record (2026-07-11, local rig)
 
