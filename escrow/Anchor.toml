@@ -8,10 +8,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-ns_climb_escrow = "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw"
+ns_climb_escrow = "42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD"
 
 [programs.devnet]
-ns_climb_escrow = "7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw"
+ns_climb_escrow = "42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD"
 
 [registry]
 url = "https://api.apr.dev"

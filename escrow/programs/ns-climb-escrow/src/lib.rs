@@ -15,7 +15,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("7jRa1vZtLqDyzcc676S7wHmoGA4zCpJRUBkeiC3YVWDw");
+declare_id!("42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD");
 
 /// The only deposit sizes accepted (USDC base units, 6 decimals):
 /// $20 / $100 / $1000. A fixed menu keeps the counter legible — perks per
