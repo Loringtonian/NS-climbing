@@ -1,0 +1,16 @@
+app = "ns-climbing-relayer"
+primary_region = "sin"        # Singapore — near Network School (Johor)
+
+[build]
+
+[env]
+  CLUSTER = "mainnet"
+  PORT = "8080"
+  MAX_PER_MIN = "60"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"   # stay warm during judging; it holds SOL + must respond fast
+  auto_start_machines = true
+  min_machines_running = 1

@@ -1,3 +1,8 @@
 node_modules/
 .env
 .env.local
+
+# build artifacts
+app/dist/
+relayer/public/
+app/.env.local

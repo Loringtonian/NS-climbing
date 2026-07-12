@@ -89,4 +89,10 @@ app.post("/deposit/submit", async (req, res) => {
   } catch (e) { res.status(400).json({ error: String(e?.message || e) }); }
 });
 
+// serve the built frontend (vite dist copied to relayer/public at deploy) so the
+// app + API share one origin. API routes above are matched first; this is the SPA fallback.
+const PUBLIC = new URL("./public/", import.meta.url).pathname;
+app.use(express.static(PUBLIC));
+app.get("*", (_req, res) => res.sendFile(PUBLIC + "index.html", (err) => { if (err) res.status(404).end(); }));
+
 app.listen(PORT, () => console.log(`relayer on :${PORT} — ${CLUSTER} — feePayer ${relayer.publicKey.toBase58()}`));
