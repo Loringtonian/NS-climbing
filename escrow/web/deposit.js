@@ -69,6 +69,13 @@
   function show(id, on) { $(id).classList.toggle("hidden", !on); }
 
   function provider() {
+    // ?w=solflare / ?w=phantom pins one wallet when several extensions are
+    // installed (default order prefers Phantom). Wallet CHOICE is presentation,
+    // not config — it never changes the program/campaign/mint being signed — so
+    // it stays within the audit's no-URL-param-config rule.
+    var pin = (new URLSearchParams(location.search).get("w") || "").toLowerCase();
+    if (pin === "solflare") return window.solflare || null;
+    if (pin === "phantom") return (window.phantom && window.phantom.solana) || null;
     return window.phantom && window.phantom.solana ? window.phantom.solana
       : window.solflare ? window.solflare
       : window.solana ? window.solana : null;
