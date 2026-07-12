@@ -36,7 +36,7 @@ in the pool (`total_escrowed`), never a count of wallets.
 3. **Dead-man timer.** If the deadline passes without a release, the same
    permissionless refund crank opens for everyone — and nothing else remains
    possible: post-deadline is refunds-only. The deadline is set at init and
-   capped in code at 190 days (`MAX_CAMPAIGN_SECONDS`), so the ~6-month
+   capped in code at 180 days (`MAX_CAMPAIGN_SECONDS`), so the 180-day
    timeout-refund promise is enforceable, not merely stated.
 
 Refunds (paths 2 and 3) return to each depositor exactly the amount recorded
@@ -49,7 +49,7 @@ cranked by anyone (the cranker pays gas and can steer nothing).
 |----------|-------|-------|
 | `TIER_AMOUNTS` | `[20_000_000, 100_000_000, 1_000_000_000]` — exactly $20 / $100 / $1000 USDC (6 decimals) | lib.rs |
 | `ORGANIZER` | `84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2` — the only key that can create campaigns and propose payouts | lib.rs |
-| `MAX_CAMPAIGN_SECONDS` | `190 * 24 * 60 * 60` — hard ceiling on campaign length, enforced at init | lib.rs |
+| `MAX_CAMPAIGN_SECONDS` | `180 * 24 * 60 * 60` — hard ceiling on campaign length, enforced at init | lib.rs |
 
 ## Accounts
 

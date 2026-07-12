@@ -158,15 +158,16 @@ describe("ns-climb-escrow v4 (dollar-weighted dual-gate vote)", () => {
     assert.ok(c.deadline.gt(new BN(Math.floor(Date.now() / 1000))));
   });
 
-  it("deadline is capped (~6 months): a far-future deadline is rejected", async () => {
+  it("deadline is capped (180 days): a far-future deadline is rejected", async () => {
     try {
-      await init("t-cap", 200 * 24 * 60 * 60); // > MAX_CAMPAIGN_SECONDS (190d)
+      await init("t-cap", 200 * 24 * 60 * 60); // > MAX_CAMPAIGN_SECONDS (180d)
       assert.fail("a deadline past the cap should be rejected");
     } catch (e: any) {
       assert.include(e.toString(), "DeadlineTooFar");
     }
-    // a deadline inside the cap is fine
-    await init("t-cap-ok", 180 * 24 * 60 * 60);
+    // a deadline inside the cap is fine (179d < 180d cap — robust against a
+    // freshly-started localnet whose clock lags wall-clock at the boundary)
+    await init("t-cap-ok", 179 * 24 * 60 * 60);
     const c = await fetchC(campaignPda("t-cap-ok"));
     assert.isFalse(c.released);
   });

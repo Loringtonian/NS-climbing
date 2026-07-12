@@ -5,7 +5,7 @@ USDC deposits **locked** in a pool no person can quietly empty, behind a live on
 No individual take-backs: money moves only by collective outcome, and votes are weighted by
 dollars locked, not by wallet. A dollar-majority of depositors can dissolve the campaign
 (everyone refunded); funds reach a build address only when the organizer proposes it AND a
-dollar-majority of depositors ratifies that exact address; a ~6-month timer refunds everyone
+dollar-majority of depositors ratifies that exact address; a 180-day timer refunds everyone
 if neither happens. Each deposit doubles as a non-transferable Supporter Badge — the ballot,
 weighted by your own locked amount.
 
@@ -46,7 +46,7 @@ weighted by your own locked amount.
 In by choice, locked. Out only together, and votes are weighted by dollars deposited (not by
 wallet): **fund** (a dollar-majority of depositors approves the organizer's exact proposed
 address), **dissolve** (a dollar-majority votes no-confidence → everyone refunded), or
-**timeout** (~6 months → everyone refunded). Only the organizer can propose a destination and
+**timeout** (180 days → everyone refunded). Only the organizer can propose a destination and
 no one can move funds anywhere but back to depositors without a dollar-majority — the one
 disclosed trust is that the named organizer doesn't out-deposit the whole pool. Refunds are
 exact and anyone can trigger them once open; one non-transferable badge per wallet, weight =

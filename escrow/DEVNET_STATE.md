@@ -7,13 +7,13 @@ deploy, the three scenario rehearsals (`../REHEARSALS.md`), and the
 | What | Value |
 |------|-------|
 | Program ID (devnet + mainnet) | `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ` |
-| Binary sha256 | `0656436312f777e9c382eea98a40af75dc6acfaf65789aefaef0ce6746af646b` (296,544 B; byte-reproducible; pinned in `DEPLOY.md`) |
+| Binary sha256 | `facd1bb3b9e6a1f2d9041a2d81c48d904f3ac392cc16211bae482e9d2b190fa5` (296,544 B; byte-reproducible; pinned in `DEPLOY.md`) |
 | Demo USDC mint (devnet) | `CXBXU8sX8H9fvdgVGz2s2bKYZrbvWr6rW9SzhU9ymk2T` (we control minting: `spl-token mint <mint> 100 <ata> -u devnet`) |
 | Demo campaign ID | `send-climbing` |
 | Demo campaign PDA | `B5MmhcNPzqJgFZ9fP8Ntrdr4UTZAtUb8xgVZfLi8yQXd` ([explorer](https://explorer.solana.com/address/B5MmhcNPzqJgFZ9fP8Ntrdr4UTZAtUb8xgVZfLi8yQXd?cluster=devnet)) |
-| Deadline | 180 days (~6 months) from init; contract caps at 190 |
+| Deadline | 180 days from init |
 | Deposit page | https://loringtonian.github.io/NS-climbing/escrow/web/demo.html |
-| Model | DOLLAR-WEIGHTED dual-gate (`payout_vote_amount × 2 > total_escrowed`); dollar-majority dissolve; ~6-month timeout refund |
+| Model | DOLLAR-WEIGHTED dual-gate (`payout_vote_amount × 2 > total_escrowed`); dollar-majority dissolve; 180-day timeout refund |
 
 Deployed-program verification (done at deploy time): `solana program dump`,
 truncate to 296,544 bytes, sha256 == the pin above. Upgrade authority on devnet

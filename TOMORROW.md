@@ -3,7 +3,7 @@
 > Cold-start doc. Everything needed to finish this is here — no prior session context required.
 > The contract was rebuilt 2026-07-12 to DOLLAR-WEIGHTED voting (a $1000 depositor
 > outweighs 50× a $20 one; a flood of cheap wallets can't capture the vote), a
-> ~6-month deadline capped in code, and a fresh clean-chain program ID. Two adversarial
+> 180-day deadline capped in code, and a fresh clean-chain program ID. Two adversarial
 > audits passed (DEPLOY-WITH-FIXES → all doc fixes applied); 19/19 tests green;
 > byte-reproducible build; three on-chain rehearsals republished. Ready for mainnet.
 
@@ -16,7 +16,7 @@
 | **Deployer / organizer key** (send SOL here — ALREADY FUNDED with 2.5 SOL) | `84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2` |
 | Program keypair file (local, gitignored) | `escrow/target/deploy/ns_climb_escrow-keypair.json` |
 | **Program ID** (devnet + mainnet, same) | `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ` |
-| **Audited binary sha256** | `0656436312f777e9c382eea98a40af75dc6acfaf65789aefaef0ce6746af646b` (296,544 B) |
+| **Audited binary sha256** | `facd1bb3b9e6a1f2d9041a2d81c48d904f3ac392cc16211bae482e9d2b190fa5` (296,544 B) |
 | Campaign ID (string) | `send-climbing` |
 | Campaign PDA (same address both clusters) | `B5MmhcNPzqJgFZ9fP8Ntrdr4UTZAtUb8xgVZfLi8yQXd` |
 | Devnet demo mint | `CXBXU8sX8H9fvdgVGz2s2bKYZrbvWr6rW9SzhU9ymk2T` |
@@ -40,10 +40,10 @@ wallet on mainnet. On "go", the agent runs the sequence below.
 ## ② LAUNCH SEQUENCE (~40 min)
 
 1. **Deploy + init** — `bash escrow/scripts/mainnet_go.sh` (requires typing `MAINNET`).
-   Deploys the audited binary `0656436312…` under program ID `2PAg6iM…`, inits the
+   Deploys the audited binary `facd1bb3…` under program ID `2PAg6iM…`, inits the
    `send-climbing` campaign (180-day deadline, no goal).
 2. **Hash-match the deployed program** — `solana program dump 2PAg6iM… onchain.so -u mainnet-beta`,
-   then truncate to 296,544 bytes and sha256 — **must equal `0656436312…`. If it doesn't, STOP.**
+   then truncate to 296,544 bytes and sha256 — **must equal `facd1bb3…`. If it doesn't, STOP.**
    (The raw dump is zero-padded to max-len; truncate first — procedure in `agents.md`.)
 3. **Smoke test — on SCRATCH campaigns, not the real one** (`escrow/DEPLOY.md`):
    - Victory leg: deposit $20 → propose payout to your 2nd wallet → vote to a dollar-majority → release → $20 lands.
@@ -72,7 +72,7 @@ wallet on mainnet. On "go", the agent runs the sequence below.
 
 Dollar-weighted. In by choice, locked. Out only together: **fund** (a dollar-majority of
 depositors approves the address YOU propose), **dissolve** (a dollar-majority votes
-no-confidence → everyone refunded), or **timeout** (~6 months → everyone refunded). Only you
+no-confidence → everyone refunded), or **timeout** (180 days → everyone refunded). Only you
 can propose a destination; no outsider can move a cent anywhere but back to depositors. The
 one honest caveat, stated on the site: the only way *you* could redirect funds is by
 depositing more than everyone else combined — so they're trusting the named organizer not to.
@@ -107,6 +107,7 @@ Judge/track research: `HACKATHON.md`.
 - **Never tell anyone to send USDC directly to an address** — a deposit must go through the page
   (it creates the receipt = badge + vote + refund). Direct transfers become stranded dust. (Both pages warn this.)
 - **Program dump hash**: raw `solana program dump` is zero-padded to max-len; truncate to 296,544 bytes before hashing.
+- **Init `DeadlineTooFar` (rare)**: the deadline is exactly 180 days and the code cap is 180 days, so on a clock that lags wall-time the init could bounce at the boundary. On mainnet this won't happen (validator clocks are accurate); if it ever does, just re-run the init — nothing's at stake (no money is involved in init).
 
 ---
 

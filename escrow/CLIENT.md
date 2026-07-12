@@ -15,7 +15,7 @@ Deposits are LOCKED — there is NO withdraw instruction and the UI must never
 suggest one. Money moves only by collective outcome, and votes are weighted by dollars
 deposited (not by wallet): dual-gate release (organizer proposes a payout
 address + depositors backing a strict majority of the pooled dollars approve),
-dollar-majority dissolve → refund crank, or the ~6-month deadline → refund
+dollar-majority dissolve → refund crank, or the 180-day deadline → refund
 crank. The badge (receipt PDA) is simultaneously proof-of-support and both
 ballots, with vote weight equal to the deposited amount.
 

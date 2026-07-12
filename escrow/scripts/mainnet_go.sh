@@ -19,7 +19,7 @@ cd "$(dirname "$0")/.."
 
 RPC=${RPC:-https://api.mainnet-beta.solana.com}
 USDC=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v   # Circle USDC (mainnet)
-DEADLINE_DAYS="${DEADLINE_DAYS:-180}"   # ~6 months; contract caps at 190d
+DEADLINE_DAYS="${DEADLINE_DAYS:-180}"   # 180 days; contract caps at 180d
 CAMPAIGN_ID="${CAMPAIGN_ID:-send-climbing}"   # MUST match the id in every web page's ESCROW_CONFIG
 MAX_LEN="${MAX_LEN:-320000}"   # ~12% upgrade cushion over the 296,544-byte build
 

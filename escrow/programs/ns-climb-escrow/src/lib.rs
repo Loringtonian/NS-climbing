@@ -8,7 +8,7 @@
 // OF THE DOLLARS IN THE POOL approve THAT proposal, then anyone can release the
 // whole vault to it; (2) depositors holding a strict majority of the dollars
 // vote DISSOLVE (terminal) and the permissionless refund crank returns every
-// deposit to its depositor; (3) the ~6-month deadline passes and the same
+// deposit to its depositor; (3) the 180-day deadline passes and the same
 // refund crank opens — post-deadline is refunds-ONLY (no votes, no releases).
 //
 // Voting is weighted BY DOLLARS DEPOSITED, not by wallet head-count: a $1000
@@ -38,10 +38,9 @@ pub const TIER_AMOUNTS: [u64; 3] = [20_000_000, 100_000_000, 1_000_000_000];
 pub const ORGANIZER: Pubkey = anchor_lang::pubkey!("84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2");
 
 /// Hard ceiling on campaign length, enforced at init so the advertised
-/// "~6-month timeout refund" is a code guarantee, not a promise in prose:
-/// the on-chain deadline can never be set further out than this. ~6 months
-/// plus a little slack.
-pub const MAX_CAMPAIGN_SECONDS: i64 = 190 * 24 * 60 * 60;
+/// "180-day timeout refund" is a code guarantee, not a promise in prose:
+/// the on-chain deadline can never be set further out than this. 180 days.
+pub const MAX_CAMPAIGN_SECONDS: i64 = 180 * 24 * 60 * 60;
 
 #[program]
 pub mod ns_climb_escrow {
