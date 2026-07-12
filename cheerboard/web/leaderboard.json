@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-07-12T04:43:08.891Z",
+  "generatedAt": "2026-07-12T06:42:14.644Z",
   "board": "4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C",
   "program": "FxkompVBzfCN6HsZpbwGW72AanCaFkAFiEcMqoi9c3Wz",
   "erUrl": "https://devnet-router.magicblock.app",
-  "boardTotal": 23125,
-  "countedCheers": 22829,
-  "totalCheerers": 29,
+  "boardTotal": 25032,
+  "countedCheers": 24736,
+  "totalCheerers": 30,
   "firstCheerAt": 1783744487,
-  "lastCheerAt": 1783831030,
-  "latestSig": "2WdbrQAEfkomx5DhG5qpvUJfgTBC1RdUmhMbdb39DLP84y85UGj59NSnEd7f9aaBNtJNcN3WkhKybHb4aJV662sy",
+  "lastCheerAt": 1783833625,
+  "latestSig": "4unggCbw5L93F3obCyuoGinsX2aJuM7utrzZUaqnysmdobWuDgPCKHXYxvCt18DVCdUYCfC5j66T6Yi74MrDwtRc",
   "cheerers": [
     {
       "pubkey": "9ovfg6MU73uRMiyMvQYk3mxvD6zJ2LdD7DvKZPsqR4CJ",
@@ -16,11 +16,15 @@
     },
     {
       "pubkey": "AJEfaQytsvY3w1cLRbgkFLMiw7MvGJyHRw5Qi7v2De3C",
-      "cheers": 2680
+      "cheers": 3070
     },
     {
       "pubkey": "4DgN26ADncsZgvS3CFkc4MQYK4DNtEQXQE2E4aCcpEUb",
       "cheers": 2073
+    },
+    {
+      "pubkey": "3GntMQq1mN6CRo1dKGpPLJ3anBHUQVCq6ZgLcXzRXeMu",
+      "cheers": 1517
     },
     {
       "pubkey": "CvafBx2K7Ci8XZPNRfAJS3QHqioahbMvTHnY3cS16Scy",
