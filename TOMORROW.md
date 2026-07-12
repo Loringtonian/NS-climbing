@@ -8,6 +8,14 @@
 > **FIRST DEPOSIT LANDED 2026-07-12 ~13:10 +08 via Solflare — $100 / 1 depositor.**
 > The blocker is solved: Solflare's simulator previews the new program fast where
 > Phantom's Blowfish hangs. The plain link now defaults to Solflare. Pool is live.
+>
+> **ANY-CHAIN / PRIVY DEPOSIT PROVEN LIVE 2026-07-12 ~17:47 +08 — $120 / 2 depositors.**
+> Email login → Privy embedded Solana wallet → USDC → deposit into the immutable escrow,
+> relayer-sponsored gas, no browser wallet / no SOL. Staging: `/anychain/` on the site
+> (branch `privy-crosschain`); relayer on Fly (`ns-climbing-relayer.fly.dev`). Full write-up
+> + hard-won gotchas + the port-to-main plan: **`privy/README.md`** (§ STATUS — PROVEN LIVE).
+> NEXT: fold the "email / any chain" option into the main deposit page (retire the stub),
+> add an in-app bridge widget for funding, bring the confetti along.
 
 ---
 
