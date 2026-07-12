@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets, useSignAndSendTransaction, useExportWallet } from "@privy-io/react-auth/solana";
+import { useWallets, useSignTransaction, useExportWallet } from "@privy-io/react-auth/solana";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { CLUSTER, RPC, RELAYER, USDC_MINT, TIERS, PROGRAM_ID, CAMPAIGN_ID } from "./config";
 import { buildSelfPaidDepositTx } from "./escrow";
@@ -23,7 +23,7 @@ function pickEmbedded(wallets: any[]) {
 export default function App() {
   const { ready, authenticated, login, logout } = usePrivy();
   const { wallets } = useWallets();
-  const { signAndSendTransaction } = useSignAndSendTransaction();
+  const { signTransaction } = useSignTransaction();
   const { exportWallet } = useExportWallet();
 
   const list = wallets || [];
@@ -78,10 +78,18 @@ export default function App() {
       const tx = await buildSelfPaidDepositTx(conn, {
         programId: PROGRAM_ID, campaignId: CAMPAIGN_ID, mint: USDC_MINT, depositor: address, usd,
       });
-      // 3) Privy shows its confirm modal (now resolvable), user approves, it broadcasts
+      // 3) Privy shows its confirm modal (now resolvable, since the tx is self-paid),
+      //    user approves → we get the signed tx → we broadcast it ourselves.
       setStatus("Approve the transaction in the popup…");
-      const result: any = await signAndSendTransaction({ transaction: tx as any, wallet: embedded as any });
-      const signature = result?.signature || result?.hash || (typeof result === "string" ? result : "");
+      const { signedTransaction } = await signTransaction({ transaction: tx as any, wallet: embedded as any });
+      setStatus("Sending…");
+      const signature = await conn.sendRawTransaction(signedTransaction as any, { skipPreflight: false });
+      for (let i = 0; i < 40; i++) {
+        const s = (await conn.getSignatureStatuses([signature])).value[0];
+        if (s?.err) throw new Error("transaction failed on-chain: " + JSON.stringify(s.err));
+        if (s && (s.confirmationStatus === "confirmed" || s.confirmationStatus === "finalized")) break;
+        await new Promise((r) => setTimeout(r, 1000));
+      }
       setSig(signature);
       setStatus(`🎉 You're in! $${usd} locked in the pool for the wall.`);
       refreshBalance();
