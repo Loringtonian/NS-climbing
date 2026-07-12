@@ -31,7 +31,7 @@ weighted by your own locked amount.
 | Images / brand assets               | [`assets/`](assets/)                       |
 | Real-time cheer board (bonus)       | [`cheerboard/README.md`](cheerboard/README.md) |
 
-## Status (2026-07-12 midday — MAINNET LIVE)
+## Status (2026-07-12 evening — MAINNET LIVE, MONEY IN)
 
 - **Contract v4 (dollar-weighted) is LIVE on mainnet.** Program
   `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ` · campaign `send-climbing` · PDA
@@ -39,13 +39,21 @@ weighted by your own locked amount.
   Deployed + initialized 2026-07-12 ~02:50 UTC.
 - **Upgrade authority BURNED** — verified on-chain (ProgramData authority = `none`). The code
   can never change. This was done before any deposit was taken, exactly as the site claims.
+- **Pool: $120 USDC locked from 2 depositors** (1 × $20, 1 × $100) as of 2026-07-12 evening.
+  Real money, real people, in the immutable contract. Read it off the chain yourself — the
+  campaign PDA is above and every claim in [`VERIFY_IT.md`](VERIFY_IT.md) is checkable.
+- **Deposits work two ways:**
+  - **Solana wallet** (Solflare and friends) → deposit straight from the campaign page.
+  - **Any chain / no wallet at all** → [`/anychain/`](https://loringtonian.github.io/NS-climbing/anychain/):
+    log in with email, Privy mints you a self-custodial Solana wallet, gas is sponsored by our
+    relayer, and the deposit lands in the same immutable escrow. **Proven live** with a real
+    deposit. Design + rationale: [`CROSSCHAIN_DEPOSITS.md`](CROSSCHAIN_DEPOSITS.md).
 - 19/19 tests green against the byte-reproducible binary (`facd1bb3…`, hash pinned in
   [`escrow/DEPLOY.md`](escrow/DEPLOY.md)); two adversarial audit passes closed.
 - Devnet: clean chain, three published scenario rehearsals proving all three endings
   ([`REHEARSALS.md`](REHEARSALS.md)).
-- **Pool as of 2026-07-12 12:30 (+08): $0 raised, 0 depositors.** The rail is live and
-  no money has moved through it yet — the first real deposit (organizer's own) is the
-  open item. See [`TOMORROW.md`](TOMORROW.md).
+- Cheer board (MagicBlock Ephemeral Rollup): **25,032 gasless cheers from 30 people**, committed
+  back to the base layer. Free, wallet-less, and the reason we knew anyone wanted this.
 
 ## The trust model, in one breath
 

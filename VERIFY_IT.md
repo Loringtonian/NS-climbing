@@ -13,6 +13,16 @@
 5. **Refunds are exact and permissionless** — once a refund path opens, anyone can trigger it; funds flow only to each depositor's own wallet, exactly what they put in.
 6. **One badge per wallet, non-transferable** — welded to your depositing wallet, can't be sold or given away; your vote's *weight* is your own locked deposit.
 
+**About the "any chain / email login" option (`/anychain/`):** you can deposit without a crypto
+wallet — you log in with email, Privy mints you a **self-custodial** Solana wallet (yours, and
+exportable), and our relayer pays the SOL gas so you don't need any. Be clear about what that
+does and doesn't change: it is **plumbing around the trustless core, not part of it.** Privy and
+our relayer can help you get money *in*; **neither can move a cent out** — the escrow rules above
+are enforced by the immutable program, and your badge, vote and refund bind to *your* wallet's
+signature. If you want zero extra parties, deposit straight from your own Solana wallet
+(Solflare); that path touches nothing but the contract. If you use the embedded wallet, **export
+your key** so your vote and refund outlive any dependency on Privy.
+
 **Fine print, disclosed:**
 - The program is upgradeable by the organizer only in the moments around launch; the upgrade authority is **burned before real deposits are taken** — after that the code can never change. Verify it yourself (below).
 - The exact deadline is set on-chain at launch (180 days). Read the on-chain `deadline`; don't trust this prose.

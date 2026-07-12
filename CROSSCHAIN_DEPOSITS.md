@@ -1,5 +1,29 @@
 # Any-chain / any-wallet deposits — architecture research (2026-07-12)
 
+> ## STATUS: BUILT AND PROVEN LIVE (2026-07-12 ~17:47 +08)
+>
+> **Tier 2 (full Privy) — the option this doc recommended — is shipped and has carried real
+> money.** Email login → Privy embedded self-custodial Solana wallet → USDC → `deposit` into the
+> immutable escrow, with a fee-payer relayer covering SOL gas. No browser wallet, no SOL, no
+> seed phrase. Campaign pool at time of writing: **$120 from 2 depositors.**
+>
+> | What | Where |
+> |---|---|
+> | Live app | `/anychain/` → https://loringtonian.github.io/NS-climbing/anychain/ |
+> | Fee-payer relayer | `https://ns-climbing-relayer.fly.dev` (Fly; `/health` → 200) |
+> | Deep write-up + gotchas | `privy/README.md` — **on branch `privy-crosschain`, not on `main`** |
+>
+> **The contract was not touched, and could not be** — the upgrade authority is burned. Everything
+> below still holds: no bridge can call our `deposit` for a user, because `deposit` requires the
+> depositor to sign. The embedded wallet *is* the depositor. That is the whole trick.
+>
+> **Honest note for the pitch:** the escrow stays trustless, but this on-ramp adds Privy and our
+> relayer as plumbing *around* that trustless core. They can help you get money in; they can never
+> move a cent out. Depositing straight from a Solana wallet (Solflare) remains the zero-trust path.
+>
+> **Next:** fold "email / any chain" into the main deposit page and retire the `/anychain/` stub;
+> add an in-app bridge widget for funding.
+
 > Question from an NS friend (crypto-savvy): let people deposit from **any wallet on any
 > chain** (incl. Ethereum/EVM) *without changing the immutable Solana contract*. Idea: use
 > **Privy**; when the user signs, it bridges into Solana and calls the contract. "See how
