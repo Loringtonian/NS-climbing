@@ -7,3 +7,7 @@ arch_magicblock.png
 arch_escrow.png
 *_opt.jpg
 *_opt.png
+# derived from arch_anychain.png — rebuild with build_anychain_slide.py
+anychain_slide.pptx
+anychain_slide.png
+campaign_qr.png
