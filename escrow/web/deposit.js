@@ -17,6 +17,14 @@
 
   var W = solanaWeb3;
   var conn = new W.Connection(RPC, "confirmed");
+  // Keep a recent blockhash warm so the click->sign path has NO RPC round-trip
+  // in the middle — that mid-flow await both added delay and broke the browser's
+  // user-gesture context, which is why Phantom was slow to auto-open. Refresh
+  // every 20s; a blockhash stays valid ~60-90s.
+  var BH = null;
+  function pumpBlockhash() { conn.getLatestBlockhash().then(function (r) { BH = r.blockhash; }).catch(function () {}); }
+  pumpBlockhash();
+  setInterval(pumpBlockhash, 20000);
   var pid = new W.PublicKey(PROGRAM_ID);
   var TOKEN_PID = new W.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
   var ATA_PID = new W.PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
@@ -299,7 +307,8 @@
     var tx = new W.Transaction();
     ixs.forEach(function (ix) { tx.add(ix); });
     tx.feePayer = wallet.pk;
-    tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
+    // use the pre-warmed blockhash when we have one (no mid-click RPC await)
+    tx.recentBlockhash = BH || (await conn.getLatestBlockhash()).blockhash;
     busy("Check your wallet — approve the transaction there to lock it in.");
     // signTransaction renders a proceed-able approval screen even for a brand-new
     // program Phantom can't yet simulate (it shows an "unverified" warning with a
