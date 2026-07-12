@@ -135,8 +135,12 @@
       return self.call("getSignaturesForAddress", [self.board, p]).then(function (sigs) {
         if (!sigs || !sigs.length) return;
         fresh = fresh.concat(sigs);
-        // with no floor signature there is nothing to page back to — take one page
-        if (sigs.length === 1000 && self.sinceSig && depth < 2) {
+        // Page back until the whole gap above sinceSig is in hand. The old bound
+        // (3 pages) silently stranded every cheer older than the newest 3,000
+        // whenever the snapshot fell further behind than that — a heavy smasher
+        // mid-session vanished from the board entirely. 20 pages = 20k cheers of
+        // headroom; rebuilding leaderboard.json resets the gap to ~zero anyway.
+        if (sigs.length === 1000 && self.sinceSig && depth < 20) {
           return page(sigs[sigs.length - 1].signature, depth + 1);
         }
       });
@@ -148,7 +152,7 @@
       var newest = fresh.length ? fresh[0].signature : null;
       if (!todo.length) { if (newest) self.sinceSig = newest; return; }
 
-      var capped = todo.slice(0, 400); // bound what a phone does in one pass
+      var capped = todo.slice(0, 1200); // bound what a phone does in one pass
       var chunks = [];
       for (var i = 0; i < capped.length; i += 100) chunks.push(capped.slice(i, i + 100));
 
