@@ -57,7 +57,9 @@
        color:#0e1116;font-weight:800;font-size:14.5px;padding:9px 16px;border-radius:10px}
 
   /* ---- leaderboard ---- */
-  #leaderboard{padding-top:14px;scroll-margin-top:12px}
+  /* the board is rebuilt on a timer; never let that rebuild drag the scroll position */
+  #leaderboard{padding-top:14px;scroll-margin-top:12px;overflow-anchor:none}
+  #rows{overflow-anchor:none}
   .lbhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
   .lbhead h2{font-size:19px;font-weight:800;letter-spacing:-.02em}
   .lbhead .cnt{color:var(--muted);font-size:12.5px;font-weight:700;text-align:right;line-height:1.35}
@@ -222,7 +224,9 @@
   setInterval(refreshBlockhash, 15000);
 
   var seq = 0;
+  var lastTap = 0; // smashing is a mode: while it's on, the board below holds still
   function cheer() {
+    lastTap = Date.now();
     if (!blockhash) { refreshBlockhash(); return; }
     var data = new Uint8Array(16);
     data.set(DISC_CHEER, 0);
@@ -276,26 +280,24 @@
   var seated = false;
   function seatOnHash(rowCount) {
     if (seated || !rowCount) return;
+    // once a thumb is on the button, nothing gets to move the page but the thumb
+    if (lastTap) { seated = true; return; }
     if (q.get("goto") !== "board" && location.hash !== "#leaderboard") return;
     seated = true;
     requestAnimationFrame(function () { $("leaderboard").scrollIntoView({ block: "start" }); });
   }
 
-  var cb = new CheerBoard({
-    rpc: ER_URL, board: BOARD, program: PROGRAM_ID,
-    onUpdate: function (s) {
-      // hero: both numbers — taps are the flex, people is the signal
-      if (s.total !== lastTotal) {
-        $("totaln").textContent = s.total.toLocaleString();
-        if (lastTotal !== null) bump($("totaln"));
-        lastTotal = s.total;
-      }
-      $("cheerword").textContent = s.total === 1 ? "cheer" : "cheers";
-      $("peoplen").textContent = s.people.toLocaleString();
-      $("peopleword").textContent = s.people === 1 ? "person" : "people";
-      $("lbTotal").textContent = s.total.toLocaleString();
-      $("lbPeople").textContent = s.people.toLocaleString();
+  // Painting the board is a full teardown of the <ol>. Do that while a thumb is
+  // hammering the button and the list is wiped, refilled and re-sorted under the
+  // user every couple of seconds — the document collapses and re-expands, and the
+  // scroll position rides along with it. So: smashing holds the board still. The
+  // hero counters keep ticking (a centred flex column can't move the page), and the
+  // board repaints the moment the burst ends. Nothing is lost — the chain is the
+  // source of truth and the next poll paints whatever landed.
+  var QUIET_MS = 1500;
+  var pending = null, idleTimer = null;
 
+  function renderBoard(s) {
       var list = s.list, max = list.length ? list[0].cheers : 1, myRank = 0, mine = 0;
       var ol = $("rows");
       ol.innerHTML = "";
@@ -334,6 +336,33 @@
             : ' · nobody wants this wall more than you.');
         $("claimBox").style.display = "";
       }
+  }
+
+  var cb = new CheerBoard({
+    rpc: ER_URL, board: BOARD, program: PROGRAM_ID,
+    onUpdate: function (s) {
+      // hero: both numbers — taps are the flex, people is the signal
+      if (s.total !== lastTotal) {
+        $("totaln").textContent = s.total.toLocaleString();
+        if (lastTotal !== null) bump($("totaln"));
+        lastTotal = s.total;
+      }
+      $("cheerword").textContent = s.total === 1 ? "cheer" : "cheers";
+      $("peoplen").textContent = s.people.toLocaleString();
+      $("peopleword").textContent = s.people === 1 ? "person" : "people";
+      $("lbTotal").textContent = s.total.toLocaleString();
+      $("lbPeople").textContent = s.people.toLocaleString();
+
+      // mid-smash: keep the newest state, paint it once the thumb rests
+      pending = s;
+      if (Date.now() - lastTap < QUIET_MS) {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(function () {
+          if (pending) renderBoard(pending);
+        }, QUIET_MS);
+        return;
+      }
+      renderBoard(s);
     },
   });
 
