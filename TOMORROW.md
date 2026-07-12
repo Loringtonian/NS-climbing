@@ -195,7 +195,14 @@ Pick one, finish it, ship it. This is also the hackathon demo asset.
 
 **Pitch deck (the presentation asset):** `deck/NS_Climbing_Pitch.pptx` — regenerate with `python3 deck/build_pitch.py` (needs the two Gemini diagrams via `gen_escrow.py` / `gen_arch.py`). 12 slides, two-layer funnel, MagicBlock-forward, honest human-driven framing. Import to Google Slides to edit. Emailed to Lorin 2026-07-12.
 
-Judge/track research: `HACKATHON.md`. Pitch framing: this deck + the agent's two-layer funnel note. Old `sales_kit/PITCH_SCRIPT.md` is stale (says 90 days; head-count not dollar-weighted).
+Judge/track research: `HACKATHON.md`. Pitch framing: this deck + the agent's two-layer funnel note. `sales_kit/PITCH_SCRIPT.md` was CORRECTED 2026-07-12 — 180 days (was 90), dollar-weighted (was head-count), and the new tier perks — so it is safe to use.
+
+**TIER PERKS (set by Lorin, 2026-07-12).** The plaque is the TOP tier only — **$20 does NOT get you on it.**
+- **V1 · $20** — a shout-out in the Discord, and a profound sense of satisfaction.
+- **V5 · $100** — sharpie your name onto the wall itself. Graffiti it. It stays.
+- **V10 · $1000** — your name on the founding plaque.
+
+The deposit BUTTONS are the canonical tier surface; the separate tier *cards* were removed from `index.html` (they restated the same thing and disagreed with it). Copy lives in `sales_kit/TIERS.md`.
 
 ---
 

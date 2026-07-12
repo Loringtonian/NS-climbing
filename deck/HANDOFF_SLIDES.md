@@ -26,7 +26,10 @@
   - **Honest framing (hard requirement):** it is **human-driven, NOT an autonomous agent DAO.**
     Slide 11 says so plainly. Do not overclaim the agentic angle.
   - Facts: **180 days** (not 90), **dollar-weighted** (not head-count), **immutable / upgrade
-    authority burned**. The old `sales_kit/PITCH_SCRIPT.md` is STALE (says 90 days) — don't use it.
+    authority burned**. `sales_kit/PITCH_SCRIPT.md` was stale (90 days, head-count majority) and
+    was CORRECTED 2026-07-12 — it is now safe to use. Tier perks were reset the same day:
+    V1 $20 = Discord shout-out, V5 $100 = sharpie your name on the wall, V10 $1000 = founding
+    plaque (the plaque is TOP tier only — $20 does not get you on it).
   - **Superteam dropped** (we don't use TxODDS/TxLINE sports data → ineligible).
   - QR on slides 10 + 12 → `tinyurl.com/sendcheer` (301 → live cheer board; verified).
 - **Verify a build:** `soffice --headless --convert-to pdf --outdir <tmp> NS_Climbing_Pitch.pptx`
