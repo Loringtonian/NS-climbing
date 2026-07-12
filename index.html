@@ -134,6 +134,10 @@
   #flowBox .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
   #flowBox .btn:disabled{opacity:.45;cursor:default}
   #flowBox .btn.tier{display:none !important}   /* tx triggers only — the cards are the UI */
+  #flowBox .seg.depseg{display:flex;width:100%;margin-bottom:16px;background:#141922}
+  #flowBox .seg.depseg button{flex:1;font-size:14px;padding:11px 8px;line-height:1.2}
+  #flowAnychain .anyintro{margin:0 0 14px;line-height:1.55}
+  #flowAnychain iframe{transition:height .18s ease}
   .tiers{margin-bottom:0}
   .tier-card.picked{border-color:var(--accent);background:linear-gradient(160deg,rgba(255,107,74,.18),transparent)}
   .tier-card.dim{opacity:.4}
@@ -280,7 +284,7 @@
         <div class="step"><div class="dot">2</div><div class="txt"><b>Enough of us do the same.</b><span>The counter climbs in public. Not signatures — money.</span></div></div>
         <div class="step"><div class="dot">3</div><div class="txt"><b>Network School says go.</b><span>We show up with a chunk of the final cost, and get the greenlight from Balaji.</span></div></div>
         <div class="step"><div class="dot">4</div><div class="txt"><b>We vote on where the money goes.</b><span>Lorin proposes the build account; depositors holding a majority of the pooled dollars have to approve that exact account before a cent moves. You get pinged in the Discord thread.</span></div></div>
-        <div class="step end"><div class="dot">✓</div><div class="txt"><b>The wall gets built.</b><span>Kilter 16×12, holds, LEDs, pads. Your name goes on the founding plaque — and if you went V10, on a route.</span></div></div>
+        <div class="step end"><div class="dot">✓</div><div class="txt"><b>The wall gets built.</b><span>Kilter 16×12, holds, LEDs, pads. Sharpie your name onto it if you went V5 — and if you went V10, it goes on the founding plaque.</span></div></div>
       </div>
       <div class="otherwise"><b>The only other ending:</b> it doesn't happen — a dollar-majority votes to dissolve, or 180 days pass with no greenlight — and <b>everyone gets their money back, automatically.</b> There is no third ending. Nobody can run off with the pool, including us. <a href="#statement" style="color:var(--accent2);text-decoration:underline;text-underline-offset:2px">Check the code — it's in the repo, see below.</a></div>
     </div>
@@ -325,28 +329,19 @@
 
       <div id="live-strip"></div>
 
-      <div class="tiers">
-        <!-- tier one-liners: sales_kit/TIERS.md (draft copy, Lorin taste-pass on live page) -->
-        <a class="tier-card v1" href="#deposit" data-usd="20">
-          <div class="row"><span class="name">V1</span><span class="amt nums">$20</span></div>
-          <div class="perk">Get on the board. Your name on the founding plaque.</div>
-          <span class="hint">most start here</span>
-        </a>
-        <a class="tier-card v5" href="#deposit" data-usd="100">
-          <div class="row"><span class="name">V5</span><span class="amt nums">$100</span></div>
-          <div class="perk">First-ascent night. First-week priority.</div>
-          
-        </a>
-        <a class="tier-card v10" href="#deposit" data-usd="1000">
-          <div class="row"><span class="name">V10</span><span class="amt nums">$1000</span></div>
-          <div class="perk">Name a route. Top of the plaque.</div>
-          <span class="hint">first ascent of opening night</span>
-        </a>
-      </div>
+      <!-- The tier CARDS are gone: the deposit buttons below already name the tier, the
+           amount and what you get, so the cards were a second, competing statement of the
+           same thing. The buttons (.tier) are the canonical tier surface — deposit.js binds
+           to them. -->
 
-      <div class="pickhint" id="pickHint">Pick a tier ↑</div>
+      <div class="pickhint" id="pickHint">Pick a tier ↓</div>
 
       <div id="flowBox">
+        <div class="seg depseg" id="depSeg" role="tablist">
+          <button id="segSol" class="on" type="button" role="tab" aria-selected="true">🦊 Solana wallet</button>
+          <button id="segAny" type="button" role="tab" aria-selected="false">✉️ Email / any chain</button>
+        </div>
+        <div id="flowSolana">
         <div id="nowallet" class="hidden">
           <a class="btn" id="solflareLink" href="#">Open in Solflare</a>
           <a class="btn ghost" id="backpackLink" href="#">Open in Backpack</a>
@@ -385,15 +380,20 @@
             <div class="pickline">Locking in <b id="pickLabel"></b> <a href="#" id="changeTier">change</a></div>
             <button class="btn btn-confirm" id="confirmDeposit">Lock in</button>
           </div>
-          <button class="btn hidden tier" data-usd="20">V1 — $20<small>Get on the board. Your name on the founding plaque.</small></button>
-          <button class="btn hidden tier" data-usd="100">V5 — $100<small>First-ascent night. First-week priority.</small></button>
-          <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
+          <button class="btn hidden tier" data-usd="20">V1 — $20<small>A shout-out in the Discord. And a profound sense of satisfaction.</small></button>
+          <button class="btn hidden tier" data-usd="100">V5 — $100<small>Sharpie your name onto the wall itself. Graffiti it. It stays.</small></button>
+          <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Your name on the founding plaque.</small></button>
           <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by dollar-weighted community majority (fund or dissolve-refund) or the 180-day timeout refund. Perks exist when the wall exists.</div>
           <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (dollar-majority + organizer), everyone-refunded (dollar-majority dissolve), everyone-refunded (180-day timeout).</div>
           <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
       <div id="discordCtaVote" class="fine hidden" style="text-align:center;font-size:12px"></div>
         </div>
         <div id="status"></div>
+        </div><!-- /flowSolana -->
+        <div id="flowAnychain" class="hidden">
+          <div class="anyintro fine">No wallet needed — the same escrow, badge, and vote, reached with just an email.</div>
+          <iframe id="anyFrame" title="Deposit with email or from any chain" loading="lazy" style="width:100%;border:0;height:500px;background:#0e1116;border-radius:12px;display:block"></iframe>
+        </div>
       </div>
 
       <details class="x">
@@ -424,7 +424,7 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
 
       <details class="x">
         <summary>Tier perks, in full</summary>
-        <div class="xbody">Cumulative — each tier includes everything below it.<br><b>V1 · $20</b> — name on the founding plaque; counted in the live number.<br><b>V5 · $100</b> — first-ascent night invite; first-week priority booking.<br><b>V10 · $1000</b> — name one of the first routes; top billing on the plaque; opening night's first climb goes to a V10.<br><span class="fine">Perks exist when the wall exists — never promised. If it dies, the majority dissolves and everyone is refunded in full — a V10's $1000 comes back exactly like a V1's $20.</span></div>
+        <div class="xbody">Cumulative — each tier includes everything below it.<br><b>V1 · $20</b> — a shout-out in the Discord; counted in the live number; a profound sense of satisfaction.<br><b>V5 · $100</b> — sharpie your name onto the wall itself. Graffiti it. It stays.<br><b>V10 · $1000</b> — your name on the founding plaque.<br><span class="fine">Perks exist when the wall exists — never promised. If it dies, the majority dissolves and everyone is refunded in full — a V10's $1000 comes back exactly like a V1's $20.</span></div>
       </details>
 
       <div class="fine" style="margin-top:14px">Not ready to lock money in? <a href="cheerboard/web/cheer.html?board=4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C&rpc=https%3A%2F%2Fdevnet-router.magicblock.app" style="color:#ffb24a">Smash the cheer button instead →</a></div>
@@ -472,6 +472,43 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
               box.scrollIntoView({ behavior: "smooth", block: "center" });
             });
           });
+
+          // Deposit-method toggle: Solana wallet (inline) vs Email / any chain (Privy embed).
+          (function () {
+            var segSol = document.getElementById("segSol");
+            var segAny = document.getElementById("segAny");
+            var flowSol = document.getElementById("flowSolana");
+            var flowAny = document.getElementById("flowAnychain");
+            var anyFrame = document.getElementById("anyFrame");
+            if (!segSol || !segAny) return;
+            var loaded = false;
+            function setMode(any) {
+              segAny.classList.toggle("on", any);
+              segSol.classList.toggle("on", !any);
+              segAny.setAttribute("aria-selected", any ? "true" : "false");
+              segSol.setAttribute("aria-selected", any ? "false" : "true");
+              flowAny.classList.toggle("hidden", !any);
+              flowSol.classList.toggle("hidden", any);
+              if (any && !loaded) { anyFrame.src = "anychain/?embed=1"; loaded = true; }
+            }
+            segSol.addEventListener("click", function () { setMode(false); });
+            segAny.addEventListener("click", function () { setMode(true); });
+            // Same-origin iframe → size it to its content (no inner scrollbar). Grow-only
+            // from a 500px floor that comfortably fits the Privy login modal.
+            function fit() {
+              try {
+                var d = anyFrame.contentDocument;
+                if (!d || !d.body) return;
+                var h = Math.max(d.body.scrollHeight, d.documentElement ? d.documentElement.scrollHeight : 0);
+                if (h > 80) anyFrame.style.height = Math.max(500, h) + "px";
+              } catch (e) {}
+            }
+            anyFrame.addEventListener("load", function () {
+              fit();
+              try { if (window.ResizeObserver && anyFrame.contentDocument) new ResizeObserver(fit).observe(anyFrame.contentDocument.body); } catch (e) {}
+              var n = 0, iv = setInterval(function () { fit(); if (++n > 80) clearInterval(iv); }, 700);
+            });
+          })();
         });
       </script>
     </div>
