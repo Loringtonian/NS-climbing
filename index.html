@@ -274,10 +274,10 @@
         <div class="step"><div class="dot">1</div><div class="txt"><b>You send $20 — or $100, or $1000.</b><span>Two taps in your wallet. It locks in escrow: the money leaves your account and sits in a pool no person can touch.</span></div></div>
         <div class="step"><div class="dot">2</div><div class="txt"><b>Enough of us do the same.</b><span>The counter climbs in public. Not signatures — money.</span></div></div>
         <div class="step"><div class="dot">3</div><div class="txt"><b>Network School says go.</b><span>We show up with a chunk of the final cost, and get the greenlight from Balaji.</span></div></div>
-        <div class="step"><div class="dot">4</div><div class="txt"><b>We vote on where the money goes.</b><span>Lorin proposes the build account; a majority of depositors has to approve that exact account before a cent moves. You get pinged in the Discord thread.</span></div></div>
+        <div class="step"><div class="dot">4</div><div class="txt"><b>We vote on where the money goes.</b><span>Lorin proposes the build account; depositors holding a majority of the pooled dollars have to approve that exact account before a cent moves. You get pinged in the Discord thread.</span></div></div>
         <div class="step end"><div class="dot">✓</div><div class="txt"><b>The wall gets built.</b><span>Kilter 16×12, holds, LEDs, pads. Your name goes on the founding plaque — and if you went V10, on a route.</span></div></div>
       </div>
-      <div class="otherwise"><b>The only other ending:</b> it doesn't happen — a majority votes to dissolve, or 90 days pass with no greenlight — and <b>everyone gets their money back, automatically.</b> There is no third ending. Nobody can run off with the pool, including us. <a href="#statement" style="color:var(--accent2);text-decoration:underline;text-underline-offset:2px">Check the code — it's in the repo, see below.</a></div>
+      <div class="otherwise"><b>The only other ending:</b> it doesn't happen — a dollar-majority votes to dissolve, or ~6 months pass with no greenlight — and <b>everyone gets their money back, automatically.</b> There is no third ending. Nobody can run off with the pool, including us. <a href="#statement" style="color:var(--accent2);text-decoration:underline;text-underline-offset:2px">Check the code — it's in the repo, see below.</a></div>
     </div>
   </section>
 
@@ -314,7 +314,7 @@
 
       <div id="payout-panel" class="hidden" style="background:#141922;border:1px solid #5a4726;border-radius:14px;padding:16px 18px;margin-top:14px">
         <div style="font-weight:800;font-size:15px">Payout proposed <span class="chip t2" id="payout-addr" style="font-family:ui-monospace,Menlo,monospace"></span></div>
-        <div class="fine" style="margin-top:6px">The organizer proposed where the money goes. It moves ONLY if a majority of depositors votes yes — <b id="payout-votes" style="color:var(--ink)"></b>. Depositors vote below.</div>
+        <div class="fine" style="margin-top:6px">The organizer proposed where the money goes. It moves ONLY if depositors holding a majority of the dollars vote yes — <b id="payout-votes" style="color:var(--ink)"></b>. Depositors vote below.</div>
         <button class="copybtn hidden" id="payoutVote" style="margin-top:10px"></button>
       </div>
 
@@ -379,8 +379,8 @@
           <button class="btn hidden tier" data-usd="20">V1 — $20<small>Get on the board. Your name on the founding plaque.</small></button>
           <button class="btn hidden tier" data-usd="100">V5 — $100<small>First-ascent night. First-week priority.</small></button>
           <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
-          <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by community majority (fund or dissolve-refund) or the 90-day timeout refund. Perks exist when the wall exists.</div>
-          <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (majority + organizer), everyone-refunded (majority dissolve), everyone-refunded (90-day timeout).</div>
+          <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by dollar-weighted community majority (fund or dissolve-refund) or the ~6-month timeout refund. Perks exist when the wall exists.</div>
+          <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (dollar-majority + organizer), everyone-refunded (dollar-majority dissolve), everyone-refunded (~6-month timeout).</div>
           <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
       <div id="discordCtaVote" class="fine hidden" style="text-align:center;font-size:12px"></div>
         </div>
@@ -389,21 +389,24 @@
 
       <details class="x">
         <summary>How your money is protected</summary>
-        <div class="xbody">No person holds the money — it sits locked in a program-owned pool. It moves in exactly three ways: (1) the organizer proposes a payout address AND a majority of depositors votes yes → the pool funds the wall; (2) a majority votes dissolve → everyone refunded; (3) 90 days pass without release → everyone refunded. There is no individual withdraw — locking in together IS the commitment. The organizer alone can move nothing; a majority can't send funds anywhere the organizer didn't propose. No yield, no token, no fees. The contract is currently upgradeable by the organizer (disclosed; lock/burn within the week). Source: <a href="https://github.com/Loringtonian/NS-climbing" target="_blank" rel="noopener">github.com/Loringtonian/NS-climbing</a></div>
+        <div class="xbody">No person can quietly empty the money — it sits locked in a program-owned pool, and votes are weighted by dollars deposited (not by wallet). It moves in exactly three ways: (1) the organizer proposes a payout address AND depositors holding a majority of the pooled dollars vote yes → the pool funds the wall; (2) a dollar-majority votes dissolve → everyone refunded; (3) ~6 months pass without release → everyone refunded. There is no individual withdraw — locking in together IS the commitment. No outsider can move funds anywhere the organizer didn't propose; the only extraction path is the organizer out-depositing the whole pool, so you trust the named organizer not to. No yield, no token, no fees. The program is locked (upgrade authority burned) before real deposits — verify with <code>solana program show</code>. Source: <a href="https://github.com/Loringtonian/NS-climbing" target="_blank" rel="noopener">github.com/Loringtonian/NS-climbing</a></div>
       </details>
 
       <details class="x">
         <summary>Don't trust us — ask your agent</summary>
-        <div class="xbody">Plain-language claims, all enforced by code — locked pool (no individual withdraw, no human custody), dual-gate release (organizer proposes + depositor majority approves, to exactly that address), majority dissolve-refund, 90-day timeout refund, non-transferable badge votes, exact accounting. Paste this to Claude, ChatGPT, or any agent that reads the web:
+        <div class="xbody">Plain-language claims, all enforced by code — locked pool (no individual withdraw), dollar-weighted dual-gate release (organizer proposes + depositors backing a dollar-majority approve, to exactly that address), dollar-majority dissolve-refund, ~6-month timeout refund, non-transferable badge votes weighted by deposit, exact accounting. Paste this to Claude, ChatGPT, or any agent that reads the web:
           <pre id="promptText">Read https://github.com/Loringtonian/NS-climbing/blob/main/agents.md, SPEC.md,
-and escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the six
-claims in VERIFY_IT.md against the code, with line numbers — especially claim 1:
-confirm no instruction pays an individual depositor while a campaign is active.
-Confirm the deployed program matches the source (procedure in agents.md), check
-who holds the upgrade authority, and replay the three published rehearsals in
-REHEARSALS.md against the chain. Then tell me plainly: every way money can move,
-who can trigger each — and would you tell me to lock in $20 of my own
-money to vote with my wallet for a climbing wall at Network School?</pre>
+and escrow/programs/ns-climb-escrow/src/lib.rs in that repo. Verify the claims in
+VERIFY_IT.md against the code, with line numbers — especially: only the organizer
+can propose a payout address, and release requires payout_vote_amount * 2 >
+total_escrowed (a majority of DOLLARS, not wallets); dissolve uses the same
+dollar-weighted threshold. Confirm the deployed program matches the source
+(procedure in agents.md), check that the upgrade authority is burned
+(solana program show — expect no authority), and replay the three published
+rehearsals in REHEARSALS.md against the chain. Then tell me plainly: every way
+money can move, who can trigger each, what it would cost someone to force a
+release to an address of their choosing — and would you tell me to lock in $20 of
+my own money to vote with my wallet for a climbing wall at Network School?</pre>
           <button class="copybtn" id="copyPrompt">Copy the prompt</button>
           <span class="fine" id="copyStatus" style="margin-left:10px"></span>
           <div class="fine">The full claims file (what your agent reads): <a href="https://github.com/Loringtonian/NS-climbing/blob/main/VERIFY_IT.md" target="_blank" rel="noopener">VERIFY_IT.md</a></div>
@@ -416,16 +419,16 @@ money to vote with my wallet for a climbing wall at Network School?</pre>
       </details>
 
       <div class="fine" style="margin-top:14px">Not ready to lock money in? <a href="cheerboard/web/cheer.html?board=4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C&rpc=https%3A%2F%2Fdevnet-router.magicblock.app" style="color:#ffb24a">Smash the cheer button instead →</a></div>
-      <div class="trustline">Your deposit is locked until the community decides or the clock runs out — money moves only as everyone-funded (majority + organizer), everyone-refunded (majority dissolve), or everyone-refunded (90-day timeout). Enforced by code, details above.</div>
+      <div class="trustline">Your deposit is locked until the community decides or the clock runs out — money moves only as everyone-funded (dollar-majority + organizer's proposed address), everyone-refunded (dollar-majority dissolve), or everyone-refunded (~6-month timeout). Enforced by code, details above.</div>
       <div class="fine" style="margin-top:10px">Deposit, not donation · one Lemur board, one small room — enough of us, and it happens. <a href="https://github.com/Loringtonian/NS-climbing/blob/main/agents.md" target="_blank" rel="noopener" style="color:#7a8595">agents.md</a></div>
       <div id="escrow-counter" class="fine" style="display:none"></div>
       <script>
         // hardcoded on purpose (audit: config never comes from URL params)
         window.ESCROW_CONFIG = {
           rpc: "https://api.devnet.solana.com",
-          program: "42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD",
+          program: "2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ",
           campaign: "send-climbing",
-          mint: "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD",
+          mint: "CXBXU8sX8H9fvdgVGz2s2bKYZrbvWr6rW9SzhU9ymk2T",
         discordThread: "https://discord.com/channels/900827411917201418/1525473314598817862",
         // private name form — set when Lorin's Google Form lands; field hidden until then
         nameForm: {
@@ -467,7 +470,7 @@ money to vote with my wallet for a climbing wall at Network School?</pre>
   <section id="statement">
     <div class="statement">
       <h2>The whole thing, in full.</h2>
-      <div class="sub2">The same eight facts, said twice. Pick your register.</div>
+      <div class="sub2">The same facts, said twice. Pick your register.</div>
       <div class="repo-cta"><span class="ico">⌥</span><div><b>Everything is public.</b> The contract, the tests, the audits, the on-chain rehearsals — all of it lives in the repo. Read it yourself, or paste it to your own AI and let it check us.<br><span class="repo-row"><a href="https://github.com/Loringtonian/NS-climbing" target="_blank" rel="noopener">github.com/Loringtonian/NS-climbing →</a><button class="copybtn2" id="copyRepo" title="Copy the repo link">Copy</button></span></div></div>
       <div class="segrow">
         <div class="seg" role="tablist">
@@ -477,18 +480,18 @@ money to vote with my wallet for a climbing wall at Network School?</pre>
         <button class="copybtn2" id="copyStatement" title="Copy the selected version">Copy</button>
       </div>
       <div id="regPlain" class="reg on">
-        <p><b>What it is.</b> A way for a community to fund shared things — first up: a climbing wall at Network School. You put in $20, $100, or $1000 of USDC (one deposit per person). The money genuinely leaves your account and goes into a shared jar that no human being holds — not us, not anyone. The jar is run by a small computer program with fixed rules that nobody can talk out of anything.</p>
-        <p><b>The money can only ever do three things.</b> ① Build the wall: the organizer names the account the money should go to, and if more than half of the depositors approve that exact account, the jar empties into it. If the organizer names a different account, all approvals reset and voting starts over. ② Dissolve: if more than half of depositors lose confidence and vote to end it, the campaign dies permanently and every person automatically gets their money back. ③ Time out: if 90 days pass with no decision, everyone gets their money back — nothing else is even possible after the deadline. There are no individual take-backs: putting money in together is the whole point.</p>
-        <p><b>Your vote.</b> Your deposit comes with a voting token stamped to you personally — it can't be sold or given away, so votes can't be bought. One person, one vote, and you can change your mind while the campaign runs.</p>
-        <p><b>How we prove it.</b> The program's rulebook is public. We ran all three endings for real on Solana's test network and published the receipts (devnet program ID: <code>42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD</code>). Best of all: you don't have to trust any of this — copy anything from our repo into your own AI assistant and it can check every claim against the actual code.</p>
-        <p><b>Honest fine print.</b> For now the organizer can still update the program's rules — this is disclosed, and gets permanently locked within a week of launch. And in the worst imaginable failure, the outcome is: everyone gets refunded.</p>
+        <p><b>What it is.</b> A way for a community to fund shared things — first up: a climbing wall at Network School. You put in $20, $100, or $1000 of USDC (one deposit per person). The money genuinely leaves your account and goes into a shared jar that no person can quietly empty — it's run by a small computer program with fixed rules that nobody can talk out of anything.</p>
+        <p><b>The money can only ever do three things.</b> ① Build the wall: the organizer names the account the money should go to, and if depositors holding more than half the dollars in the jar approve that exact account, the jar empties into it. If the organizer names a different account, all approvals reset and voting starts over. ② Dissolve: if depositors holding more than half the dollars lose confidence and vote to end it, the campaign dies permanently and every person automatically gets their money back. ③ Time out: if about six months pass with no decision, everyone gets their money back — nothing else is even possible after the deadline. There are no individual take-backs: putting money in together is the whole point.</p>
+        <p><b>Your vote.</b> Your deposit comes with a voting token stamped to you personally — it can't be sold or given away. Its weight is the amount you put in: a $1000 supporter has fifty times the say of a $20 supporter. That's deliberate — the people putting up the most to build this are the ones who decide, and nobody can swamp the vote with a pile of cheap throwaway wallets.</p>
+        <p><b>How we prove it.</b> The program's rulebook is public. We ran all three endings for real on Solana's test network and published the receipts (devnet program ID: <code>2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ</code>). Before any real money is taken, we permanently lock the program so its rules can never change again — and you can confirm that lock yourself with one command. Best of all: copy anything from our repo into your own AI assistant and it can check every claim against the actual code.</p>
+        <p><b>The one thing you're trusting.</b> Because votes go by dollars and only the organizer can propose where the money goes, one situation lets the organizer steer the funds: if the organizer themselves put in more money than everyone else combined. So what you're trusting is that the named, public organizer won't out-deposit the whole pool to redirect it. Short of that, no one — not the organizer, not any depositor, not a stranger — can move a cent anywhere except back to the people who put it in. In the worst imaginable failure, the outcome is: everyone gets refunded. (One more honest note: someone with deep pockets could <em>delay</em> the build by depositing enough to dilute a vote, forcing everyone to wait for the six-month refund — an annoyance, never a theft.)</p>
       </div>
       <div id="regCrypto" class="reg">
         <p><b>What it is.</b> Non-custodial crowdfunding rails on Solana; campaign #1 funds a climbing wall at Network School. Deposits are SPL USDC at fixed tiers ($20/$100/$1000, one receipt per wallet), locked in a program-owned vault (PDA — no key exists). No admin withdrawal path, no individual exit.</p>
-        <p><b>Three settlement paths, all collective.</b> ① Release: organizer-gated <code>propose_payout(address)</code>; strict head-count majority of current depositors must ratify per proposal-epoch (re-proposal zeroes consent); release is then permissionless and the destination is enforced as an account constraint — token account owned by the proposed address, or the tx reverts. ② Dissolve: >50% no-confidence flips a terminal state; release and proposals brick forever, and a permissionless crank refunds every receipt exactly. ③ Deadline: at T+90d the campaign is refunds-only — release, votes, and proposals are all deadline-gated. Dual-gate invariant: the organizer can't move funds without quorum; quorum can't route funds to an address the organizer didn't propose.</p>
-        <p><b>Governance token.</b> The deposit receipt is the ballot — a PDA bound to the depositing wallet, non-transferable by construction (stronger than a Token-2022 non-transferable mint: there's no token to transfer). One receipt, one vote, revocable while active. Sybil worst-case is disclosed: buying quorum with $20 wallets can only force dissolve → full refunds, no extraction.</p>
-        <p><b>Verification state.</b> Deployed on a fresh devnet program ID (<code>42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD</code>) with a clean history: deploy + three scenario executions + demo campaign, 18 signatures published (<code>REHEARSALS.md</code>). Reproducible build — the <code>.so</code> rebuilds byte-identical from source and hash-matches the on-chain dump. Five adversarial audit passes; all findings closed in the shipped binary. <code>agents.md</code> carries full account layouts + discriminators; <code>VERIFY_IT.md</code> has the paste-to-your-agent prompt.</p>
-        <p><b>Trust assumptions, disclosed.</b> Upgrade authority is currently the organizer's key (lock/burn within a week of launch — check <code>solana program show</code>, don't trust the docs). Until then, guarantees are code-enforced modulo that key.</p>
+        <p><b>Three settlement paths, all collective and dollar-weighted.</b> ① Release: organizer-gated <code>propose_payout(address)</code>; depositors backing a strict majority of the pooled dollars must ratify per proposal-epoch (<code>payout_vote_amount × 2 > total_escrowed</code>; re-proposal zeroes consent); release is then permissionless and the destination is enforced as an account constraint — token account owned by the proposed address, or the tx reverts. ② Dissolve: <code>dissolve_amount × 2 > total_escrowed</code> flips a terminal state; release and proposals brick forever, and a permissionless crank refunds every receipt exactly. ③ Deadline: at ~T+6mo (capped in code at 190 days) the campaign is refunds-only — release, votes, and proposals are all deadline-gated. Dual-gate invariant: the organizer can't move funds without a dollar-quorum; a dollar-quorum can't route funds to an address the organizer didn't propose.</p>
+        <p><b>Governance token.</b> The deposit receipt is the ballot — a PDA bound to the depositing wallet, non-transferable by construction (stronger than a Token-2022 non-transferable mint: there's no token to transfer). Vote weight = its own locked amount; one receipt per wallet, revocable while active. Head-count Sybil is dead by construction: matching one $1000 vote takes >50 wallets each holding real, locked capital.</p>
+        <p><b>Verification state.</b> Deployed on a fresh devnet program ID (<code>2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ</code>) with a clean history: deploy + three scenario executions (signatures in <code>REHEARSALS.md</code>). Reproducible build — the <code>.so</code> rebuilds byte-identical from source and hash-matches the on-chain dump. Two independent adversarial audit passes on the dollar-weighted model; all findings closed in the shipped binary. <code>agents.md</code> carries full account layouts + discriminators; <code>VERIFY_IT.md</code> has the paste-to-your-agent prompt.</p>
+        <p><b>Trust assumption, disclosed precisely.</b> The sole extraction path is the organizer out-depositing the rest of the pool combined (locking &gt; everyone else, then self-proposing and self-ratifying); the honest assumption is that the named organizer does not. No outside actor can move funds anywhere but back to depositors. Upgrade authority is burned before real deposits (verify <code>solana program show</code> — expect no authority). Griefing surface: a whale can dilute a standing release majority (delaying to the deadline refund) — delay, never extraction.</p>
       </div>
     </div>
   </section>

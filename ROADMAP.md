@@ -8,11 +8,11 @@
 ## Where we are (evening, day 1)
 
 - [x] Contract v3.1 "locked pool" — tiered locked deposits ($20/$100/$1000), dissolve vote,
-      dual-gate destination vote (organizer proposes, majority ratifies), 90-day refunds-only
+      dual-gate destination vote (organizer proposes, dollar-majority ratifies), ~6-month refunds-only
       deadline, soulbound Supporter Badges. Suite green vs the exact deployed binary.
 - [x] Four adversarial audit passes; every required fix shipped (incl. the post-deadline
       refunds-only gate). See `SPEC.md` + `escrow/DEPLOY.md` for pins.
-- [x] Clean devnet chain — program `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD`; its whole
+- [x] Clean devnet chain — program `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ`; its whole
       history = deploy + three published rehearsals + the demo campaign (`REHEARSALS.md`).
 - [x] One-page experience live: raised-counter hero, live supporters strip, three tier cards,
       inline deposit flow + vote controls, expandables with copy-button agent prompt.
@@ -53,6 +53,6 @@
 ## The trust model (what we sell)
 
 In by choice, locked. Out only together: fund (majority + organizer on the same address) ·
-dissolve (majority → everyone refunded) · timeout (90 days → everyone refunded). No
+dissolve (majority → everyone refunded) · timeout (~6 months → everyone refunded). No
 custodian, exact permissionless refunds, unbuyable one-badge-one-vote. `VERIFY_IT.md` to
 check us; `REHEARSALS.md` to watch all three endings happen on-chain.

@@ -1,6 +1,6 @@
 # DEPLOY.md — MAINNET-FIRST (strategy pivot 2026-07-11: devnet faucets dry, Lorin funds real SOL)
 
-**The path: localnet test suite (correctness gate, 18/18 green) → mainnet deploy
+**The path: localnet test suite (correctness gate, 19/19 green) → mainnet deploy
 via `scripts/mainnet_go.sh` (human-gated) → the smoke-test protocol below →
 QR goes on the wall.** Devnet instructions kept further down for reference only.
 
@@ -37,22 +37,22 @@ of one, so he can exercise the full collective machinery solo, with real money,
    (`scripts/refund_crank.ts`) → confirm exactly $20 returns to his wallet.
 5. Explorer sanity on both campaigns. If ANY step misbehaves: stop, no QR,
    report signatures.
-6. THEN init the REAL campaign (ns-climbing-wall), flip the web config to it,
+6. THEN init the REAL campaign (send-climbing), flip the web config to it,
    push, verify live — and selling starts.
 
 After the smoke test: update agents.md Live-campaign-parameters (cluster,
 PDA, mint), push, and selling can start.
 
-Binary: `target/deploy/ns_climb_escrow.so` — **295,112 bytes**, v3.1-FINAL build (locked pool + dual-gate + refunds-only post-deadline)
+Binary: `target/deploy/ns_climb_escrow.so` — **296,544 bytes**, v4 build (locked pool + DOLLAR-WEIGHTED dual-gate + refunds-only post-deadline + 6-month deadline cap)
 (tiers + dissolve vote + Supporter Badge; 2026-07-11, anchor-cli 1.0.2 /
 anchor-lang 1.1.2 / solana 4.1.1 / rustc 1.92.0).
-**sha256 `b6fdd452de20636b7e5a16025bbf16b5e972e4ffef8686d55d1ea2ac9cacd7f7`** —
-this exact artifact passed 31/31 on localnet via --skip-build (auditor freeze protocol, 2026-07-11; hash byte-identical before and after the run, and reproducible across clean rebuilds); deploys ship this
+**sha256 `0656436312f777e9c382eea98a40af75dc6acfaf65789aefaef0ce6746af646b`** —
+this exact artifact passed 19/19 on localnet via --skip-build (auditor freeze protocol, 2026-07-11; hash byte-identical before and after the run, and reproducible across clean rebuilds); deploys ship this
 file. Fits the existing --max-len 320000 devnet allocation, so devnet upgrades
 in place (NOTE: v1 campaign accounts don't parse under the v2 layout — create
 a fresh campaign after upgrading). Auditors: `solana program dump`, truncate
-to 295,112 bytes, sha256 must match (procedure in agents.md).
-Program ID `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD` = pubkey of the
+to 296,544 bytes, sha256 must match (procedure in agents.md).
+Program ID `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ` = pubkey of the
 gitignored keypair `target/deploy/ns_climb_escrow-keypair.json`. If that file is
 ever lost or you want a fresh ID: `solana-keygen new -o target/deploy/ns_climb_escrow-keypair.json`,
 put the new pubkey in `declare_id!` (lib.rs), `Anchor.toml`, `web/counter.js`,
@@ -88,7 +88,7 @@ solana airdrop 5          # repeat if rate-limited; deploy needs ~2.6 SOL
 anchor deploy --provider.cluster devnet
 # campaign (goal/deposit/deadline/buildout are parameters):
 ANCHOR_PROVIDER_URL=https://api.devnet.solana.com ANCHOR_WALLET=~/.config/solana/id.json \
-CAMPAIGN_ID=ns-climbing-wall GOAL_USDC=2000 DEPOSIT_USDC=20 DEADLINE_DAYS=30 \
+CAMPAIGN_ID=send-climbing GOAL_USDC=2000 DEPOSIT_USDC=20 DEADLINE_DAYS=30 \
 BUILDOUT=<pubkey> USDC_MINT=<mint> npx ts-node scripts/init_campaign.ts
 ```
 

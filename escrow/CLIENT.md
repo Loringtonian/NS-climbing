@@ -1,4 +1,4 @@
-# CLIENT.md — how the web front-end talks to the escrow (v3.1, LOCKED model)
+# CLIENT.md — how the web front-end talks to the escrow (v4, dollar-weighted locked model)
 
 > **Working reference implementation: `web/deposit.js`** — ONE shared,
 > audited flow module loaded by both the standalone deposit page
@@ -12,10 +12,12 @@
 ## The model, in three sentences (full law: ../SPEC.md)
 
 Deposits are LOCKED — there is NO withdraw instruction and the UI must never
-suggest one. Money moves only by collective outcome: dual-gate release
-(organizer proposes a payout address + strict depositor majority approves),
-majority dissolve → refund crank, or the deadline → refund crank. The badge
-(receipt PDA) is simultaneously proof-of-support and both ballots.
+suggest one. Money moves only by collective outcome, and votes are weighted by dollars
+deposited (not by wallet): dual-gate release (organizer proposes a payout
+address + depositors backing a strict majority of the pooled dollars approve),
+dollar-majority dissolve → refund crank, or the ~6-month deadline → refund
+crank. The badge (receipt PDA) is simultaneously proof-of-support and both
+ballots, with vote weight equal to the deposited amount.
 
 ## Config — hardcoded, never from URL params
 
@@ -25,15 +27,16 @@ config to be a phishing primitive on the trusted domain):
 ```js
 window.ESCROW_CONFIG = {
   rpc: "https://api.devnet.solana.com",   // mainnet: flip at launch (GATE 1 in mainnet_go.sh)
-  program: "42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD",
-  campaign: "ns-climbing-wall",
-  mint: "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD" // devnet demo mint; mainnet: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+  program: "2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ",
+  campaign: "send-climbing",
+  mint: "CXBXU8sX8H9fvdgVGz2s2bKYZrbvWr6rW9SzhU9ymk2T" // devnet demo mint; mainnet: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
 };
 ```
 
-Program ID `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD` — the clean-chain
+Program ID `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ` — the clean-chain
 deployment, binary pinned in `DEPLOY.md`, scenario proofs in
-`../REHEARSALS.md`. (Old ID `7jRa…` is DEPRECATED.)
+`../REHEARSALS.md`. (Old head-count-model ID `42P4j432…` is DEPRECATED — this
+dollar-weighted v4 is a fresh clean-chain deployment.)
 
 ## Accounts (PDAs, derived client-side)
 
@@ -49,22 +52,25 @@ deployment, binary pinned in `DEPLOY.md`, scenario proofs in
 offset 8    admin        Pubkey (32)
 offset 40   mint         Pubkey (32)
 offset 72   campaign_id  u32 len L + L bytes   <- variable; shifts fields below
-+0          deadline        i64
-+8          total_escrowed  u64
-+16         depositor_count u32
-+20         tier_counts     [u32; 3]   ($20 / $100 / $1000 depositors)
-+32         dissolve_votes  u32
-+36         proposed_payout Pubkey (32; all-zeros = never proposed)
-+68         proposal_id     u32   (epoch; 0 = none)
-+72         payout_votes    u32   (yes-votes on the CURRENT epoch)
-+76         dissolved       u8
-+77         released        u8
-+78         bump            u8
++0          deadline           i64
++8          total_escrowed     u64
++16         depositor_count    u32
++20         tier_counts        [u32; 3]   ($20 / $100 / $1000 depositors)
++32         dissolve_amount    u64   (USDC base units backing dissolve — DOLLAR-weighted)
++40         proposed_payout    Pubkey (32; all-zeros = never proposed)
++72         proposal_id        u32   (epoch; 0 = none)
++76         payout_vote_amount u64   (USDC base units backing the CURRENT epoch)
++84         dissolved          u8
++85         released           u8
++86         bump               u8
 ```
 
+Votes are DOLLAR-WEIGHTED: `dissolve_amount` / `payout_vote_amount` are u64 sums
+of USDC base units, and a strict majority is `tally * 2 > total_escrowed`.
+
 Badge layout (86 bytes): `8 disc | 32 campaign | 32 depositor | 8 amount |
-1 voted | 4 payout_voted_seq | 1 bump`. The wallet's payout vote counts only
-while `payout_voted_seq == campaign.proposal_id`.
+1 voted | 4 payout_voted_seq | 1 bump`. Vote weight = `amount`. The wallet's
+payout vote counts only while `payout_voted_seq == campaign.proposal_id`.
 
 ## Instruction encodings (sha256("global:<name>")[0..8]; no IDL needed)
 
@@ -120,7 +126,7 @@ suffix). No goal, no percent — there is no goal in the program.
 
 ```bash
 # create a campaign (organizer key required by the program)
-CAMPAIGN_ID=… DEADLINE_DAYS=90 USDC_MINT=… npx ts-node scripts/init_campaign.ts
+CAMPAIGN_ID=… DEADLINE_DAYS=180 USDC_MINT=… npx ts-node scripts/init_campaign.ts
 # propose / release / status
 CAMPAIGN_ID=… ACTION=propose PAYOUT=<pubkey> npx ts-node scripts/admin.ts
 CAMPAIGN_ID=… ACTION=release PAYOUT_TOKEN=<usdc-ata-of-proposed> npx ts-node scripts/admin.ts

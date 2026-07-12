@@ -22,21 +22,25 @@ in agents.md is the verifiable public view. If a wallet-visible collectible
 is ever wanted, a display-only Token-2022 mint can be layered on later
 without touching escrow logic.
 
-## Votes: strict head-count majority, electorate = current depositors
+## Votes: strict dollar-weighted majority, electorate = pooled dollars
 
-`votes * 2 > depositor_count` (exact integer strict-majority) for both
-ballots — dissolve, and yes-on-the-current-payout-proposal. Deposits are
-LOCKED (no individual withdraw exists), so the electorate only GROWS while a
-campaign is active: a new depositor enlarges the denominator and can un-make
-a standing payout majority until they vote; nobody can shrink it. The refund
-crank does decrement counters and clear the departing badge's votes, but it
+`vote_amount * 2 > total_escrowed` (exact integer strict-majority, u128 math)
+for both ballots — `dissolve_amount` for dissolve, `payout_vote_amount` for
+yes-on-the-current-payout-proposal. Each badge's weight is its own locked
+`amount`: a $1000 V10 carries 50× the say of a $20 V1. Deposits are LOCKED
+(no individual withdraw exists), so the pool only GROWS while a campaign is
+active: a new deposit enlarges `total_escrowed` (the denominator) and can
+un-make a standing payout dollar-majority until the electorate re-crosses it;
+nobody can shrink it. The refund crank does decrement `total_escrowed` and
+remove the departing badge's weight from whichever tallies it backed, but it
 runs only post-dissolution or post-deadline — and since the deadline gate
 (audit fix) also closes vote_payout and release at expiry, no live election
 ever coexists with the crank. DISSOLVED is terminal because no code path
 ever unsets it; deposit/propose/vote/release all gate on it, and the refund
-crank treats it exactly like a passed deadline. One deposit = one vote
-regardless of tier — a $1000 V10 and a $20 V1 have the same ballot weight
-(head-count, not capital-weighted, matching the "counter of people" premise).
+crank treats it exactly like a passed deadline. Dollar-weighting is deliberate:
+it makes governance cost real, locked capital, so a flood of cheap $20 wallets
+can never reach a majority (Sybil-capture, present in an earlier head-count
+design, is closed).
 
 ## Post-deadline is refunds-only (audit fix)
 

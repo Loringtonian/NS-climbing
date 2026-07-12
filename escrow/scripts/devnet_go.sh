@@ -11,8 +11,8 @@ export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/b
 cd "$(dirname "$0")/.."
 
 RPC=https://api.devnet.solana.com
-DEADLINE_DAYS="${DEADLINE_DAYS:-90}"
-CAMPAIGN_ID="${CAMPAIGN_ID:-ns-climbing-wall}"
+DEADLINE_DAYS="${DEADLINE_DAYS:-180}"
+CAMPAIGN_ID="${CAMPAIGN_ID:-send-climbing}"
 
 BAL=$(solana balance -u devnet | awk '{print $1}')
 echo "deployer balance: $BAL SOL"
@@ -32,11 +32,10 @@ CAMPAIGN_ID=$CAMPAIGN_ID DEADLINE_DAYS=$DEADLINE_DAYS \
 USDC_MINT=$MINT npx ts-node scripts/init_campaign.ts | tee /tmp/init_campaign.out
 PDA=$(grep "campaign PDA:" /tmp/init_campaign.out | awk '{print $3}')
 
-echo '== 4/5 rehearsal: \$20 deposit -> withdraw -> \$100 deposit (tier checks) =='
-ANCHOR_PROVIDER_URL=$RPC ANCHOR_WALLET=~/.config/solana/id.json CAMPAIGN_ID=$CAMPAIGN_ID \
-  USDC_MINT=$MINT ACTION=deposit AMOUNT_USD=20 WALLET_FILE=keys/demo1.json npx ts-node scripts/demo_flow.ts
-ANCHOR_PROVIDER_URL=$RPC ANCHOR_WALLET=~/.config/solana/id.json CAMPAIGN_ID=$CAMPAIGN_ID \
-  USDC_MINT=$MINT ACTION=withdraw WALLET_FILE=keys/demo1.json npx ts-node scripts/demo_flow.ts
+echo '== 4/5 rehearsal: single \$100 deposit (deposits are LOCKED — no withdraw exists) =='
+# NOTE: superseded by scripts/rehearse_all.sh, which runs the three canonical
+# scenarios (victory / dissolve / dead-man) and emits REHEARSALS.md. Deposits
+# are locked in v4, so there is no withdraw step.
 ANCHOR_PROVIDER_URL=$RPC ANCHOR_WALLET=~/.config/solana/id.json CAMPAIGN_ID=$CAMPAIGN_ID \
   USDC_MINT=$MINT ACTION=deposit AMOUNT_USD=100 WALLET_FILE=keys/demo1.json npx ts-node scripts/demo_flow.ts
 
@@ -47,7 +46,7 @@ cat > DEVNET_STATE.md <<EOF
 
 | What         | Value |
 |--------------|-------|
-| Program      | 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD |
+| Program      | 2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ |
 | Campaign ID  | $CAMPAIGN_ID |
 | Campaign PDA | $PDA |
 | Demo mint    | $MINT (we control minting — fund a phone wallet: \`spl-token mint $MINT 20 <their-ata> -u devnet\` or scripts/demo_flow.ts) |

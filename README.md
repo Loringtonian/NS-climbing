@@ -1,12 +1,13 @@
 # SEND — Crypto Crowdfunding Rails for Network States
 
 Campaign #1: a climbing wall at Network School. A petition where the signatures are money —
-USDC deposits **locked** in a pool no person holds, behind a live on-chain counter. No
-individual take-backs: money moves only by collective outcome. A depositor majority can
-dissolve the campaign (everyone refunded); funds reach a build address only when the
-organizer proposes it AND a majority of depositors ratifies that exact address; a 90-day
-timer refunds everyone if neither happens. Each deposit doubles as a non-transferable
-Supporter Badge — the ballot.
+USDC deposits **locked** in a pool no person can quietly empty, behind a live on-chain counter.
+No individual take-backs: money moves only by collective outcome, and votes are weighted by
+dollars locked, not by wallet. A dollar-majority of depositors can dissolve the campaign
+(everyone refunded); funds reach a build address only when the organizer proposes it AND a
+dollar-majority of depositors ratifies that exact address; a ~6-month timer refunds everyone
+if neither happens. Each deposit doubles as a non-transferable Supporter Badge — the ballot,
+weighted by your own locked amount.
 
 **Live page:** https://loringtonian.github.io/NS-climbing/ (community-shared, noindex)
 
@@ -29,7 +30,7 @@ Supporter Badge — the ballot.
 
 ## Status (2026-07-11 evening, hackathon weekend)
 
-- Contract v3.1 ("locked pool"): live on devnet, program `42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD`
+- Contract v3.1 ("locked pool"): live on devnet, program `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ`
   — a clean chain whose entire history is the deploy, three published scenario rehearsals,
   and the demo campaign. Binary is byte-reproducible from source (hash pinned in
   [`escrow/DEPLOY.md`](escrow/DEPLOY.md)).
@@ -42,11 +43,14 @@ Supporter Badge — the ballot.
 
 ## The trust model, in one breath
 
-In by choice, locked. Out only together: **fund** (majority + organizer agree on the same
-address), **dissolve** (majority votes no-confidence → everyone refunded), or **timeout**
-(90 days → everyone refunded). Nobody custodies the pool; refunds are exact and anyone can
-trigger them once open; one badge one vote, welded to the depositing wallet. Verify every
-word: [`VERIFY_IT.md`](VERIFY_IT.md).
+In by choice, locked. Out only together, and votes are weighted by dollars deposited (not by
+wallet): **fund** (a dollar-majority of depositors approves the organizer's exact proposed
+address), **dissolve** (a dollar-majority votes no-confidence → everyone refunded), or
+**timeout** (~6 months → everyone refunded). Only the organizer can propose a destination and
+no one can move funds anywhere but back to depositors without a dollar-majority — the one
+disclosed trust is that the named organizer doesn't out-deposit the whole pool. Refunds are
+exact and anyone can trigger them once open; one non-transferable badge per wallet, weight =
+your own deposit. Verify every word: [`VERIFY_IT.md`](VERIFY_IT.md).
 
 ## Stack
 

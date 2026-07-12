@@ -1,21 +1,31 @@
-// NS Climbing Wall — refundable escrow, v3: dual-gate destination vote.
+// NS Climbing Wall — refundable escrow, v4: dollar-weighted dual-gate vote.
 //
 // Trust model, in one paragraph: a depositor puts a tier amount ($20/$100/$1000
 // USDC) into a program-owned pool. Deposits are LOCKED — there is no
 // individual withdraw; commitment is the product. Money leaves the vault by
 // exactly three collective paths and nothing else: (1) the dual gate — the
-// organizer proposes a payout address and a strict head-count majority of
-// current depositors approves THAT proposal, then anyone can release the
-// whole vault to it; (2) a strict majority votes DISSOLVE (terminal) and the
-// permissionless refund crank returns every deposit to its depositor;
-// (3) the deadline passes and the same refund crank opens — post-deadline is refunds-ONLY (no votes, no releases).
-// Neither the organizer nor a majority alone can move funds to a third party.
-// No yield, no fees, no admin withdrawal, no human custody.
+// organizer proposes a payout address and depositors holding a strict MAJORITY
+// OF THE DOLLARS IN THE POOL approve THAT proposal, then anyone can release the
+// whole vault to it; (2) depositors holding a strict majority of the dollars
+// vote DISSOLVE (terminal) and the permissionless refund crank returns every
+// deposit to its depositor; (3) the ~6-month deadline passes and the same
+// refund crank opens — post-deadline is refunds-ONLY (no votes, no releases).
+//
+// Voting is weighted BY DOLLARS DEPOSITED, not by wallet head-count: a $1000
+// depositor carries 50× the weight of a $20 depositor. This is deliberate —
+// it makes governance cost real, locked capital rather than cheap throwaway
+// wallets, so the people with the most at stake decide. Consequence, disclosed
+// plainly: an actor who deposits MORE than everyone else combined controls the
+// vote. Only the organizer can PROPOSE a destination (has_one = admin), so no
+// outside party can ever redirect funds; the honest trust assumption is that
+// the named organizer does not out-deposit the whole pool to redirect it to
+// themselves. Everything — every deposit, every vote — is public on-chain.
+// No yield, no fees, no admin withdrawal, no human custody of the vault key.
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD");
+declare_id!("2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ");
 
 /// The only deposit sizes accepted (USDC base units, 6 decimals):
 /// $20 / $100 / $1000. A fixed menu keeps the counter legible — perks per
@@ -27,22 +37,31 @@ pub const TIER_AMOUNTS: [u64; 3] = [20_000_000, 100_000_000, 1_000_000_000];
 /// This is the organizer's disclosed key.
 pub const ORGANIZER: Pubkey = anchor_lang::pubkey!("84PE7wqGnj5bBJkcLzB3LviriK5XgF5fUU3VmTjhkss2");
 
+/// Hard ceiling on campaign length, enforced at init so the advertised
+/// "~6-month timeout refund" is a code guarantee, not a promise in prose:
+/// the on-chain deadline can never be set further out than this. ~6 months
+/// plus a little slack.
+pub const MAX_CAMPAIGN_SECONDS: i64 = 190 * 24 * 60 * 60;
+
 #[program]
 pub mod ns_climb_escrow {
     use super::*;
 
     /// Organizer creates a campaign. No goal, no destination — "raise as much
     /// as possible" mode; where money can go is decided later by the dual
-    /// gate. Only the deadline is fixed here.
+    /// gate. Only the deadline is fixed here, and it is capped at
+    /// MAX_CAMPAIGN_SECONDS so the timeout-refund promise is enforceable.
     pub fn initialize_campaign(
         ctx: Context<InitializeCampaign>,
         campaign_id: String,
         deadline: i64,
     ) -> Result<()> {
         require!(campaign_id.len() <= 32, EscrowError::IdTooLong);
+        let now = Clock::get()?.unix_timestamp;
+        require!(deadline > now, EscrowError::DeadlineInPast);
         require!(
-            deadline > Clock::get()?.unix_timestamp,
-            EscrowError::DeadlineInPast
+            deadline <= now + MAX_CAMPAIGN_SECONDS,
+            EscrowError::DeadlineTooFar
         );
         let c = &mut ctx.accounts.campaign;
         c.admin = ctx.accounts.admin.key();
@@ -52,10 +71,10 @@ pub mod ns_climb_escrow {
         c.total_escrowed = 0;
         c.depositor_count = 0;
         c.tier_counts = [0; 3];
-        c.dissolve_votes = 0;
+        c.dissolve_amount = 0;
         c.proposed_payout = Pubkey::default();
         c.proposal_id = 0;
-        c.payout_votes = 0;
+        c.payout_vote_amount = 0;
         c.dissolved = false;
         c.released = false;
         c.bump = ctx.bumps.campaign;
@@ -66,9 +85,10 @@ pub mod ns_climb_escrow {
     /// $1000), LOCKED until a collective path closes the campaign — no
     /// individual withdraw exists, and no tier changes (kept deliberately
     /// simple). Blocked after release, dissolution, or deadline. Note: a new
-    /// depositor enlarges the electorate, which can un-make a standing payout
-    /// majority until they vote — releases only execute while a majority of
-    /// CURRENT depositors stands.
+    /// deposit enlarges the pool (total_escrowed), which can un-make a standing
+    /// dollar-majority on a payout proposal until the electorate re-crosses the
+    /// threshold — releases only execute while a majority OF CURRENT DOLLARS
+    /// stands.
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
         let c = &mut ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
@@ -134,11 +154,13 @@ pub mod ns_climb_escrow {
         Ok(())
     }
 
-    /// Emergency brake: any depositor can vote to dissolve. A strict head-count
-    /// majority (votes * 2 > depositors) flips the campaign to DISSOLVED —
-    /// terminal: release becomes permanently impossible and refunds open to
-    /// everyone. The receipt (Supporter Badge) is the ballot: one per
-    /// depositor, non-transferable by construction, revocable while active.
+    /// Emergency brake: any depositor can vote to dissolve. When the dollars
+    /// backing dissolve exceed half the pool (dissolve_amount * 2 >
+    /// total_escrowed) the campaign flips to DISSOLVED — terminal: release
+    /// becomes permanently impossible and refunds open to everyone. The
+    /// receipt (Supporter Badge) is the ballot: one per depositor,
+    /// non-transferable by construction, revocable while active. Its WEIGHT is
+    /// the depositor's own locked amount.
     pub fn vote_dissolve(ctx: Context<CastVote>) -> Result<()> {
         let c = &mut ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
@@ -146,7 +168,7 @@ pub mod ns_climb_escrow {
         let r = &mut ctx.accounts.receipt;
         require!(!r.voted, EscrowError::AlreadyVoted);
         r.voted = true;
-        c.dissolve_votes = c.dissolve_votes.checked_add(1).unwrap();
+        c.dissolve_amount = c.dissolve_amount.checked_add(r.amount).unwrap();
         maybe_dissolve(c);
         Ok(())
     }
@@ -159,7 +181,7 @@ pub mod ns_climb_escrow {
         let r = &mut ctx.accounts.receipt;
         require!(r.voted, EscrowError::NotVoted);
         r.voted = false;
-        c.dissolve_votes = c.dissolve_votes.checked_sub(1).unwrap();
+        c.dissolve_amount = c.dissolve_amount.checked_sub(r.amount).unwrap();
         Ok(())
     }
 
@@ -179,12 +201,13 @@ pub mod ns_climb_escrow {
         require!(payout != Pubkey::default(), EscrowError::InvalidPayout);
         c.proposed_payout = payout;
         c.proposal_id = c.proposal_id.checked_add(1).unwrap();
-        c.payout_votes = 0;
+        c.payout_vote_amount = 0;
         Ok(())
     }
 
     /// Depositors' half of the dual gate: vote yes on the CURRENT proposal.
-    /// Revocable. One badge, one vote, per proposal epoch.
+    /// Revocable. One badge, one vote per proposal epoch, WEIGHTED by the
+    /// depositor's locked amount.
     pub fn vote_payout(ctx: Context<CastVote>) -> Result<()> {
         let c = &mut ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
@@ -200,7 +223,7 @@ pub mod ns_climb_escrow {
             EscrowError::AlreadyVotedPayout
         );
         r.payout_voted_seq = c.proposal_id;
-        c.payout_votes = c.payout_votes.checked_add(1).unwrap();
+        c.payout_vote_amount = c.payout_vote_amount.checked_add(r.amount).unwrap();
         Ok(())
     }
 
@@ -215,16 +238,16 @@ pub mod ns_climb_escrow {
             EscrowError::NotVotedPayout
         );
         r.payout_voted_seq = 0;
-        c.payout_votes = c.payout_votes.checked_sub(1).unwrap();
+        c.payout_vote_amount = c.payout_vote_amount.checked_sub(r.amount).unwrap();
         Ok(())
     }
 
     /// Anyone can execute the release once the dual gate stands: an organizer
-    /// proposal exists AND a strict majority of CURRENT depositors has voted
-    /// for it — and only BEFORE the deadline. Funds go to a token account
-    /// owned by exactly the proposed address. A dissolved campaign can NEVER
-    /// release, and neither can an expired one: dissolution and the timer
-    /// both win over a standing majority.
+    /// proposal exists AND depositors holding a strict majority of the CURRENT
+    /// pooled dollars have voted for it — and only BEFORE the deadline. Funds
+    /// go to a token account owned by exactly the proposed address. A dissolved
+    /// campaign can NEVER release, and neither can an expired one: dissolution
+    /// and the timer both win over a standing majority.
     pub fn release(ctx: Context<Release>) -> Result<()> {
         let c = &ctx.accounts.campaign;
         require!(!c.released, EscrowError::AlreadyReleased);
@@ -236,9 +259,11 @@ pub mod ns_climb_escrow {
             EscrowError::CampaignEnded
         );
         require!(c.proposal_id > 0, EscrowError::NoProposal);
+        // Dollar-weighted majority: the yes-votes must back more than half the
+        // dollars currently in the pool. u128 math so the doubling cannot wrap.
         require!(
-            c.depositor_count > 0
-                && (c.payout_votes as u64) * 2 > c.depositor_count as u64,
+            c.total_escrowed > 0
+                && (c.payout_vote_amount as u128) * 2 > c.total_escrowed as u128,
             EscrowError::ProposalNotApproved
         );
 
@@ -261,21 +286,22 @@ pub mod ns_climb_escrow {
     }
 }
 
-/// Strict head-count majority check for dissolution, run after every dissolve
-/// vote or electorate change: votes * 2 > depositors (exact integer form of
-/// "more than half"). Once true the campaign is DISSOLVED — terminal by
-/// construction, because nothing ever sets `dissolved` back to false.
+/// Dollar-weighted majority check for dissolution, run after every dissolve
+/// vote or electorate change: dissolve_amount * 2 > total_escrowed (exact
+/// integer form of "more than half the pooled dollars"). Once true the
+/// campaign is DISSOLVED — terminal by construction, because nothing ever sets
+/// `dissolved` back to false. u128 math so the doubling cannot wrap.
 fn maybe_dissolve(c: &mut Campaign) {
     if !c.dissolved
-        && c.depositor_count > 0
-        && (c.dissolve_votes as u64) * 2 > c.depositor_count as u64
+        && c.total_escrowed > 0
+        && (c.dissolve_amount as u128) * 2 > c.total_escrowed as u128
     {
         c.dissolved = true;
     }
 }
 
 /// Refund-crank bookkeeping: shrink totals/tiers and clear the departing
-/// depositor's votes. Refunds only run post-dissolution or post-deadline,
+/// depositor's vote weight. Refunds only run post-dissolution or post-deadline,
 /// and BOTH release and vote_payout are deadline-gated (audit fix), so no
 /// live election exists while this runs — it keeps the public counters
 /// honest while the crank drains the pool.
@@ -293,10 +319,10 @@ fn remove_depositor(
     c.depositor_count = c.depositor_count.checked_sub(1).unwrap();
     c.tier_counts[tier] = c.tier_counts[tier].checked_sub(1).unwrap();
     if voted_dissolve {
-        c.dissolve_votes = c.dissolve_votes.checked_sub(1).unwrap();
+        c.dissolve_amount = c.dissolve_amount.checked_sub(amount).unwrap();
     }
     if c.proposal_id > 0 && payout_voted_seq == c.proposal_id {
-        c.payout_votes = c.payout_votes.checked_sub(1).unwrap();
+        c.payout_vote_amount = c.payout_vote_amount.checked_sub(amount).unwrap();
     }
     maybe_dissolve(c);
     Ok(())
@@ -342,16 +368,17 @@ pub struct Campaign {
     pub depositor_count: u32,
     /// Depositor count per tier, same order as TIER_AMOUNTS ($20/$100/$1000).
     pub tier_counts: [u32; 3],
-    /// Current dissolve votes among active depositors (badge-holders).
-    pub dissolve_votes: u32,
+    /// Dollars (USDC base units) currently backing dissolve, summed over the
+    /// receipts that have voted to dissolve.
+    pub dissolve_amount: u64,
     /// The organizer's currently proposed payout address (default = none).
     pub proposed_payout: Pubkey,
     /// Proposal epoch: bumps on every propose_payout, invalidating all prior
     /// payout votes (receipts vote per-epoch). 0 = never proposed.
     pub proposal_id: u32,
-    /// Yes-votes on the CURRENT proposal epoch.
-    pub payout_votes: u32,
-    /// Terminal: set by a strict depositor majority; blocks deposit, proposal
+    /// Dollars (USDC base units) backing the CURRENT proposal epoch.
+    pub payout_vote_amount: u64,
+    /// Terminal: set by a strict dollar-majority; blocks deposit, proposal
     /// and release forever; opens the permissionless refund crank.
     pub dissolved: bool,
     pub released: bool,
@@ -363,7 +390,8 @@ pub struct Campaign {
 /// the badge is non-transferable by construction ("soulbound"). It is
 /// simultaneously: proof of support (the plaque credential), BOTH ballots
 /// (`voted` for dissolve, `payout_voted_seq` for the current payout
-/// proposal), and the record of exactly what the refund crank returns.
+/// proposal), and the record of exactly what the refund crank returns. Its
+/// vote WEIGHT is `amount` — the depositor's own locked dollars.
 #[account]
 #[derive(InitSpace)]
 pub struct Receipt {
@@ -496,6 +524,8 @@ pub enum EscrowError {
     IdTooLong,
     #[msg("deadline must be in the future")]
     DeadlineInPast,
+    #[msg("deadline is further out than the maximum campaign length")]
+    DeadlineTooFar,
     #[msg("funds already released")]
     AlreadyReleased,
     #[msg("campaign deadline has passed")]
@@ -520,6 +550,6 @@ pub enum EscrowError {
     AlreadyVotedPayout,
     #[msg("this badge has no vote on the current proposal")]
     NotVotedPayout,
-    #[msg("the current proposal lacks a depositor majority")]
+    #[msg("the current proposal lacks a dollar-majority of the pool")]
     ProposalNotApproved,
 }

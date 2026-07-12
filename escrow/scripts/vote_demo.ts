@@ -33,7 +33,7 @@ async function main() {
   console.log(`${action}:`, sig);
 
   const c = await (program.account as any).campaign.fetch(campaign);
-  console.log("dissolve:", c.dissolveVotes, "payout:", c.payoutVotes, "of", c.depositorCount, "depositors — dissolved:", c.dissolved, "released:", c.released);
+  console.log("dissolve$:", c.dissolveAmount.toString(), "payout$:", c.payoutVoteAmount.toString(), "of total$", c.totalEscrowed.toString(), "(", c.depositorCount, "depositors) — dissolved:", c.dissolved, "released:", c.released);
 }
 
 main().then(() => process.exit(0), (e) => { console.error(e); process.exit(1); });

@@ -53,7 +53,9 @@ async function main() {
     depositorCount: c.depositorCount,
     proposedPayout: c.proposedPayout.toBase58(),
     proposalId: c.proposalId,
-    payoutVotes: c.payoutVotes,
+    payoutVoteAmount: c.payoutVoteAmount.toString(), // USDC base units backing the current proposal
+    dissolveAmount: c.dissolveAmount.toString(),     // USDC base units backing dissolve
+    dissolved: c.dissolved,
     released: c.released,
   });
 }

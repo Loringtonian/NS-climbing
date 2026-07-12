@@ -9,7 +9,7 @@ export PATH="$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/b
 cd "$(dirname "$0")/.."
 
 R=${RPC:-https://api.devnet.solana.com}
-M=${USDC_MINT:-4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD}
+M=${USDC_MINT:-CXBXU8sX8H9fvdgVGz2s2bKYZrbvWr6rW9SzhU9ymk2T}
 C=${CAMPAIGN_ID:?set CAMPAIGN_ID}
 E() { ANCHOR_PROVIDER_URL=$R ANCHOR_WALLET=~/.config/solana/id.json CAMPAIGN_ID=$C USDC_MINT=$M "$@"; }
 

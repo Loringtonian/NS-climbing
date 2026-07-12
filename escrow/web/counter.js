@@ -17,9 +17,13 @@
   // program/mint. devnet.html is the only params-driven page, and it is labeled.
   var CFG = window.ESCROW_CONFIG || {};
   var RPC = CFG.rpc || "https://api.devnet.solana.com"; // mainnet: https://api.mainnet-beta.solana.com (or a private RPC)
-  var PROGRAM_ID = CFG.program || "42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD";
+  var PROGRAM_ID = CFG.program || "2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ";
   var CAMPAIGN_ID = CFG.campaign || "send-climbing"; // must match the id used at initialize_campaign
-  var CAMPAIGN_ADDRESS = CFG.pda || ""; // OPTIONAL: campaign PDA — skips auto-derivation
+  // SINGLE SOURCE OF TRUTH (audit 2026-07-12): the campaign PDA is ALWAYS
+  // derived from CAMPAIGN_ID — same as deposit.js — so the counter can never
+  // show a healthy tally for one campaign while deposits target another. The
+  // former CFG.pda override is deliberately gone.
+  var CAMPAIGN_ADDRESS = "";
   var REFRESH_MS = 15000;
   var EL_ID = "escrow-counter";
   // ---------------------------------------------------------------------------
@@ -97,11 +101,13 @@
       .catch(function (e) { cb(e); });
   }
 
-  // Campaign account layout v3 (borsh, after the 8-byte Anchor discriminator):
+  // Campaign account layout v4 (borsh, after the 8-byte Anchor discriminator):
   // admin[32] mint[32] campaign_id[4+len] deadline[i64] total_escrowed[u64]
-  // depositor_count[u32] tier_counts[3xu32] dissolve_votes[u32]
-  // proposed_payout[32] proposal_id[u32] payout_votes[u32]
+  // depositor_count[u32] tier_counts[3xu32] dissolve_amount[u64]
+  // proposed_payout[32] proposal_id[u32] payout_vote_amount[u64]
   // dissolved[u8] released[u8] bump[u8]
+  // NOTE: votes are DOLLAR-WEIGHTED — dissolve_amount / payout_vote_amount are
+  // sums of USDC base units backing each vote, not head-counts.
   function parseCampaign(b64) {
     var raw = atob(b64);
     var bytes = new Uint8Array(raw.length);
@@ -114,14 +120,14 @@
     var total = dv.getBigUint64(o, true); o += 8;
     var count = dv.getUint32(o, true); o += 4;
     var tiers = [dv.getUint32(o, true), dv.getUint32(o + 4, true), dv.getUint32(o + 8, true)]; o += 12;
-    var dissolveVotes = dv.getUint32(o, true); o += 4;
+    var dissolveAmount = dv.getBigUint64(o, true); o += 8;
     var payout = b58encode(bytes.slice(o, o + 32)); o += 32;
     var proposalId = dv.getUint32(o, true); o += 4;
-    var payoutVotes = dv.getUint32(o, true); o += 4;
+    var payoutVoteAmount = dv.getBigUint64(o, true); o += 8;
     var dissolved = bytes[o] === 1; o += 1;
     var released = bytes[o] === 1;
-    return { total: total, count: count, tiers: tiers, votes: dissolveVotes,
-             payout: payout, proposalId: proposalId, payoutVotes: payoutVotes,
+    return { total: total, count: count, tiers: tiers, dissolveAmount: dissolveAmount,
+             payout: payout, proposalId: proposalId, payoutVoteAmount: payoutVoteAmount,
              dissolved: dissolved, released: released };
   }
 
@@ -152,9 +158,9 @@
       var live = c.proposalId > 0 && !c.released && !c.dissolved;
       panel.classList.toggle("hidden", !live);
       if (live) {
-        var threshold = Math.floor(c.count / 2) + 1;
         if ((el = document.getElementById("payout-addr"))) el.textContent = c.payout.slice(0, 4) + "…" + c.payout.slice(-4);
-        if ((el = document.getElementById("payout-votes"))) el.textContent = c.payoutVotes + " of " + threshold + " needed";
+        // dollar-weighted: needs backing > half the pooled dollars
+        if ((el = document.getElementById("payout-votes"))) el.textContent = fmtUsd(c.payoutVoteAmount) + " backing · needs more than " + fmtUsd(c.total / 2n);
       }
     }
   }

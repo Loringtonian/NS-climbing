@@ -46,13 +46,13 @@
 <body>
 <div class="wrap">
   <h1>Skin in the game <span>· $20 / $100 / $1000</span></h1>
-  <div class="sub">Pool USDC toward the climbing wall at the tier you mean. Locked in together: the money only moves when the community majority says so — or everyone gets refunded at the timeout.</div>
+  <div class="sub">Pool USDC toward the climbing wall at the tier you mean. Locked in together: the money only moves when depositors holding a majority of the pooled dollars say so — or everyone gets refunded at the timeout.</div>
 
   <div class="card">
     <div id="escrow-counter">loading…</div>
     <div id="payout-panel" class="hidden" style="margin-top:12px;border:1px solid #5a4726;border-radius:12px;padding:12px 14px">
       <div style="font-weight:800;font-size:14px">Payout proposed <span id="payout-addr" style="font-family:ui-monospace,Menlo,monospace;color:#ffc266"></span></div>
-      <div class="fine">Moves only on a depositor majority — <b id="payout-votes" style="color:#f2f4f7"></b></div>
+      <div class="fine">Moves only on a dollar-majority of depositors — <b id="payout-votes" style="color:#f2f4f7"></b></div>
       <button class="btn ghost hidden" id="payoutVote" style="padding:10px;font-size:14px"></button>
     </div>
   </div>
@@ -82,8 +82,9 @@
       <button class="btn hidden tier" data-usd="20">V1 — $20<small>Get on the board. Your name on the founding plaque.</small></button>
       <button class="btn hidden tier" data-usd="100">V5 — $100<small>First-ascent night. First-week priority.</small></button>
       <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Name a route. Top of the plaque.</small></button>
-      <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by community majority (fund or dissolve-refund) or the 90-day timeout refund. Perks exist when the wall exists.</div>
-      <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (majority + organizer), everyone-refunded (majority dissolve), everyone-refunded (90-day timeout).</div>
+      <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by dollar-weighted community majority (fund or dissolve-refund) or the ~6-month timeout refund. Perks exist when the wall exists.</div>
+      <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (dollar-majority + organizer), everyone-refunded (dollar-majority dissolve), everyone-refunded (~6-month timeout).</div>
+      <div style="margin-top:12px;border:1px solid #6b4a1f;background:#241a0e;border-radius:12px;padding:11px 14px;font-size:13px;color:#ffcf9e"><b>Never send USDC straight to a wallet address for this.</b> A deposit has to go through this page — that's what creates your badge, your vote, and your refund. Tokens sent directly to any address land nowhere and can't be recovered.</div>
       <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
       <div id="discordCtaVote" class="fine hidden" style="text-align:center;font-size:12px"></div>
     </div>
@@ -91,20 +92,22 @@
   </div>
 
   <div class="card trust">
-    <b>How your money is protected:</b> no person holds it — it sits in a
-    program-owned pool, locked. It moves in exactly three ways: (1) the
-    organizer proposes a payout address AND a majority of depositors votes yes
-    — then the pool funds the wall; (2) a majority votes dissolve — everyone
-    is refunded; (3) 90 days pass without release — everyone is refunded.
-    The organizer alone can move nothing; a majority can't send funds anywhere
-    the organizer didn't propose. No yield, no token, no fees.
-    The contract is currently upgradeable by the organizer (disclosed;
-    lock/burn within the week).
+    <b>How your money is protected:</b> no person can quietly empty it — it sits
+    in a program-owned pool, locked, and votes are weighted by dollars deposited
+    (not by wallet). It moves in exactly three ways: (1) the organizer proposes a
+    payout address AND depositors holding a majority of the pooled dollars vote
+    yes — then the pool funds the wall; (2) a dollar-majority votes dissolve —
+    everyone is refunded; (3) ~6 months pass without release — everyone is
+    refunded. No outsider can send funds anywhere the organizer didn't propose;
+    the only extraction path is the organizer out-depositing the whole pool, so
+    you trust the named organizer not to. No yield, no token, no fees.
+    The program is locked (upgrade authority burned) before real deposits —
+    verify with <code>solana program show</code>.
     <div class="fine">Contract source &amp; agent instructions: <a href="https://github.com/Loringtonian/NS-climbing" target="_blank" rel="noopener">github.com/Loringtonian/NS-climbing</a> · <a href="https://github.com/Loringtonian/NS-climbing/blob/main/agents.md" target="_blank" rel="noopener">agents.md</a></div>
   </div>
 
   <div class="card trust">
-    <b>Don't trust us — ask your agent.</b> Six plain-language claims, honest
+    <b>Don't trust us — ask your agent.</b> Plain-language claims, honest
     caveats, and a paste-able verification prompt any AI agent can run against
     the actual code: <a href="https://github.com/Loringtonian/NS-climbing/blob/main/VERIFY_IT.md" target="_blank" rel="noopener">VERIFY_IT.md</a>
     <button class="btn ghost" id="copyPrompt" style="margin-top:12px;padding:10px;font-size:14px">Copy the verification prompt</button>
@@ -116,9 +119,9 @@
   // one source of truth for this page + counter.js (never URL params)
   window.ESCROW_CONFIG = {
     rpc: "https://api.devnet.solana.com",
-    program: "42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD",
+    program: "2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ",
     campaign: "send-climbing",
-    mint: "4k4aakX2MycnKcw6Urvurjxvn4WCYimFPhG3UDBGiZMD",
+    mint: "CXBXU8sX8H9fvdgVGz2s2bKYZrbvWr6rW9SzhU9ymk2T",
         discordThread: "https://discord.com/channels/900827411917201418/1525473314598817862",
         // private name form — set when Lorin's Google Form lands; field hidden until then
         nameForm: {

@@ -19,14 +19,14 @@ cd "$(dirname "$0")/.."
 
 RPC=${RPC:-https://api.mainnet-beta.solana.com}
 USDC=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v   # Circle USDC (mainnet)
-DEADLINE_DAYS="${DEADLINE_DAYS:-90}"
-CAMPAIGN_ID="${CAMPAIGN_ID:-ns-climbing-wall}"
-MAX_LEN="${MAX_LEN:-320000}"   # ~12% upgrade cushion over the 285,480-byte build
+DEADLINE_DAYS="${DEADLINE_DAYS:-180}"   # ~6 months; contract caps at 190d
+CAMPAIGN_ID="${CAMPAIGN_ID:-send-climbing}"   # MUST match the id in every web page's ESCROW_CONFIG
+MAX_LEN="${MAX_LEN:-320000}"   # ~12% upgrade cushion over the 296,544-byte build
 
 echo "THIS DEPLOYS TO MAINNET AND SPENDS REAL SOL."
 echo "  deployer: $(solana address)   balance: $(solana balance -u "$RPC")"
 echo "  campaign: $CAMPAIGN_ID   deadline: ${DEADLINE_DAYS}d   (no goal — raise-max; payout via dual-gate vote)"
-echo "  payout: decided later — organizer proposes, depositor majority approves"
+echo "  payout: decided later — organizer proposes, depositor dollar-majority approves"
 read -r -p "Type MAINNET to proceed: " CONFIRM
 [ "$CONFIRM" = "MAINNET" ] || { echo "aborted"; exit 1; }
 
@@ -51,11 +51,11 @@ cat > MAINNET_STATE.md <<EOF
 
 | What         | Value |
 |--------------|-------|
-| Program      | 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD |
+| Program      | 2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ |
 | Campaign ID  | $CAMPAIGN_ID |
 | Campaign PDA | $PDA |
 | USDC mint    | $USDC (Circle) |
-| Payout       | dual-gate: organizer proposes, depositor majority approves |
+| Payout       | dual-gate: organizer proposes, depositor dollar-majority approves |
 | Deposit page | $PAGE |
 | Explorer     | https://explorer.solana.com/address/$PDA |
 
@@ -82,12 +82,12 @@ echo "    parameters; the paste-able prompt's links resolve to the updated files
 echo "    Commit + push both BEFORE the QR goes out."
 echo "  Only then QR: $PAGE"
 echo
-echo "== UPGRADE AUTHORITY — scheduled within the week (disclosed; not launch-blocking) =="
-echo "Current authority: the deployer key (held by Lorin, disclosed in agents.md)."
-echo "Within a week of launch, run ONE of:"
-echo "  # hand to a multisig:"
-echo "  solana program set-upgrade-authority 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD \\"
-echo "    --new-upgrade-authority <MULTISIG_PUBKEY> -u \$RPC"
-echo "  # or burn it (program becomes immutable forever):"
-echo "  solana program set-upgrade-authority 42P4j432MkNbPRJAKTpMJDa1LpfBWAWZhZxAxtY35FsD --final -u \$RPC"
-echo "Then update the disclosure lines in agents.md + demo.html."
+echo "== GATE 4 — BURN THE UPGRADE AUTHORITY *BEFORE THE FIRST REAL DEPOSIT* =="
+echo "LAUNCH-BLOCKING under the dollar-weighted trust model: the audited guarantees"
+echo "only hold if the code can't change. Run the smoke test on SCRATCH campaigns"
+echo "first (DEPLOY.md); once it passes, burn — then create the real campaign and"
+echo "take deposits:"
+echo "  solana program set-upgrade-authority 2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ --final -u \$RPC"
+echo "Verify it took: 'solana program show 2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ -u \$RPC'"
+echo "must show NO upgrade authority. The site + agents.md + VERIFY_IT already claim"
+echo "this is burned — the burn is what makes the claim true. Do NOT skip it."

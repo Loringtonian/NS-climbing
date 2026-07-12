@@ -149,22 +149,25 @@
       var pw = document.getElementById("pickWrap");
       if (pw) pw.classList.toggle("hidden", !pickMode);
       show("tierFine", !deposited);
-      // votes: campaign v3 parse (dissolve + payout proposal state)
+      // votes: campaign v4 parse — DOLLAR-WEIGHTED (dissolve_amount /
+      // payout_vote_amount are USDC base-unit sums, not head-counts).
       conn.getAccountInfo(campaign).then(function (cAcct) {
         if (!cAcct) return;
         var raw = cAcct.data;
         var dv = new DataView(raw.buffer, raw.byteOffset);
+        var usd = function (bi) { return "$" + (Number(bi / 10000n) / 100).toLocaleString(); };
         var o = 8 + 64;
         o += 4 + dv.getUint32(o, true); // campaign_id
-        o += 8 + 8; // deadline, total
-        var count = dv.getUint32(o, true); o += 4;
+        o += 8; // deadline
+        var total = dv.getBigUint64(o, true); o += 8; // total_escrowed
+        o += 4; // depositor_count
         o += 12; // tier_counts
-        var dVotes = dv.getUint32(o, true); o += 4;
+        var dAmount = dv.getBigUint64(o, true); o += 8; // dissolve_amount (dollars)
         o += 32; // proposed_payout
         var propId = dv.getUint32(o, true); o += 4;
-        var pVotes = dv.getUint32(o, true); o += 4;
+        var pAmount = dv.getBigUint64(o, true); o += 8; // payout_vote_amount (dollars)
         var dissolved = raw[o] === 1;
-        var threshold = Math.floor(count / 2) + 1;
+        var half = usd(total / 2n); // needs MORE than half the pooled dollars
         // dissolve link (badge-holders only)
         var el = $("voteLink");
         if (el) {
@@ -175,8 +178,8 @@
             show("voteLink", true);
           } else {
             el.textContent = voted
-              ? "Remove my dissolve vote (" + dVotes + "/" + threshold + " to dissolve)"
-              : "Vote to dissolve the campaign (" + dVotes + "/" + threshold + ")";
+              ? "Remove my dissolve vote (" + usd(dAmount) + " backing · needs > " + half + ")"
+              : "Vote to dissolve the campaign (" + usd(dAmount) + " backing · needs > " + half + ")";
             el.dataset.voted = voted ? "1" : "0";
             show("voteLink", true);
           }
@@ -190,8 +193,8 @@
           else {
             var mine = payoutSeq === propId;
             pb.textContent = mine
-              ? "Remove my yes-vote (" + pVotes + "/" + threshold + ")"
-              : "Vote yes on this payout (" + pVotes + "/" + threshold + ")";
+              ? "Remove my yes-vote (" + usd(pAmount) + " backing · needs > " + half + ")"
+              : "Vote yes on this payout (" + usd(pAmount) + " backing · needs > " + half + ")";
             pb.dataset.voted = mine ? "1" : "0";
             pb.classList.remove("hidden");
             pb.disabled = false;
