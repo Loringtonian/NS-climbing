@@ -76,9 +76,11 @@
     var pin = (new URLSearchParams(location.search).get("w") || "").toLowerCase();
     if (pin === "solflare") return window.solflare || null;
     if (pin === "phantom") return (window.phantom && window.phantom.solana) || null;
-    return window.phantom && window.phantom.solana ? window.phantom.solana
-      : window.solflare ? window.solflare
-      : window.solana ? window.solana : null;
+    // Solflare first (its simulator previews new programs fast; Phantom's
+    // Blowfish hangs), generic wallet next, Phantom last.
+    return window.solflare ? window.solflare
+      : window.solana ? window.solana
+      : window.phantom && window.phantom.solana ? window.phantom.solana : null;
   }
 
   // Tier pre-select — callable (inline tier cards) and via fragment
