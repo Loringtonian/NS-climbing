@@ -68,6 +68,52 @@
   function busy(msg) { $("status").innerHTML = '<span class="ns-spin"></span>' + msg; }
   function show(id, on) { $(id).classList.toggle("hidden", !on); }
 
+  // A gentle pulse when the supporter badge first appears (injected once).
+  (function () {
+    if (document.getElementById("ns-badge-style")) return;
+    var s = document.createElement("style"); s.id = "ns-badge-style";
+    s.textContent = "#inBadge{animation:nsPulse 1.5s ease-in-out 2}@keyframes nsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}";
+    document.head.appendChild(s);
+  })();
+
+  // Self-contained confetti burst (no external lib — CSP/offline safe). Fires
+  // on a successful deposit so locking in feels like a moment.
+  function fireConfetti() {
+    var c = document.createElement("canvas");
+    c.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(c);
+    var ctx = c.getContext("2d");
+    var W2 = c.width = window.innerWidth, H2 = c.height = window.innerHeight;
+    var cols = ["#22c55e", "#16a34a", "#ffb24a", "#f59e0b", "#3b82f6", "#ec4899", "#ffffff"];
+    var parts = [];
+    for (var i = 0; i < 170; i++) {
+      parts.push({
+        x: W2 / 2 + (Math.random() - 0.5) * 120, y: H2 * 0.32,
+        vx: (Math.random() - 0.5) * 15, vy: Math.random() * -17 - 3,
+        g: 0.34 + Math.random() * 0.22, s: 5 + Math.random() * 7,
+        col: cols[(Math.random() * cols.length) | 0],
+        rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.45
+      });
+    }
+    var start = null;
+    function frame(t) {
+      if (start === null) start = t;
+      var el = t - start, alive = false;
+      ctx.clearRect(0, 0, W2, H2);
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        var a = Math.max(0, 1 - el / 2600);
+        if (a > 0 && p.y < H2 + 40) alive = true;
+        ctx.globalAlpha = a; ctx.fillStyle = p.col;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6); ctx.restore();
+      }
+      if (alive && el < 3200) requestAnimationFrame(frame); else c.remove();
+    }
+    requestAnimationFrame(frame);
+  }
+
   function provider() {
     // ?w=solflare / ?w=phantom pins one wallet when several extensions are
     // installed (default order prefers Phantom). Wallet CHOICE is presentation,
@@ -387,7 +433,11 @@
           data: depositData(usd),
         }));
         var sig = await send(ixs);
-        status("Escrowed $" + usd + " — you're on the board. " + sig.slice(0, 12) + "…");
+        $("status").innerHTML = '🎉 <strong>You’re in!</strong> $' + usd +
+          ' locked in the pool for the wall. ' +
+          '<a href="https://explorer.solana.com/tx/' + sig + '" target="_blank" rel="noopener" ' +
+          'style="text-decoration:underline">view your transaction ↗</a>';
+        fireConfetti();
         renderDiscord(document.getElementById("discordCta"));
       } catch (e) {
         console.error("[NS deposit] failed:", e);
