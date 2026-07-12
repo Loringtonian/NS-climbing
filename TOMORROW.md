@@ -30,23 +30,59 @@
 
 ---
 
-## ① THE BLOCKER — first real deposit
+## ① THE BLOCKER — deposit flow works but Phantom is too slow on a new program
 
-The pool has been open since ~10:50 and is still **$0 from 0 depositors**. The three commits
-after GO LIVE were all deposit-flow surgery:
+Pool is still **$0 / 0 depositors**. Extensively debugged with real money on 2026-07-12
+(~12:00–12:50 +08). The flow is CORRECT; the problem is speed, and it's on Phantom's end.
 
-- `be27749` — switched to `signAndSendTransaction` to clear Phantom's "could be malicious" warning
-- `93b50eb` — RPC swapped to publicnode (`api.mainnet-beta.solana.com` 403s from browsers)
-- `a53ebd3` — reverted to `signTransaction` + `sendRawTransaction({skipPreflight:true})`, because
-  Phantom can't simulate a brand-new program and `signAndSendTransaction` hangs on a blank
-  confirm screen; signing then self-broadcasting gives a proceed-able approval instead
+**Root cause (confirmed):** Phantom's transaction preview runs server-side via Blowfish, and
+Blowfish **can't simulate our brand-new program fast enough** — the Confirm screen hangs
+**3–5+ minutes**, often blank/no details, before you can approve. This is NOT our code. It
+warms up over hours/days as Blowfish recognizes the program (server-side, so it improves for
+ALL users, not per-wallet), and the review submission below accelerates it network-wide.
+When it *does* finish simulating, the screen is clean: real preview (−$X USDC), only a mild
+yellow "this domain is new" caution (not "malicious"), Confirm enabled. Verified via a direct
+`simulateTransaction` against mainnet from our side: the deposit tx succeeds (`err: null`) — so
+the tx is valid; Phantom is just slow to preview it.
 
-That path is plausible but **unproven with real money**. Note `skipPreflight: true` means a bad
-transaction gets broadcast anyway and fails on-chain rather than erroring cleanly in the wallet —
-so a silent failure looks like "nothing happened."
+**Deposit-UX commits this session (all pushed):**
+- `93b50eb` — RPC → `https://solana-rpc.publicnode.com` (`api.mainnet-beta` 403s browsers)
+- `a53ebd3` — `signTransaction` + self-broadcast `{skipPreflight:true}`, NOT
+  `signAndSendTransaction` (which needs a *completed* simulation to enable Confirm → hangs
+  blank on a new program). Note: skipPreflight means a bad tx broadcasts and fails on-chain
+  rather than erroring in the wallet — a silent failure looks like "nothing happened."
+- `34dfa88` — blockhash pre-warmed (refreshed every 20s) so the click→sign path has no RPC
+  await; removes our delay and keeps the user-gesture context so Phantom auto-opens.
+- `4bb724e` — spinner on busy states + `console.error` on failure for diagnosability.
 
-**Close it like this:** organizer makes the real $20 deposit on the real campaign from the phone.
-Then confirm it landed on-chain (not just in the UI):
+**Next steps to make the web flow usable (in order):**
+1. **Submit Phantom's domain/program review** — warms Blowfish network-wide, kills the "new
+   domain" note, speeds simulation:
+   https://docs.google.com/forms/d/1JgIxdmolgh_80xMfQKBKx9-QPC7LRdN6LHpFFW8BlKM/viewform
+   (have ready: program `2PAg6iM…`, repo, one-line description). Community reports ~1–2 days.
+2. **Test Solflare / Backpack** — different simulator than Phantom's Blowfish; may be
+   near-instant on the new program and give a working web flow sooner.
+3. **Just wait** — Blowfish warms up server-side on its own over the next hours.
+
+**Guaranteed traction without the wallet UI (not yet done — Lorin wanted to test the real flow):**
+founder sends USDC to a keypair we control → we submit the `deposit` tx directly via CLI (no
+Phantom, no simulation). Real on-chain deposit, real counter movement. Deployer `84PE7wqG…`
+has gas (~0.24 SOL) but 0 USDC; fund it (or a fresh keypair) with USDC and run a deposit tx.
+
+**DECISION 2026-07-12: NOT pushing public sales/deposits today.** The Phantom web flow is too
+slow to put in front of non-crypto NS folks until it warms up. Contract is live / immutable /
+verified; the rail works but needs to warm up (or Solflare) before the public push.
+
+**Why "publish our address, people send USDC directly" is IMPOSSIBLE (asked repeatedly, held):**
+a wallet transfer to an address is not a deposit. A deposit is ONE signed tx that moves the
+USDC AND mints a receipt bound to the sender's wallet — that receipt is the badge, the vote,
+and the refund. A plain transfer runs no such instruction → no receipt → funds land in the
+vault owned by nobody. And the upgrade key is burned (immutable), so no instruction can ever
+be added to assign or refund them → stranded permanently. The signature is what makes the
+money recoverable; it cannot be bypassed. (This was Lorin's instinct twice under UX pain; the
+answer is a hard no — it would take people's money.)
+
+**On-chain deposit check** (run anytime to see if a deposit landed — straight from the chain):
 
 ```bash
 # raised / depositor count, straight from the chain
