@@ -292,6 +292,7 @@
     ixs.forEach(function (ix) { tx.add(ix); });
     tx.feePayer = wallet.pk;
     tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
+    status("Check your wallet — approve the transaction there to lock it in.");
     var signed = await wallet.p.signTransaction(tx);
     var sig = await conn.sendRawTransaction(signed.serialize());
     status("confirming " + sig.slice(0, 12) + "…");
@@ -312,6 +313,7 @@
       if (USDC_MINT.indexOf("REPLACE") === 0) { status("Not configured yet: campaign USDC mint missing."); return; }
       var usd = parseInt(btn.getAttribute("data-usd"), 10);
       tierBtns.forEach(function (b) { b.disabled = true; });
+      status("Preparing your $" + usd + " deposit — your wallet will pop up to approve it…");
       try {
         var mint = new W.PublicKey(USDC_MINT);
         var myAta = ata(wallet.pk, mint);
