@@ -6,3 +6,5 @@ node_modules/
 app/dist/
 relayer/public/
 app/.env.local
+package-lock.json
+**/package-lock.json

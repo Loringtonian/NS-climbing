@@ -82,9 +82,12 @@ export default function App() {
       // 3) sign with the embedded wallet (no Privy modal — showWalletUIs:false; we
       //    already showed our own confirmation), then broadcast it ourselves.
       setStatus("Locking it in…");
-      const { signedTransaction } = await signTransaction({ transaction: tx as any, wallet: embedded as any });
+      // Privy v3 signTransaction expects the ENCODED tx (Uint8Array), not the object.
+      const { signedTransaction } = await signTransaction({ transaction: tx.serialize() as any, wallet: embedded as any });
       setStatus("Sending…");
-      const signature = await conn.sendRawTransaction(signedTransaction as any, { skipPreflight: false });
+      const raw: any = signedTransaction instanceof Uint8Array ? signedTransaction
+        : (signedTransaction as any)?.serialize ? (signedTransaction as any).serialize() : signedTransaction;
+      const signature = await conn.sendRawTransaction(raw, { skipPreflight: false });
       for (let i = 0; i < 40; i++) {
         const s = (await conn.getSignatureStatuses([signature])).value[0];
         if (s?.err) throw new Error("transaction failed on-chain: " + JSON.stringify(s.err));

@@ -110,7 +110,14 @@ app.post("/fund-gas", async (req, res) => {
     tx.add(SystemProgram.transfer({ fromPubkey: relayer.publicKey, toPubkey: dep, lamports: GAS_TOPUP_LAMPORTS }));
     tx.sign(relayer);
     const sig = await conn.sendRawTransaction(tx.serialize());
-    await conn.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, "confirmed");
+    // Robust confirm by polling status — confirmTransaction's block-height strategy
+    // false-fails on flaky RPCs even when the tx actually lands.
+    for (let i = 0; i < 30; i++) {
+      const s = (await conn.getSignatureStatuses([sig])).value[0];
+      if (s?.err) return res.status(400).json({ error: "gas top-up failed" });
+      if (s && (s.confirmationStatus === "confirmed" || s.confirmationStatus === "finalized")) break;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
     res.json({ funded: true, sig });
   } catch (e) { res.status(400).json({ error: String(e?.message || e) }); }
 });
