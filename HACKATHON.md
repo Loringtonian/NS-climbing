@@ -74,8 +74,12 @@ company, demonstrably live, with a team that will still be building it on Monday
 
 | Track      | Mechanism                                   | Deadline        | Status |
 |------------|----------------------------------------------|-----------------|--------|
-| MagicBlock | Luma event: repo + demo video/live link      | Sunday (hr TBC) | repo ✓ · video TODO |
+| MagicBlock | Luma event: repo + demo video/live link      | Sunday (hr TBC) | repo ✓ · live link ✓ · video TODO |
 | Superteam  | Earn listing "Submit Now"                    | TBC (winners 7/21) | TODO |
 | Curious    | Live pitch                                   | Demo day        | pitch ready |
 | Fulgur     | Google Form (post-weekend fine)              | Rolling         | TODO |
 | Ârc        | Be visibly building all weekend              | Continuous      | ongoing |
+
+**Live links for every submission:** campaign **https://tinyurl.com/sendclimbing** · cheer board
+**https://tinyurl.com/sendcheer**. Mainnet went live 2026-07-12 with the upgrade authority burned —
+"demonstrably live, with immutable code" is the strongest line we have across all five tracks.

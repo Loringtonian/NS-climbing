@@ -9,13 +9,16 @@ dollar-majority of depositors ratifies that exact address; a 180-day timer refun
 if neither happens. Each deposit doubles as a non-transferable Supporter Badge — the ballot,
 weighted by your own locked amount.
 
-**Live page:** https://loringtonian.github.io/NS-climbing/ (community-shared, noindex)
+**Live page:** https://loringtonian.github.io/NS-climbing/ — short: **https://tinyurl.com/sendclimbing**
+**Cheer board:** https://loringtonian.github.io/NS-climbing/cheer.html — short: **https://tinyurl.com/sendcheer**
+
+(Community-shared, noindex. The two short links are what goes on the QR / in the Discord thread.)
 
 ## Start here
 
 | You want to…                        | Read                                       |
 |-------------------------------------|--------------------------------------------|
-| **Launch day checklist**            | [`TOMORROW.md`](TOMORROW.md)               |
+| **Where we are + what's left**      | [`TOMORROW.md`](TOMORROW.md)               |
 | See the plan + task board           | [`ROADMAP.md`](ROADMAP.md)                 |
 | The contract, stated as law         | [`SPEC.md`](SPEC.md)                       |
 | On-chain proof of all three endings | [`REHEARSALS.md`](REHEARSALS.md)           |
@@ -28,18 +31,21 @@ weighted by your own locked amount.
 | Images / brand assets               | [`assets/`](assets/)                       |
 | Real-time cheer board (bonus)       | [`cheerboard/README.md`](cheerboard/README.md) |
 
-## Status (2026-07-11 evening, hackathon weekend)
+## Status (2026-07-12 midday — MAINNET LIVE)
 
-- Contract v3.1 ("locked pool"): live on devnet, program `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ`
-  — a clean chain whose entire history is the deploy, three published scenario rehearsals,
-  and the demo campaign. Binary is byte-reproducible from source (hash pinned in
-  [`escrow/DEPLOY.md`](escrow/DEPLOY.md)).
-- Independently reviewed by an adversarial AI auditor; the shipped source reflects its
-  findings in full.
-- Test suite green against the exact deployed binary.
-- Mainnet: launches on the organizer's go after a real-money smoke test. Addresses will be
-  pinned in `VERIFY_IT.md` and `agents.md` at launch — anyone taking real deposits before
-  that isn't us.
+- **Contract v4 (dollar-weighted) is LIVE on mainnet.** Program
+  `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ` · campaign `send-climbing` · PDA
+  `B5MmhcNPzqJgFZ9fP8Ntrdr4UTZAtUb8xgVZfLi8yQXd` · Circle USDC · deadline **2027-01-08**.
+  Deployed + initialized 2026-07-12 ~02:50 UTC.
+- **Upgrade authority BURNED** — verified on-chain (ProgramData authority = `none`). The code
+  can never change. This was done before any deposit was taken, exactly as the site claims.
+- 19/19 tests green against the byte-reproducible binary (`facd1bb3…`, hash pinned in
+  [`escrow/DEPLOY.md`](escrow/DEPLOY.md)); two adversarial audit passes closed.
+- Devnet: clean chain, three published scenario rehearsals proving all three endings
+  ([`REHEARSALS.md`](REHEARSALS.md)).
+- **Pool as of 2026-07-12 12:30 (+08): $0 raised, 0 depositors.** The rail is live and
+  no money has moved through it yet — the first real deposit (organizer's own) is the
+  open item. See [`TOMORROW.md`](TOMORROW.md).
 
 ## The trust model, in one breath
 
