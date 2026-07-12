@@ -97,12 +97,17 @@ founder sends USDC to a keypair we control → we submit the `deposit` tx direct
 Phantom, no simulation). Real on-chain deposit, real counter movement. Deployer `84PE7wqG…`
 has gas (~0.24 SOL) but 0 USDC; fund it (or a fresh keypair) with USDC and run a deposit tx.
 
-**UPDATE 2026-07-12 ~13:30: cleared to push (via Solflare).** The earlier "don't push today"
-call was made under the Phantom-only slowness; that's resolved. The web flow works end-to-end
-on Solflare (desktop + mobile in-app browser) and now supports a broad wallet set. Steer NS
-folks to Solflare for the smoothest path; Phantom-only users still hit the slow simulation
-until Blowfish warms up (or submit the review form in §① next-steps). Lorin is building
-marketing material; the rail is ready underneath it.
+**UPDATE 2026-07-12 ~13:30: the Solflare rail works** end-to-end (desktop + mobile in-app
+browser) and supports a broad wallet set. It's fine for demos, the founder seed, and any
+willing crypto user (steer them to Solflare; Phantom-only users hit the slow sim until Blowfish
+warms up).
+
+**DECISION 2026-07-12 ~14:10 (Lorin): HOLD the broad public deposit launch until any-chain
+support is ready.** Lorin doesn't want to "really launch" asking everyone to deposit while a big
+chunk of the crowd (EVM-only) can't participate — cross-chain/Privy is a proper build, not a
+rush job (see `CROSSCHAIN_DEPOSITS.md`; longer-term, deferred until after the hackathon). **Today's
+hackathon submission shape = MARKETING VIDEO + CHEER BOARD**, not the deposit push. The escrow
+stays live/immutable/verified underneath; it just isn't the thing being promoted today.
 
 **Why "publish our address, people send USDC directly" is IMPOSSIBLE (asked repeatedly, held):**
 a wallet transfer to an address is not a deposit. A deposit is ONE signed tx that moves the
