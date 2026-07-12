@@ -6,7 +6,7 @@ import {
   useFundWallet,
   useExportWallet,
 } from "@privy-io/react-auth/solana";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import { CLUSTER, RPC, RELAYER, USDC_MINT, TIERS } from "./config";
 
 const conn = new Connection(RPC, "confirmed");
@@ -15,7 +15,7 @@ const b64ToU8 = (b: string) => Uint8Array.from(atob(b), (c) => c.charCodeAt(0));
 const short = (a: string) => a.slice(0, 4) + "…" + a.slice(-4);
 
 export default function App() {
-  const { ready, authenticated, login, logout, user } = usePrivy();
+  const { ready, authenticated, login, logout } = usePrivy();
   const { wallets } = useWallets();
   const { signTransaction } = useSignTransaction();
   const { fundWallet } = useFundWallet();
@@ -35,11 +35,7 @@ export default function App() {
       const r = await conn.getParsedTokenAccountsByOwner(new PublicKey(address), {
         mint: new PublicKey(USDC_MINT),
       });
-      const bal = r.value.reduce(
-        (s, a) => s + (a.account.data.parsed.info.tokenAmount.uiAmount || 0),
-        0
-      );
-      setUsdc(bal);
+      setUsdc(r.value.reduce((s, a) => s + (a.account.data.parsed.info.tokenAmount.uiAmount || 0), 0));
     } catch {
       setUsdc(0);
     }
@@ -53,8 +49,6 @@ export default function App() {
 
   async function addFunds() {
     if (!address) return;
-    // Privy's funding UI — on mainnet this can BRIDGE USDC from any EVM chain
-    // (Ethereum/Base/Arbitrum/Polygon/Optimism) onto this Solana wallet.
     await fundWallet(address, { cluster: { name: CLUSTER === "mainnet" ? "mainnet-beta" : "devnet" } } as any);
     refreshBalance();
   }
@@ -66,26 +60,24 @@ export default function App() {
     setStatus(`Preparing your $${usd} deposit…`);
     try {
       const prep = await fetch(`${RELAYER}/deposit/prepare`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ depositor: address, usd }),
       }).then((r) => r.json());
       if (prep.error) throw new Error(prep.error);
 
-      const tx = Transaction.from(b64ToU8(prep.tx));
-      setStatus("Signing in your embedded wallet…");
+      const tx = VersionedTransaction.deserialize(b64ToU8(prep.tx));
+      setStatus("Approve the signature in your wallet…");
       const { signedTransaction } = await signTransaction({ transaction: tx as any, wallet: embedded as any });
 
-      setStatus("Sponsoring gas + broadcasting…");
+      setStatus("Sponsoring gas + locking it in…");
       const out = await fetch(`${RELAYER}/deposit/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: prep.id, signedTx: u8ToB64(signedTransaction) }),
       }).then((r) => r.json());
       if (out.error) throw new Error(out.error);
 
       setSig(out.sig);
-      setStatus(`🎉 You're in! $${usd} locked in the pool.`);
+      setStatus(`🎉 You're in! $${usd} locked in the pool for the wall.`);
       refreshBalance();
     } catch (e: any) {
       setStatus("Deposit failed: " + (e?.message || String(e)));
@@ -94,85 +86,81 @@ export default function App() {
     }
   }
 
-  if (!ready) return <Shell><p>Loading…</p></Shell>;
+  if (!ready) {
+    return <div className="wrap"><div className="hero"><h1>Loading…</h1></div></div>;
+  }
 
   if (!authenticated) {
     return (
-      <Shell>
-        <h1>Back the climbing wall — from any chain</h1>
-        <p style={{ color: "#9aa4b2" }}>
-          Log in with email or any wallet. We give you a Solana wallet, you fund it from whatever
-          chain you're on, and your deposit locks into the escrow — no browser extension, no SOL needed.
-        </p>
-        <button style={btn} onClick={login}>Log in / Connect</button>
-      </Shell>
+      <div className="wrap">
+        <div className="hero">
+          <span className="eyebrow">Any chain · no wallet needed</span>
+          <h1>Back the climbing wall <span>at Network School.</span></h1>
+          <div className="lede">
+            Log in with email or any wallet. We give you a Solana wallet, you top it up from
+            whatever chain you're on, and your deposit locks into the escrow — no browser
+            extension, no SOL needed.
+          </div>
+        </div>
+        <div className="stack">
+          <button className="btn" onClick={login}>Log in or connect a wallet</button>
+          <div className="brandnote">Email or any wallet · secured by Privy</div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Shell>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ color: "#9aa4b2", fontSize: 13 }}>
-          {address ? `Solana wallet ${short(address)}` : "provisioning wallet…"}
-        </span>
-        <button style={linkBtn} onClick={logout}>log out</button>
+    <div className="wrap">
+      <div className="hero" style={{ minHeight: 150 }}>
+        <span className="eyebrow">Any chain · no wallet needed</span>
+        <h1 style={{ fontSize: 24 }}>Back the wall <span>at Network School.</span></h1>
       </div>
 
-      <div style={card}>
-        <div style={{ fontSize: 13, color: "#9aa4b2" }}>Your balance</div>
-        <div style={{ fontSize: 28, fontWeight: 800 }}>
-          {usdc === null ? "…" : `$${usdc.toLocaleString()} USDC`}
+      <div className="stack">
+        <div className="row">
+          <span className="chip">{address ? short(address) : "provisioning wallet…"}</span>
+          <button className="link" onClick={logout}>log out</button>
         </div>
-        <button style={btnGhost} onClick={addFunds}>
-          Add funds {CLUSTER === "mainnet" ? "(any chain →  Solana)" : "(devnet)"}
-        </button>
-      </div>
 
-      <div style={{ fontSize: 13, color: "#9aa4b2", margin: "6px 2px" }}>Lock in a tier</div>
-      <div style={{ display: "grid", gap: 10 }}>
-        {TIERS.map((t) => (
-          <button key={t} style={btn} disabled={busy || (usdc !== null && usdc < t)}
-            onClick={() => deposit(t)}>
-            Lock ${t.toLocaleString()}
-            {usdc !== null && usdc < t ? " — add funds first" : ""}
+        <div className="card">
+          <div className="label">Your balance</div>
+          <div className="bal">{usdc === null ? "…" : `$${usdc.toLocaleString()}`} <span style={{ fontSize: 15, color: "var(--muted)" }}>USDC</span></div>
+          <button className="btn ghost" style={{ marginTop: 14 }} onClick={addFunds}>
+            + Add funds {CLUSTER === "mainnet" ? "(from any chain)" : "(devnet)"}
           </button>
-        ))}
-      </div>
+        </div>
 
-      {status && <p style={{ color: "#ffb24a", marginTop: 14, wordBreak: "break-all" }}>{status}</p>}
-      {sig && (
-        <a style={{ color: "#ffb24a" }} target="_blank" rel="noopener"
-          href={`https://explorer.solana.com/tx/${sig}${CLUSTER === "devnet" ? "?cluster=devnet" : ""}`}>
-          view your transaction ↗
-        </a>
-      )}
+        <div className="label" style={{ margin: "4px 2px" }}>Lock in a tier</div>
+        {TIERS.map((t) => {
+          const need = usdc !== null && usdc < t;
+          return (
+            <button key={t} className="btn tier" disabled={busy || need} onClick={() => deposit(t)}>
+              <span>Lock in{need ? " — add funds first" : ""}</span>
+              <span className="amt">${t.toLocaleString()}</span>
+            </button>
+          );
+        })}
 
-      <div style={{ marginTop: 22, borderTop: "1px solid #262c36", paddingTop: 14 }}>
-        <div style={{ fontSize: 13, color: "#9aa4b2" }}>
+        {status && (
+          <div className="status">
+            {busy && <span className="spin" style={{ marginRight: 8, verticalAlign: "-2px" }} />}
+            {status}
+          </div>
+        )}
+        {sig && (
+          <a className="status" style={{ display: "block" }} target="_blank" rel="noopener"
+            href={`https://explorer.solana.com/tx/${sig}${CLUSTER === "devnet" ? "?cluster=devnet" : ""}`}>
+            view your transaction ↗
+          </a>
+        )}
+
+        <hr className="sep" />
+        <div className="fine">
           Your badge, vote, and refund live on this wallet. Export the key so they survive no matter what.
         </div>
-        <button style={linkBtn} onClick={() => exportWallet()}>Export my wallet key →</button>
-      </div>
-    </Shell>
-  );
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ minHeight: "100vh", background: "#0e1116", color: "#f2f4f7",
-      fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif", display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: 460, padding: "40px 22px", display: "grid", gap: 12 }}>
-        {children}
+        <button className="link" onClick={() => exportWallet()}>Export my wallet key →</button>
       </div>
     </div>
   );
 }
-
-const btn: React.CSSProperties = { width: "100%", padding: "15px 18px", borderRadius: 999, border: 0,
-  background: "#ff6b4a", color: "#0e1116", fontWeight: 800, fontSize: 16, cursor: "pointer" };
-const btnGhost: React.CSSProperties = { ...btn, background: "transparent", color: "#f2f4f7",
-  border: "1px solid #262c36", marginTop: 10 };
-const linkBtn: React.CSSProperties = { background: "none", border: 0, color: "#9aa4b2",
-  textDecoration: "underline", cursor: "pointer", fontSize: 13, padding: 0 };
-const card: React.CSSProperties = { background: "#161b22", border: "1px solid #262c36",
-  borderRadius: 16, padding: 18, marginTop: 6 };

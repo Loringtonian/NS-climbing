@@ -6,7 +6,7 @@
 import express from "express";
 import cors from "cors";
 import { randomUUID } from "node:crypto";
-import { Connection, Keypair, Transaction, PublicKey } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import { buildDepositTx } from "../shared/escrow.js";
 import { CONFIGS, TIERS } from "../shared/config.js";
@@ -62,10 +62,9 @@ app.post("/deposit/prepare", async (req, res) => {
       programId: cfg.program, campaignId: cfg.campaignId, mint: cfg.mint,
       depositor, relayer: relayer.publicKey.toBase58(), usd: Number(usd), recentBlockhash: blockhash,
     });
-    const msg = tx.serializeMessage();                 // canonical, includes blockhash + feePayer
     const id = randomUUID();
-    pending.set(id, { msg: Buffer.from(msg).toString("base64"), ts: Date.now() });
-    res.json({ id, tx: tx.serialize({ requireAllSignatures: false, verifySignatures: false }).toString("base64") });
+    pending.set(id, { msg: Buffer.from(tx.message.serialize()).toString("base64"), ts: Date.now() });
+    res.json({ id, tx: Buffer.from(tx.serialize()).toString("base64") });
   } catch (e) { res.status(400).json({ error: String(e?.message || e) }); }
 });
 
@@ -75,14 +74,15 @@ app.post("/deposit/submit", async (req, res) => {
     const { id, signedTx } = req.body || {};
     const rec = pending.get(id);
     if (!rec) return res.status(400).json({ error: "unknown or expired id" });
-    const tx = Transaction.from(Buffer.from(signedTx, "base64"));
+    const tx = VersionedTransaction.deserialize(Buffer.from(signedTx, "base64"));
     // tamper check: the returned message must equal the one we built
-    if (Buffer.from(tx.serializeMessage()).toString("base64") !== rec.msg)
+    if (Buffer.from(tx.message.serialize()).toString("base64") !== rec.msg)
       return res.status(400).json({ error: "transaction does not match prepared deposit" });
     pending.delete(id);
-    // depositor must have already signed; relayer adds its (feePayer + transfer) sig
-    tx.partialSign(relayer);
-    if (!tx.verifySignatures()) return res.status(400).json({ error: "missing depositor signature" });
+    // depositor already signed; relayer fills its (feePayer + transfer) slot, preserving depositor's
+    tx.sign([relayer]);
+    if (tx.signatures.some((s) => s.every((b) => b === 0)))
+      return res.status(400).json({ error: "missing depositor signature" });
     const sig = await conn.sendRawTransaction(tx.serialize(), { skipPreflight: false });
     await conn.confirmTransaction(sig, "confirmed");
     res.json({ sig });

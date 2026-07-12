@@ -9,7 +9,8 @@
 // so a zero-SOL Privy embedded wallet can still cover the rent the contract
 // hard-codes to `payer = depositor`. Order matters: the transfer runs first.
 import {
-  PublicKey, Transaction, TransactionInstruction, SystemProgram,
+  PublicKey, TransactionInstruction, SystemProgram,
+  TransactionMessage, VersionedTransaction,
 } from "@solana/web3.js";
 
 export const TOKEN_PID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
@@ -88,10 +89,12 @@ function depositIx({ programId, campaign, vault, depositor, mint, usd }) {
 export const RENT_GIFT_LAMPORTS = 5_000_000; // 0.005 SOL
 
 /**
- * Build the unsigned deposit Transaction for the relayer-sponsored flow.
- * @returns {Transaction} feePayer=relayer, needs BOTH relayer (feePayer + transfer)
- *          and depositor (embedded wallet) signatures. Client partial-signs with
- *          the embedded wallet, relayer co-signs + broadcasts.
+ * Build the unsigned deposit VersionedTransaction for the relayer-sponsored flow.
+ * Versioned (v0) because Privy v3's embedded-wallet signTransaction expects a
+ * VersionedTransaction. feePayer = relayer; needs BOTH relayer (feePayer +
+ * transfer) and depositor (embedded wallet) signatures. Client partial-signs with
+ * the embedded wallet, relayer co-signs + broadcasts.
+ * @returns {VersionedTransaction}
  */
 export function buildDepositTx({
   programId, campaignId, mint, depositor, relayer, usd, recentBlockhash,
@@ -103,16 +106,16 @@ export function buildDepositTx({
   const campaign = campaignPda(pid, campaignId);
   const vault = vaultPda(pid, campaign);
 
-  const tx = new Transaction();
-  tx.feePayer = relay;
-  tx.recentBlockhash = recentBlockhash;
-  // 1) relayer gifts rent so the zero-SOL embedded wallet can cover it
-  tx.add(SystemProgram.transfer({
-    fromPubkey: relay, toPubkey: dep, lamports: RENT_GIFT_LAMPORTS,
-  }));
-  // 2) ensure the depositor's USDC ATA exists (idempotent), depositor pays
-  tx.add(createAtaIdempotentIx(dep, dep, mintPk));
-  // 3) the audited deposit instruction
-  tx.add(depositIx({ programId: pid, campaign, vault, depositor: dep, mint: mintPk, usd }));
-  return tx;
+  const instructions = [
+    // 1) relayer gifts rent so the zero-SOL embedded wallet can cover it (runs first)
+    SystemProgram.transfer({ fromPubkey: relay, toPubkey: dep, lamports: RENT_GIFT_LAMPORTS }),
+    // 2) ensure the depositor's USDC ATA exists (idempotent), depositor pays
+    createAtaIdempotentIx(dep, dep, mintPk),
+    // 3) the audited deposit instruction
+    depositIx({ programId: pid, campaign, vault, depositor: dep, mint: mintPk, usd }),
+  ];
+  const msg = new TransactionMessage({
+    payerKey: relay, recentBlockhash, instructions,
+  }).compileToV0Message();
+  return new VersionedTransaction(msg);
 }
