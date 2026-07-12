@@ -301,19 +301,13 @@
     tx.feePayer = wallet.pk;
     tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
     busy("Check your wallet — approve the transaction there to lock it in.");
-    // Prefer the wallet's own signAndSendTransaction: it lets Phantom simulate
-    // and broadcast the tx through its secure path. Raw signTransaction +
-    // manual sendRawTransaction is what trips Phantom's "can't simulate / could
-    // be malicious" warning (it resembles drainer behavior), so we use it only
-    // as a fallback for providers that lack signAndSendTransaction.
-    var sig;
-    if (typeof wallet.p.signAndSendTransaction === "function") {
-      var res = await wallet.p.signAndSendTransaction(tx);
-      sig = (res && res.signature) ? res.signature : res;
-    } else {
-      var signed = await wallet.p.signTransaction(tx);
-      sig = await conn.sendRawTransaction(signed.serialize());
-    }
+    // signTransaction renders a proceed-able approval screen even for a brand-new
+    // program Phantom can't yet simulate (it shows an "unverified" warning with a
+    // Proceed option). signAndSendTransaction, by contrast, needs a successful
+    // pre-flight simulation to enable Confirm — which hangs blank for an
+    // unrecognized program. We sign, then broadcast ourselves via the RPC.
+    var signed = await wallet.p.signTransaction(tx);
+    var sig = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: true });
     status("confirming " + String(sig).slice(0, 12) + "…");
     await conn.confirmTransaction(sig, "confirmed");
     return sig;
