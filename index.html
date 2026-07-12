@@ -133,10 +133,9 @@
   #flowBox .btn{display:block;width:100%;text-align:center;font-weight:800;border:0;cursor:pointer;padding:15px;border-radius:999px;font-size:16px;background:var(--accent);color:#0e1116;margin-top:10px;text-decoration:none}
   #flowBox .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
   #flowBox .btn:disabled{opacity:.45;cursor:default}
-  #flowBox .btn.tier{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:3px;background:#141922;border:1px solid var(--line);color:var(--ink);padding:15px 18px;font-size:17px;font-weight:800}
-  #flowBox .btn.tier:hover:not(:disabled){border-color:var(--accent)}
-  #flowBox .btn.tier small{font-weight:600;color:var(--muted);font-size:13px;line-height:1.4}
-  #flowBox .btn.tier.hidden{display:none}
+  #flowBox .btn.tier{display:none !important}   /* hidden tx triggers — the cards above are the selector */
+  #flowBox .stephead{font-weight:800;font-size:16px;margin:18px 0 2px}
+  #flowBox #connect.connected{background:transparent;border:1px solid var(--line);color:var(--muted);font-size:14px;font-weight:700;padding:11px}
   #flowBox .seg.depseg{display:flex;width:100%;margin-bottom:16px;background:#141922}
   #flowBox .seg.depseg button{flex:1;font-size:14px;padding:11px 8px;line-height:1.2}
   .anycard{display:flex;flex-direction:column;align-items:center;gap:15px;text-align:center;background:#0e1116;border:1px solid var(--line);border-radius:14px;padding:30px 22px}
@@ -340,12 +339,23 @@
 
       <div id="live-strip"></div>
 
-      <!-- The tier CARDS are gone: the deposit buttons below already name the tier, the
-           amount and what you get, so the cards were a second, competing statement of the
-           same thing. The buttons (.tier) are the canonical tier surface — deposit.js binds
-           to them. -->
-
       <div class="pickhint" id="pickHint">Pick a tier ↓</div>
+
+      <div class="tiers">
+        <a class="tier-card v1" href="#deposit" data-usd="20">
+          <div class="row"><span class="name">V1</span><span class="amt nums">$20</span></div>
+          <div class="perk">A shout-out in the Discord. Counted in the live number. And a profound sense of satisfaction.</div>
+        </a>
+        <a class="tier-card v5" href="#deposit" data-usd="100">
+          <div class="row"><span class="name">V5</span><span class="amt nums">$100</span></div>
+          <div class="perk">Sharpie your name onto the wall itself. Graffiti it. It stays.</div>
+          <span class="hint">most start here</span>
+        </a>
+        <a class="tier-card v10" href="#deposit" data-usd="1000">
+          <div class="row"><span class="name">V10</span><span class="amt nums">$1000</span></div>
+          <div class="perk">Your name on the founding plaque.</div>
+        </a>
+      </div>
 
       <div id="flowBox">
         <div class="seg depseg" id="depSeg" role="tablist">
@@ -376,26 +386,27 @@
         <div id="hasWallet">
           <div class="inwallet">✓ You're in your wallet's browser. This is the right place.</div>
           <button class="btn btn-connect" id="connect">Connect wallet</button>
-          <div class="fine" style="margin-top:10px">Connecting shares <b>only your public address</b> — the same string you'd paste to anyone. It gives this page no power to move your funds: every deposit needs your signature, on that exact transaction. Balances are public on any blockchain, connected or not; we don't read, store, or send them anywhere.</div>
+          <div class="fine" id="connectFine" style="margin-top:10px">Connecting shares <b>only your public address</b> — no power over your funds; every deposit needs your signature on that exact transaction.</div>
           <div id="inBadge" class="in hidden">You're on the board ✓</div>
       <div id="discordCta" class="fine hidden" style="text-align:center"></div>
       <div id="whoWrap" class="hidden">
-        <input id="whoName" maxlength="100" placeholder="Who are you? — so we can find you when it's time to vote"
-          style="width:100%;margin-top:10px;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:#0e1116;color:var(--ink);font:inherit;font-size:15px">
-        <button class="btn ghost" id="whoSave" style="margin-top:8px;padding:10px;font-size:14px">Save my name</button>
+        <div class="stephead">One more step — add your name</div>
+        <div class="fine" style="margin:-2px 0 8px">So we can find you when it's time to vote. Private list; only your deposit is on-chain.</div>
+        <input id="whoName" maxlength="100" placeholder="Your name or handle"
+          style="width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:#0e1116;color:var(--ink);font:inherit;font-size:15px">
+        <button class="btn" id="whoSave" style="margin-top:10px">Save my name</button>
         <span class="fine" id="whoStatus" style="margin-left:10px"></span>
-        <div style="margin-top:8px;font-size:13px;color:#d7dde6">Names live in a private list held by the organizer — nothing but your deposit ever touches the chain.</div>
       </div>
 
           <div id="pickWrap" class="hidden">
             <div class="pickline">Locking in <b id="pickLabel"></b> <a href="#" id="changeTier">change</a></div>
             <button class="btn btn-confirm" id="confirmDeposit">Lock in</button>
           </div>
-          <button class="btn tier" data-usd="20">V1 — $20<small>A shout-out in the Discord. And a profound sense of satisfaction.</small></button>
-          <button class="btn tier" data-usd="100">V5 — $100<small>Sharpie your name onto the wall itself. Graffiti it. It stays.</small></button>
-          <button class="btn tier" data-usd="1000">V10 — $1000<small>Your name on the founding plaque.</small></button>
+          <button class="btn hidden tier" data-usd="20">V1 — $20<small>A shout-out in the Discord. And a profound sense of satisfaction.</small></button>
+          <button class="btn hidden tier" data-usd="100">V5 — $100<small>Sharpie your name onto the wall itself. Graffiti it. It stays.</small></button>
+          <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Your name on the founding plaque.</small></button>
           <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by dollar-weighted community majority (fund or dissolve-refund) or the 180-day timeout refund. Perks exist when the wall exists.</div>
-          <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (dollar-majority + organizer), everyone-refunded (dollar-majority dissolve), everyone-refunded (180-day timeout).</div>
+          <div class="fine hidden" id="lockedNote" style="text-align:center;margin-top:12px">🔒 Locked until the community decides, or refunded in full at the 180-day timeout. No individual withdrawal.</div>
           <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
       <div id="discordCtaVote" class="fine hidden" style="text-align:center;font-size:12px"></div>
         </div>
@@ -446,10 +457,6 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
         </div>
       </details>
 
-      <details class="x">
-        <summary>Tier perks, in full</summary>
-        <div class="xbody">Cumulative — each tier includes everything below it.<br><b>V1 · $20</b> — a shout-out in the Discord; counted in the live number; a profound sense of satisfaction.<br><b>V5 · $100</b> — sharpie your name onto the wall itself. Graffiti it. It stays.<br><b>V10 · $1000</b> — your name on the founding plaque.<br><span class="fine">Perks exist when the wall exists — never promised. If it dies, the majority dissolves and everyone is refunded in full — a V10's $1000 comes back exactly like a V1's $20.</span></div>
-      </details>
 
       <div class="fine" style="margin-top:14px">Not ready to lock money in? <a href="cheerboard/web/cheer.html?board=4iYYde668p6FBr9cEsa3L6JZf52DqJBZusvnKbXkEC1C&rpc=https%3A%2F%2Fdevnet-router.magicblock.app" style="color:#ffb24a">Smash the cheer button instead →</a></div>
       <div class="trustline">Your deposit is locked until the community decides or the clock runs out — money moves only as everyone-funded (dollar-majority + organizer's proposed address), everyone-refunded (dollar-majority dissolve), or everyone-refunded (180-day timeout). Enforced by code, details above.</div>
@@ -473,7 +480,7 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
       </script>
       <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js" defer></script>
       <script src="escrow/web/counter.js?v=1783830505"></script>
-      <script src="escrow/web/deposit.js?v=1784200100" defer></script>
+      <script src="escrow/web/deposit.js?v=1784300100" defer></script>
       <script>
         // tier cards open the inline flow with that tier pre-selected — no navigation
         document.addEventListener("DOMContentLoaded", function () {

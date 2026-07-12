@@ -299,7 +299,6 @@
             el.dataset.voted = voted ? "1" : "0";
             show("voteLink", true);
           }
-          renderDiscord(document.getElementById("discordCtaVote"), true);
         }
         // payout vote button (inside the proposal panel, badge-holders only)
         var pb = $("payoutVote");
@@ -401,6 +400,7 @@
       wallet = { p: p, pk: new W.PublicKey((res.publicKey || p.publicKey).toString()) };
       $("connect").textContent = "Connected " + wallet.pk.toBase58().slice(0, 4) + "…" + wallet.pk.toBase58().slice(-4);
       $("connect").classList.add("connected");
+      var _cf = document.getElementById("connectFine"); if (_cf) _cf.style.display = "none";
       status("");
       refreshState();
       return true;
