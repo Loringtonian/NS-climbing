@@ -5,8 +5,9 @@
 > initialized, upgrade authority BURNED, site flipped to mainnet + Circle USDC.** The contract
 > is now immutable and the rail is open.
 >
-> **The one thing that has NOT happened: a single successful deposit.** Pool is $0 / 0
-> depositors. Everything below is organized around closing that.
+> **FIRST DEPOSIT LANDED 2026-07-12 ~13:10 +08 via Solflare — $100 / 1 depositor.**
+> The blocker is solved: Solflare's simulator previews the new program fast where
+> Phantom's Blowfish hangs. The plain link now defaults to Solflare. Pool is live.
 
 ---
 
@@ -30,12 +31,39 @@
 
 ---
 
-## ① THE BLOCKER — deposit flow works but Phantom is too slow on a new program
+## ① BLOCKER RESOLVED — Solflare works, and the flow now supports many wallets
 
-Pool is still **$0 / 0 depositors**. Extensively debugged with real money on 2026-07-12
-(~12:00–12:50 +08). The flow is CORRECT; the problem is speed, and it's on Phantom's end.
+**FIXED 2026-07-12 ~13:10 +08.** First real mainnet deposit ($100) landed via **Solflare**.
+The root cause below was Phantom-specific; Solflare's simulator previews the new program
+fast. The site now defaults to Solflare and supports a broad wallet set, Phantom last.
 
-**Root cause (confirmed):** Phantom's transaction preview runs server-side via Blowfish, and
+**Wallet support shipped (commits `bc2fae2`, `9ee679f`, `b455a06`, `ba2c1d8`):**
+- **Desktop auto-detect** (order = preference, **Phantom strictly last** because its Blowfish
+  sim hangs on a new program): Solflare → Backpack → Coinbase → OKX → Trust → Glow → Brave →
+  (generic `window.solana`) → Phantom. All expose Phantom-compatible `connect()`/
+  `signTransaction()`, the only API this page uses (we self-broadcast), so wallets lacking
+  `signAndSendTransaction` (Coinbase, Trust) still work.
+- **`?w=<name>` override** pins one wallet when several extensions are installed (e.g.
+  `…/?w=solflare`) — handy for testing or for linking. It never changes what's signed.
+- **Mobile** (phones have no extensions → open the page inside the wallet's in-app browser):
+  verified universal "browse" deep-links for Solflare, Backpack, Coinbase, OKX, Trust, Phantom
+  (each format taken from that wallet's own docs). Picker is Solflare-first / Phantom-last.
+- **Late-injection poll**: some wallets (Solflare) inject their provider a beat after our
+  script runs; the page now polls ~6s and flips to the Connect UI when a wallet appears
+  (previously it concluded "no wallet" and showed only the mobile buttons).
+- **Deposit celebration**: confetti burst + "🎉 You're in!" + a link to the tx on Solana
+  Explorer + a badge pulse (commit `8497da2`).
+
+**VERIFIED headless (Chromium):** live page loads with zero JS errors; mobile-responsive at
+390px; all 6 wallet buttons render (Phantom last); every deep-link builds to its exact
+doc-verified format (incl. OKX double-encode + Trust `coin_id=501`).
+**NOT yet verified — needs a real-device spot-check before a hard push:** actual signing on
+each wallet on a real phone (the code path is identical to the proven Solflare-desktop path,
+and the deep-links are doc-verified, but per-wallet-per-phone e2e wasn't run), and
+Firefox/Safari desktop with real extensions.
+
+**Legacy detail (Phantom root cause — kept for reference):**
+Phantom's transaction preview runs server-side via Blowfish, and
 Blowfish **can't simulate our brand-new program fast enough** — the Confirm screen hangs
 **3–5+ minutes**, often blank/no details, before you can approve. This is NOT our code. It
 warms up over hours/days as Blowfish recognizes the program (server-side, so it improves for
@@ -69,9 +97,12 @@ founder sends USDC to a keypair we control → we submit the `deposit` tx direct
 Phantom, no simulation). Real on-chain deposit, real counter movement. Deployer `84PE7wqG…`
 has gas (~0.24 SOL) but 0 USDC; fund it (or a fresh keypair) with USDC and run a deposit tx.
 
-**DECISION 2026-07-12: NOT pushing public sales/deposits today.** The Phantom web flow is too
-slow to put in front of non-crypto NS folks until it warms up. Contract is live / immutable /
-verified; the rail works but needs to warm up (or Solflare) before the public push.
+**UPDATE 2026-07-12 ~13:30: cleared to push (via Solflare).** The earlier "don't push today"
+call was made under the Phantom-only slowness; that's resolved. The web flow works end-to-end
+on Solflare (desktop + mobile in-app browser) and now supports a broad wallet set. Steer NS
+folks to Solflare for the smoothest path; Phantom-only users still hit the slow simulation
+until Blowfish warms up (or submit the review form in §① next-steps). Lorin is building
+marketing material; the rail is ready underneath it.
 
 **Why "publish our address, people send USDC directly" is IMPOSSIBLE (asked repeatedly, held):**
 a wallet transfer to an address is not a deposit. A deposit is ONE signed tx that moves the
@@ -188,7 +219,7 @@ the code can never change.
 ## STATE AS OF THIS DOC (2026-07-12 12:30 +08)
 
 - Contract v4 dollar-weighted: **LIVE ON MAINNET**, immutable (upgrade authority burned).
-- Campaign `send-climbing`: open, deadline 2027-01-08, **$0 raised, 0 depositors**.
+- Campaign `send-climbing`: open, deadline 2027-01-08, **$100 raised, 1 depositor** (founder seed via Solflare 2026-07-12).
 - Mainnet program history: 2 transactions total (deploy, init). No deposits, no votes.
 - Devnet: clean chain, three rehearsals proving all three endings.
 - Frontend: mainnet config live; cheer-page campaign CTAs still hidden until the first deposit lands.
