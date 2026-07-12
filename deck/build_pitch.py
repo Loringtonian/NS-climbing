@@ -111,6 +111,25 @@ def footer(s):
     para(tf, "Network School  ·  send-climbing  ·  loringtonian.github.io/NS-climbing",
          11, MUTE, first=True, tracking=True)
 
+def diagram(s, path, top=1.6, maxw=11.7, maxh=5.35):
+    """center a generated architecture diagram, re-encoded lean (opaque dark
+    image -> high-q JPEG at 1800px; labels stay crisp, deck stays small)."""
+    from PIL import Image as _IM
+    if not os.path.exists(path):
+        return
+    im = _IM.open(path).convert("RGB")
+    if im.width > 1800:
+        im = im.resize((1800, round(im.height * 1800 / im.width)), _IM.LANCZOS)
+    path = os.path.splitext(path)[0] + "_opt.jpg"
+    im.save(path, "JPEG", quality=90, optimize=True)
+    iw, ih = _IM.open(path).size
+    ar = iw / ih
+    w = maxw; h = w / ar
+    if h > maxh:
+        h = maxh; w = h * ar
+    s.shapes.add_picture(path, Inches((13.333 - w) / 2), Inches(top),
+                         width=Inches(w), height=Inches(h))
+
 # ============================ SLIDES ============================
 
 # 1 — TITLE
@@ -182,28 +201,60 @@ para(tf, "Every claim is verifiable on-chain. Paste the repo to any AI and have 
      18, MUTE, before=4)
 footer(s)
 
-# 6 — IT'S LIVE (proof #1)
+# 6 — LIVE ESCROW (proof #1, crypto-native)
 s = slide()
 pill(s, 0.9, 1.0, "●  LIVE ON SOLANA MAINNET", GREEN, w=3.4)
-_, tf = tb(s, 0.9, 1.95, 11.5, 3.8)
-para(tf, "The escrow is real, and immutable.", 42, INK, bold=True, first=True)
-para(tf, "Deployed. Upgrade authority burned. First deposits locked.", 23, BODY, before=20)
-para(tf, "Program  2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ", 15, MUTE, before=22)
-para(tf, "Dollar-weighted · 180-day timeout · refunds are exact and permissionless",
-     16, MUTE, before=4)
+_, tf = tb(s, 0.9, 1.8, 11.6, 4.6)
+para(tf, "The escrow is real, and immutable.", 40, INK, bold=True, first=True)
+para(tf, "An Anchor program on Solana — the upgrade authority is burned, so the bytecode "
+        "can never change.", 21, BODY, before=18, spacing=1.08)
+para(tf, "USDC locks in a program vault PDA. Each depositor gets a non-transferable receipt "
+        "PDA — badge, vote, and refund in one.", 21, BODY, before=8, spacing=1.08)
+para(tf, "Release requires  payout_vote_amount × 2 > total_escrowed  — a majority of dollars, "
+        "not wallets. Refunds are permissionless, and funds only ever return to each depositor.",
+     21, BODY, before=8, spacing=1.08)
+para(tf, "Program  2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ", 14, MUTE, before=16)
 footer(s)
 
-# 7 — THE CHEER BOARD (proof #2, MagicBlock)
+# 6b — ESCROW ARCHITECTURE (the shape of the contract)
+s = slide()
+_, tf = tb(s, 0.9, 0.5, 11.6, 0.95)
+para(tf, "The shape of the contract.", 30, INK, bold=True, first=True)
+para(tf, "Deposits in. Three collective ways out. No individual withdraw.", 17, MUTE, before=6)
+diagram(s, os.path.join(HERE, "arch_escrow.png"), top=1.78)
+footer(s)
+
+# 7 — CHEER BOARD ON MAGICBLOCK (proof #2, the real ER lifecycle)
 s = slide()
 pill(s, 0.9, 1.0, "●  LIVE ON A MAGICBLOCK EPHEMERAL ROLLUP", AMBER, w=5.2)
-_, tf = tb(s, 0.9, 1.95, 11.5, 3.8)
-para(tf, "Before the money — the demand.", 42, INK, bold=True, first=True)
-para(tf, "A cheer board where every tap is a real, gasless transaction on Solana.", 23, BODY, before=20)
-para(tf, "No wallet. No cost. Your face is your key — no name ever touches the chain.",
-     19, MUTE, before=8)
-_, tf2 = tb(s, 0.9, 5.4, 11.5, 1.2)
-para(tf2, "25,000+ cheers", 40, AMBER, bold=True, first=True)
-para(tf2, "from the room, live — and climbing.", 20, MUTE, before=2)
+_, tf = tb(s, 0.9, 1.75, 11.6, 1.5)
+para(tf, "The cheer board is a live Solana demo.", 38, INK, bold=True, first=True)
+para(tf, "MagicBlock Ephemeral Rollups are on-demand SVM runtimes on Solana: delegate an "
+        "account, run it at ~10 ms and gasless, then commit state back to the base layer.",
+     18, MUTE, before=8, spacing=1.06)
+_, t2 = tb(s, 0.9, 3.45, 11.6, 2.7)
+def _life(tag, col, txt, first=False):
+    p = t2.paragraphs[0] if first else t2.add_paragraph()
+    p.space_before = Pt(0 if first else 13); p.line_spacing = 1.05
+    a = p.add_run(); a.text = tag + "   "
+    a.font.bold = True; a.font.size = Pt(20); a.font.color.rgb = col; a.font.name = FONT
+    b = p.add_run(); b.text = txt
+    b.font.size = Pt(18.5); b.font.color.rgb = BODY; b.font.name = FONT
+_life("DELEGATE", ACCENT, "we hand the rollup one counter PDA — a single number, never funds.", first=True)
+_life("CHEER", AMBER, "every tap is its own gasless transaction, ~10 ms, signed by a throwaway "
+      "in-page key. No wallet, no SOL. ~366 / sec.")
+_life("COMMIT", GREEN, "undelegate, and the final tally lands on Solana L1 as a permanent record.")
+_, t3 = tb(s, 0.9, 6.35, 11.6, 0.7)
+para(t3, "Tallied straight from the chain, not a database — no server. Your face is your "
+        "pubkey; no name ever touches the chain.", 15, MUTE, first=True)
+footer(s)
+
+# 8 — MAGICBLOCK ARCHITECTURE (the shape of the rollup flow)
+s = slide()
+_, tf = tb(s, 0.9, 0.5, 11.6, 0.95)
+para(tf, "One PDA — delegated to a rollup, committed back.", 30, INK, bold=True, first=True)
+para(tf, "How the cheer board runs on MagicBlock.", 17, MUTE, before=6)
+diagram(s, os.path.join(HERE, "arch_magicblock.png"), top=1.78)
 footer(s)
 
 # 8 — SCAN TO CHEER (the live moment)

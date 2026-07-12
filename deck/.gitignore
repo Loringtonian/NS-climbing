@@ -2,3 +2,8 @@
 NS_Climbing_Pitch.pptx
 cheer_qr.png
 _opt_*.jpg
+# generated architecture diagrams (Gemini) + their optimized encodes
+arch_magicblock.png
+arch_escrow.png
+*_opt.jpg
+*_opt.png
