@@ -39,5 +39,5 @@ School?
 
 | Network | Status |
 |---------|--------|
-| Devnet  | LIVE (test money; three scenario rehearsals published in REHEARSALS.md) |
-| Mainnet | Not yet — addresses land here at launch. Anyone taking real deposits before that isn't us. |
+| Mainnet | **LIVE** (2026-07-12) · program `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ` · campaign `send-climbing` PDA `B5MmhcNPzqJgFZ9fP8Ntrdr4UTZAtUb8xgVZfLi8yQXd` · USDC `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Circle) · **upgrade authority BURNED** (`solana program show … -u mainnet-beta` → `Authority: none`) |
+| Devnet  | test-money rehearsals: three scenario proofs published in REHEARSALS.md |

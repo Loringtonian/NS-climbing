@@ -26,11 +26,11 @@ destination, and no human ever holds the money.
 
 | Field                | Value |
 |----------------------|-------|
-| Cluster              | **mainnet deploy pending Lorin's go** — DO NOT act on real money until this table pins the mainnet campaign PDA + Circle USDC mint; re-read this file |
+| Cluster              | **mainnet — LIVE** (deployed 2026-07-12). Upgrade authority is **BURNED** — verify: `solana program show 2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ -u mainnet-beta` shows `Authority: none`. |
 | Program ID           | `2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ` (same ID on devnet and mainnet) |
 | Campaign ID (string) | `send-climbing` |
-| Campaign PDA         | derive: `["campaign", "send-climbing"]` (see below) — mainnet PDA pinned here at deploy |
-| USDC mint            | on mainnet: `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Circle USDC). A devnet demo mint exists for testing (see `escrow/DEVNET_STATE.md`) |
+| Campaign PDA         | `B5MmhcNPzqJgFZ9fP8Ntrdr4UTZAtUb8xgVZfLi8yQXd` (mainnet; derives from `["campaign", "send-climbing"]`) · vault `DGf8UtSPsKAcuRxmRYxQtZ5PSNWKYVxHzHeppbKeUfmV` |
+| USDC mint            | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Circle USDC, mainnet). A devnet demo mint also exists for testing (see `escrow/DEVNET_STATE.md`) |
 | Deposit tiers        | exactly $20 / $100 / $1000 USDC (`20_000_000` / `100_000_000` / `1_000_000_000` base units); other amounts rejected (`InvalidTierAmount`); one deposit per wallet, locked as-is (no tier changes) |
 | Goal                 | NONE — raise-as-much-as-possible mode; nothing gates on amount raised |
 | Deadline             | stored on-chain (layout below); 180 days from init for this campaign |
