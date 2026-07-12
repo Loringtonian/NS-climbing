@@ -136,8 +136,16 @@
   #flowBox .btn.tier{display:none !important}   /* tx triggers only — the cards are the UI */
   #flowBox .seg.depseg{display:flex;width:100%;margin-bottom:16px;background:#141922}
   #flowBox .seg.depseg button{flex:1;font-size:14px;padding:11px 8px;line-height:1.2}
-  #flowAnychain .anyintro{margin:0 0 14px;line-height:1.55}
-  #flowAnychain iframe{transition:height .18s ease}
+  .anycard{display:flex;flex-direction:column;align-items:center;gap:15px;text-align:center;background:#0e1116;border:1px solid var(--line);border-radius:14px;padding:30px 22px}
+  .anycard .chainrow{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+  .anycard .chainchip{font-size:12px;font-weight:600;color:#c7cfda;background:#141922;border:1px solid var(--line);padding:5px 11px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+  .anycard .chainchip .dot{width:7px;height:7px;border-radius:50%}
+  .anycard .anyh{font-size:23px;font-weight:800;letter-spacing:-.015em;line-height:1.15}
+  .anycard .anyh span{color:var(--accent)}
+  .anycard .anysub{color:#cdd4de;font-size:14px;line-height:1.5;max-width:42ch}
+  .anycard .btn{margin-top:2px;text-align:center;justify-content:center}
+  .anycard .privybadge{display:inline-flex;align-items:center;gap:7px;color:#8b93a1;font-size:12.5px}
+  .anycard .privybadge b{color:#a99cff;font-weight:700}
   .tiers{margin-bottom:0}
   .tier-card.picked{border-color:var(--accent);background:linear-gradient(160deg,rgba(255,107,74,.18),transparent)}
   .tier-card.dim{opacity:.4}
@@ -391,8 +399,21 @@
         <div id="status"></div>
         </div><!-- /flowSolana -->
         <div id="flowAnychain" class="hidden">
-          <div class="anyintro fine">No wallet needed — the same escrow, badge, and vote, reached with just an email.</div>
-          <iframe id="anyFrame" title="Deposit with email or from any chain" loading="lazy" style="width:100%;border:0;height:500px;background:#0e1116;border-radius:12px;display:block"></iframe>
+          <div class="anycard">
+            <div class="chainrow">
+              <span class="chainchip"><span class="dot" style="background:#627eea"></span>Ethereum</span>
+              <span class="chainchip"><span class="dot" style="background:#0052ff"></span>Base</span>
+              <span class="chainchip"><span class="dot" style="background:#28a0f0"></span>Arbitrum</span>
+              <span class="chainchip"><span class="dot" style="background:#14f195"></span>Solana</span>
+            </div>
+            <div class="anyh">Deposit from <span>any chain</span></div>
+            <div class="anysub">No Solana wallet? Log in with your email — we spin up a wallet for you, fund it from anywhere, and lock into the escrow. Same badge, same vote. No extension, no SOL.</div>
+            <a class="btn" id="anyGo" href="anychain/">Continue with email →</a>
+            <div class="privybadge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect width="24" height="24" rx="7" fill="#6f63ff"/><path d="M12 5.5l4.3 2.1v3.5c0 2.9-1.8 5.4-4.3 6.3-2.5-.9-4.3-3.4-4.3-6.3V7.6L12 5.5z" fill="#fff" fill-opacity=".96"/></svg>
+              Wallets secured by <b>Privy</b>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -473,15 +494,14 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
             });
           });
 
-          // Deposit-method toggle: Solana wallet (inline) vs Email / any chain (Privy embed).
+          // Deposit-method toggle: Solana wallet (inline) vs Email / any chain (opens
+          // the standalone Privy page — Privy's login can't run inside an iframe).
           (function () {
             var segSol = document.getElementById("segSol");
             var segAny = document.getElementById("segAny");
             var flowSol = document.getElementById("flowSolana");
             var flowAny = document.getElementById("flowAnychain");
-            var anyFrame = document.getElementById("anyFrame");
             if (!segSol || !segAny) return;
-            var loaded = false;
             function setMode(any) {
               segAny.classList.toggle("on", any);
               segSol.classList.toggle("on", !any);
@@ -489,25 +509,9 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
               segSol.setAttribute("aria-selected", any ? "false" : "true");
               flowAny.classList.toggle("hidden", !any);
               flowSol.classList.toggle("hidden", any);
-              if (any && !loaded) { anyFrame.src = "anychain/?embed=1"; loaded = true; }
             }
             segSol.addEventListener("click", function () { setMode(false); });
             segAny.addEventListener("click", function () { setMode(true); });
-            // Same-origin iframe → size it to its content (no inner scrollbar). Grow-only
-            // from a 500px floor that comfortably fits the Privy login modal.
-            function fit() {
-              try {
-                var d = anyFrame.contentDocument;
-                if (!d || !d.body) return;
-                var h = Math.max(d.body.scrollHeight, d.documentElement ? d.documentElement.scrollHeight : 0);
-                if (h > 80) anyFrame.style.height = Math.max(500, h) + "px";
-              } catch (e) {}
-            }
-            anyFrame.addEventListener("load", function () {
-              fit();
-              try { if (window.ResizeObserver && anyFrame.contentDocument) new ResizeObserver(fit).observe(anyFrame.contentDocument.body); } catch (e) {}
-              var n = 0, iv = setInterval(function () { fit(); if (++n > 80) clearInterval(iv); }, 700);
-            });
           })();
         });
       </script>
