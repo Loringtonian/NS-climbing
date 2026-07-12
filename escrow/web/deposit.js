@@ -50,6 +50,14 @@
   var wallet = null;
   var $ = function (id) { return document.getElementById(id); };
   function status(msg) { $("status").textContent = msg; }
+  // busy state with an inline spinner (injected once)
+  (function () {
+    if (document.getElementById("ns-spin-style")) return;
+    var s = document.createElement("style"); s.id = "ns-spin-style";
+    s.textContent = ".ns-spin{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border:2px solid rgba(255,255,255,.25);border-top-color:#ffb24a;border-radius:50%;animation:nsspin .7s linear infinite}@keyframes nsspin{to{transform:rotate(360deg)}}";
+    document.head.appendChild(s);
+  })();
+  function busy(msg) { $("status").innerHTML = '<span class="ns-spin"></span>' + msg; }
   function show(id, on) { $(id).classList.toggle("hidden", !on); }
 
   function provider() {
@@ -292,7 +300,7 @@
     ixs.forEach(function (ix) { tx.add(ix); });
     tx.feePayer = wallet.pk;
     tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
-    status("Check your wallet — approve the transaction there to lock it in.");
+    busy("Check your wallet — approve the transaction there to lock it in.");
     // Prefer the wallet's own signAndSendTransaction: it lets Phantom simulate
     // and broadcast the tx through its secure path. Raw signTransaction +
     // manual sendRawTransaction is what trips Phantom's "can't simulate / could
@@ -324,7 +332,7 @@
       if (USDC_MINT.indexOf("REPLACE") === 0) { status("Not configured yet: campaign USDC mint missing."); return; }
       var usd = parseInt(btn.getAttribute("data-usd"), 10);
       tierBtns.forEach(function (b) { b.disabled = true; });
-      status("Preparing your $" + usd + " deposit — your wallet will pop up to approve it…");
+      busy("Preparing your $" + usd + " deposit — your wallet will pop up to approve it…");
       try {
         var mint = new W.PublicKey(USDC_MINT);
         var myAta = ata(wallet.pk, mint);
@@ -358,6 +366,7 @@
         status("Escrowed $" + usd + " — you're on the board. " + sig.slice(0, 12) + "…");
         renderDiscord(document.getElementById("discordCta"));
       } catch (e) {
+        console.error("[NS deposit] failed:", e);
         status("Deposit failed: " + shortErr(e));
       }
       refreshState();
