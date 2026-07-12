@@ -1,0 +1,10 @@
+{
+  "name": "ns-climbing-privy",
+  "private": true,
+  "type": "module",
+  "description": "Any-chain deposits into the immutable NS-climbing Solana escrow, via Privy embedded wallets + a fee-payer relayer. shared/ deps live here so both shared/ and relayer/ resolve them.",
+  "dependencies": {
+    "@solana/web3.js": "^1.95.3",
+    "bs58": "^6.0.0"
+  }
+}

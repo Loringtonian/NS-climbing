@@ -1,0 +1,15 @@
+{
+  "name": "ns-climbing-relayer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "keygen": "node keygen.js"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.3",
+    "bs58": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
