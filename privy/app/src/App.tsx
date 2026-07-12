@@ -36,6 +36,7 @@ export default function App() {
   const [sig, setSig] = useState<string | null>(null);
   const [showFund, setShowFund] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [confirmTier, setConfirmTier] = useState<number | null>(null);
 
   // one-time console dump so we can see the wallet shape if anything's off
   useEffect(() => {
@@ -78,9 +79,9 @@ export default function App() {
       const tx = await buildSelfPaidDepositTx(conn, {
         programId: PROGRAM_ID, campaignId: CAMPAIGN_ID, mint: USDC_MINT, depositor: address, usd,
       });
-      // 3) Privy shows its confirm modal (now resolvable, since the tx is self-paid),
-      //    user approves → we get the signed tx → we broadcast it ourselves.
-      setStatus("Approve the transaction in the popup…");
+      // 3) sign with the embedded wallet (no Privy modal — showWalletUIs:false; we
+      //    already showed our own confirmation), then broadcast it ourselves.
+      setStatus("Locking it in…");
       const { signedTransaction } = await signTransaction({ transaction: tx as any, wallet: embedded as any });
       setStatus("Sending…");
       const signature = await conn.sendRawTransaction(signedTransaction as any, { skipPreflight: false });
@@ -174,15 +175,30 @@ export default function App() {
         </div>
 
         <div className="label" style={{ margin: "4px 2px" }}>Lock in a tier</div>
-        {TIERS.map((t) => {
-          const need = usdc !== null && usdc < t;
-          return (
-            <button key={t} className="btn tier" disabled={busy || need} onClick={() => deposit(t)}>
-              <span>Lock in{need ? " — add USDC first" : ""}</span>
-              <span className="amt">${t.toLocaleString()}</span>
-            </button>
-          );
-        })}
+        {confirmTier !== null ? (
+          <div className="card" style={{ borderColor: "var(--accent)" }}>
+            <div style={{ fontWeight: 800, fontSize: 18 }}>Lock ${confirmTier.toLocaleString()} into the escrow?</div>
+            <div className="fine" style={{ marginTop: 8, lineHeight: 1.55 }}>
+              Your ${confirmTier.toLocaleString()} USDC locks into the pool — no individual withdraw. It only comes back if depositors vote to dissolve, or automatically at the 180-day deadline. You're signing with your own wallet; nobody can move the pool alone.
+            </div>
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <button className="btn" disabled={busy} onClick={() => { const t = confirmTier; setConfirmTier(null); deposit(t); }}>
+                Confirm — lock ${confirmTier.toLocaleString()}
+              </button>
+              <button className="btn ghost" disabled={busy} style={{ width: "auto", padding: "15px 20px" }} onClick={() => setConfirmTier(null)}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          TIERS.map((t) => {
+            const need = usdc !== null && usdc < t;
+            return (
+              <button key={t} className="btn tier" disabled={busy || need} onClick={() => setConfirmTier(t)}>
+                <span>Lock in{need ? " — add USDC first" : ""}</span>
+                <span className="amt">${t.toLocaleString()}</span>
+              </button>
+            );
+          })
+        )}
 
         {status && <div className="status">{busy && <span className="spin" style={{ marginRight: 8, verticalAlign: "-2px" }} />}{status}</div>}
         {sig && (

@@ -30,8 +30,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             },
           },
         },
-        // provision a self-custodial embedded Solana wallet for users without one
-        embeddedWallets: { solana: { createOnLogin: "users-without-wallets" } },
+        // provision a self-custodial embedded Solana wallet for users without one.
+        // showWalletUIs:false overrides the app's enforce_wallet_uis (docs: client
+        // config takes precedence) — Privy's confirm modal can't preview a custom
+        // escrow-program deposit, so we show our own confirmation in-app instead.
+        embeddedWallets: {
+          showWalletUIs: false,
+          solana: { createOnLogin: "users-without-wallets" },
+        },
       }}
     >
       <App />
