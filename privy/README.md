@@ -3,6 +3,53 @@
 Let anyone — on **any chain, or email-only, with no browser wallet and no SOL** — deposit into
 the **existing immutable** Solana escrow, **without changing the contract**.
 
+## ✅ STATUS — PROVEN LIVE ON MAINNET (2026-07-12)
+
+A real end-to-end deposit landed: **email login → Privy embedded Solana wallet → USDC →
+deposit into the live `send-climbing` escrow**, relayer-sponsored gas, our own confirmation UI.
+Campaign went **$100/1 → $120/2 depositors**. Proof tx:
+`4yUCtucNVqzDWkazHgnSCvS6FdoZZKSzCE9H8iTabpVjKdnNDKGaNZ1nqk68E5NNoRn39RmJ7ff1xi5i67TVNHeW`.
+
+**Live (staging):** https://loringtonian.github.io/NS-climbing/anychain/ · relayer
+`https://ns-climbing-relayer.fly.dev` (Fly, mainnet, funded) · Privy app `cmrhgep4h01vh0clb7o269ab3`.
+
+### The flow that works (as built, differs from the "co-sign" sketch below)
+1. User clicks a tier → **our own in-app confirmation** ("Lock $X into the escrow?").
+2. Client calls **`POST /fund-gas`** → relayer sends ~0.006 SOL to the embedded wallet (only if
+   it's low on SOL AND already holds USDC — anti-abuse).
+3. Client builds a **self-paid** deposit tx (embedded wallet is the sole signer + fee-payer;
+   `app/src/escrow.ts::buildSelfPaidDepositTx`).
+4. **`signTransaction`** with **`embeddedWallets.showWalletUIs:false`** (set in `main.tsx` — this
+   client override beats the dashboard `enforce_wallet_uis`, so Privy's own modal — which can't
+   preview a custom-program deposit — never shows). Pass the tx **serialized to a Uint8Array**.
+5. Client broadcasts the returned signed bytes and poll-confirms.
+
+### Hard-won gotchas (do not regress)
+- Privy v3 `signTransaction` wants the **encoded tx (Uint8Array)**, not the Transaction object
+  ("Uint8Array expected" if you pass the object). Use `tx.serialize()`.
+- Use **VersionedTransaction (v0)**, not legacy.
+- The deposit **must be self-paid** (embedded wallet = fee-payer). A relayer-fee-payer tx makes
+  Privy's confirm modal unable to simulate → "error preparing / will likely fail," even though
+  the tx is valid.
+- Privy's confirm modal **cannot preview a custom-program deposit** → `showWalletUIs:false` +
+  our own confirmation. (Client override works; no dashboard change needed.)
+- `/fund-gas` confirms by **polling `getSignatureStatuses`**, not `confirmTransaction` (the
+  block-height strategy false-fails on the public RPC even when the tx lands).
+- `@solana/kit` + `@solana-program/*` must be on **6.x** for the Privy v3 SDK to bundle.
+
+### NEXT (do this to finish)
+1. **Fold into the main site** — add an "email / any chain" option to the real deposit page
+   (`escrow/web/`) so it's one URL (QRs already point there); retire the `/anychain/` stub. Bring
+   the main site's **confetti** on success along (the stub has none).
+2. **In-app bridge funding** — "Add funds" currently just shows the address to send USDC to.
+   Wire an embeddable **bridge widget** (Across / Jumper) → the embedded wallet address, so users
+   fund from Base/Eth/etc. without leaving the page. (Privy's own funding config was a dead end:
+   USDC not selectable on the SVM tab + needs a provider API key.)
+3. Nudge **key export** at first deposit (governance/refund survive Privy).
+4. Restrict the relayer **CORS** to the deploy origin.
+
+Branch: `privy-crosschain`. Main-branch stub build lives at `anychain/` on `main`.
+
 ## Why this shape
 
 The deployed escrow is immutable and its `deposit` instruction *requires the depositor to sign*
