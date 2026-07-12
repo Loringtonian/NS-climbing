@@ -133,7 +133,10 @@
   #flowBox .btn{display:block;width:100%;text-align:center;font-weight:800;border:0;cursor:pointer;padding:15px;border-radius:999px;font-size:16px;background:var(--accent);color:#0e1116;margin-top:10px;text-decoration:none}
   #flowBox .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
   #flowBox .btn:disabled{opacity:.45;cursor:default}
-  #flowBox .btn.tier{display:none !important}   /* tx triggers only — the cards are the UI */
+  #flowBox .btn.tier{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:3px;background:#141922;border:1px solid var(--line);color:var(--ink);padding:15px 18px;font-size:17px;font-weight:800}
+  #flowBox .btn.tier:hover:not(:disabled){border-color:var(--accent)}
+  #flowBox .btn.tier small{font-weight:600;color:var(--muted);font-size:13px;line-height:1.4}
+  #flowBox .btn.tier.hidden{display:none}
   #flowBox .seg.depseg{display:flex;width:100%;margin-bottom:16px;background:#141922}
   #flowBox .seg.depseg button{flex:1;font-size:14px;padding:11px 8px;line-height:1.2}
   .anycard{display:flex;flex-direction:column;align-items:center;gap:15px;text-align:center;background:#0e1116;border:1px solid var(--line);border-radius:14px;padding:30px 22px}
@@ -388,9 +391,9 @@
             <div class="pickline">Locking in <b id="pickLabel"></b> <a href="#" id="changeTier">change</a></div>
             <button class="btn btn-confirm" id="confirmDeposit">Lock in</button>
           </div>
-          <button class="btn hidden tier" data-usd="20">V1 — $20<small>A shout-out in the Discord. And a profound sense of satisfaction.</small></button>
-          <button class="btn hidden tier" data-usd="100">V5 — $100<small>Sharpie your name onto the wall itself. Graffiti it. It stays.</small></button>
-          <button class="btn hidden tier" data-usd="1000">V10 — $1000<small>Your name on the founding plaque.</small></button>
+          <button class="btn tier" data-usd="20">V1 — $20<small>A shout-out in the Discord. And a profound sense of satisfaction.</small></button>
+          <button class="btn tier" data-usd="100">V5 — $100<small>Sharpie your name onto the wall itself. Graffiti it. It stays.</small></button>
+          <button class="btn tier" data-usd="1000">V10 — $1000<small>Your name on the founding plaque.</small></button>
           <div class="fine hidden" id="tierFine">Deposits are LOCKED in the pool — no individual withdraw. Money moves only by dollar-weighted community majority (fund or dissolve-refund) or the 180-day timeout refund. Perks exist when the wall exists.</div>
           <div class="fine hidden" id="lockedNote">Your deposit is locked until the community decides or the clock runs out. The only ways money moves: everyone-funded (dollar-majority + organizer), everyone-refunded (dollar-majority dissolve), everyone-refunded (180-day timeout).</div>
           <a href="#" id="voteLink" class="fine hidden" style="display:block;text-align:center;text-decoration:underline"></a>
@@ -470,7 +473,7 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
       </script>
       <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js" defer></script>
       <script src="escrow/web/counter.js?v=1783830505"></script>
-      <script src="escrow/web/deposit.js?v=1784014500" defer></script>
+      <script src="escrow/web/deposit.js?v=1784200100" defer></script>
       <script>
         // tier cards open the inline flow with that tier pre-selected — no navigation
         document.addEventListener("DOMContentLoaded", function () {

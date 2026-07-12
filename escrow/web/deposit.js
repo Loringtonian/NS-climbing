@@ -390,9 +390,12 @@
     if (pw) pw.classList.add("hidden");
     Array.prototype.forEach.call(document.querySelectorAll(".tier"), function (b) { b.classList.remove("hidden"); b.style.boxShadow = ""; });
   };
-  $("connect").onclick = async function () {
+  // Shared connect: used by the Connect button AND by a tier click made before
+  // connecting (tiers render pre-connect, so a tap connects then deposits).
+  async function ensureConnected() {
+    if (wallet) return true;
     var p = provider();
-    if (!p) { status("No wallet found — use the buttons above to open this page inside your wallet."); return; }
+    if (!p) { status("No wallet found — use the buttons above to open this page inside your wallet."); return false; }
     try {
       var res = await p.connect();
       wallet = { p: p, pk: new W.PublicKey((res.publicKey || p.publicKey).toString()) };
@@ -400,8 +403,10 @@
       $("connect").classList.add("connected");
       status("");
       refreshState();
-    } catch (e) { status("Connect cancelled."); }
-  };
+      return true;
+    } catch (e) { status("Connect cancelled."); return false; }
+  }
+  $("connect").onclick = ensureConnected;
 
   async function send(ixs) {
     var tx = new W.Transaction();
@@ -434,6 +439,7 @@
     btn.onclick = async function () {
       if (USDC_MINT.indexOf("REPLACE") === 0) { status("Not configured yet: campaign USDC mint missing."); return; }
       var usd = parseInt(btn.getAttribute("data-usd"), 10);
+      if (!wallet) { var ok = await ensureConnected(); if (!ok) return; }
       tierBtns.forEach(function (b) { b.disabled = true; });
       busy("Preparing your $" + usd + " deposit — your wallet will pop up to approve it…");
       try {
