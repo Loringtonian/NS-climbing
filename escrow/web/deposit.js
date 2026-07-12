@@ -114,19 +114,41 @@
     requestAnimationFrame(frame);
   }
 
+  // Popular Solana wallets by the global each injects. All expose a
+  // Phantom-compatible connect()/signTransaction(); this page only ever calls
+  // those two and self-broadcasts, so a wallet lacking signAndSendTransaction
+  // (Coinbase, Trust) still works fine here.
+  function walletMap() {
+    var w = window;
+    return {
+      solflare: w.solflare,
+      backpack: w.backpack,
+      coinbase: w.coinbaseSolana,
+      okx:      w.okxwallet && w.okxwallet.solana,
+      trust:    w.trustwallet && w.trustwallet.solana,
+      glow:     w.glowSolana,
+      brave:    w.braveSolana,
+      phantom:  (w.phantom && w.phantom.solana)
+    };
+  }
+  // Auto-detect preference order. Phantom is deliberately NOT here — it is
+  // resolved LAST (below), because its Blowfish simulator hangs 3-5min
+  // previewing a brand-new program while the others preview near-instantly.
+  var WALLET_ORDER = ["solflare", "backpack", "coinbase", "okx", "trust", "glow", "brave"];
   function provider() {
-    // ?w=solflare / ?w=phantom pins one wallet when several extensions are
-    // installed (default order prefers Phantom). Wallet CHOICE is presentation,
-    // not config — it never changes the program/campaign/mint being signed — so
-    // it stays within the audit's no-URL-param-config rule.
+    // ?w=<name> pins one wallet when several extensions are installed (handy for
+    // testing / linking). Wallet CHOICE is presentation, not config — it never
+    // changes the program/campaign/mint being signed — so it stays within the
+    // audit's no-URL-param-config rule.
     var pin = (new URLSearchParams(location.search).get("w") || "").toLowerCase();
-    if (pin === "solflare") return window.solflare || null;
-    if (pin === "phantom") return (window.phantom && window.phantom.solana) || null;
-    // Solflare first (its simulator previews new programs fast; Phantom's
-    // Blowfish hangs), generic wallet next, Phantom last.
-    return window.solflare ? window.solflare
-      : window.solana ? window.solana
-      : window.phantom && window.phantom.solana ? window.phantom.solana : null;
+    var m = walletMap();
+    if (pin && pin in m) return m[pin] || null;
+    for (var i = 0; i < WALLET_ORDER.length; i++) {
+      if (m[WALLET_ORDER[i]]) return m[WALLET_ORDER[i]];
+    }
+    // A wallet that only sets the generic window.solana (and isn't Phantom).
+    if (window.solana && !window.solana.isPhantom) return window.solana;
+    return m.phantom || window.solana || null;   // Phantom / anything, last.
   }
 
   // Tier pre-select — callable (inline tier cards) and via fragment
@@ -169,13 +191,24 @@
   // No injected wallet (plain mobile browser) -> deep-link into wallet browsers.
   // The link carries the chosen tier as a fragment so the wallet browser lands
   // back INSIDE the flow (not at the top of the page with everything collapsed).
+  // Each wallet's "browse this https URL inside my in-app browser" universal
+  // link. Formats verified against each wallet's own docs (Jul 2026). Phantom
+  // last to match the detection order.
   function buildDeepLinks() {
     if (provider()) return;
     var frag = location.hash && /^#(v1|v5|v10|ask)$/.test(location.hash) ? location.hash : "#ask";
     var here = location.origin + location.pathname + location.search + frag;
-    var pl = $("phantomLink"), sl = $("solflareLink");
-    if (pl) pl.href = "https://phantom.app/ul/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
-    if (sl) sl.href = "https://solflare.com/ul/v1/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
+    var U = encodeURIComponent(here), R = encodeURIComponent(location.origin);
+    var links = {
+      solflareLink: "https://solflare.com/ul/v1/browse/" + U + "?ref=" + R,
+      backpackLink: "https://backpack.app/ul/v1/browse/" + U + "?ref=" + R,
+      coinbaseLink: "https://go.cb-w.com/dapp?cb_url=" + U,
+      okxLink:      "https://web3.okx.com/download?deeplink=" +
+                    encodeURIComponent("okx://wallet/dapp/details?dappUrl=" + encodeURIComponent(here)),
+      trustLink:    "https://link.trustwallet.com/open_url?coin_id=501&url=" + U,
+      phantomLink:  "https://phantom.app/ul/browse/" + U + "?ref=" + R
+    };
+    for (var id in links) { var el = $(id); if (el) el.href = links[id]; }
   }
   window.EscrowFlow.refreshDeepLinks = buildDeepLinks;
   // Some extensions (Solflare) inject their provider a beat after our script
