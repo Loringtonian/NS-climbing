@@ -3,3 +3,6 @@ working/
 .gstack/
 magicblock-test-storage/
 sales_kit/
+
+# campaign video pipeline: local only, never published
+video/
