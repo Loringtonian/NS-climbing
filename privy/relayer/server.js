@@ -6,7 +6,7 @@
 import express from "express";
 import cors from "cors";
 import { randomUUID } from "node:crypto";
-import { Connection, Keypair, VersionedTransaction, PublicKey } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction, Transaction, SystemProgram, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import { buildDepositTx } from "../shared/escrow.js";
 import { CONFIGS, TIERS } from "../shared/config.js";
@@ -86,6 +86,32 @@ app.post("/deposit/submit", async (req, res) => {
     const sig = await conn.sendRawTransaction(tx.serialize(), { skipPreflight: false });
     await conn.confirmTransaction(sig, "confirmed");
     res.json({ sig });
+  } catch (e) { res.status(400).json({ error: String(e?.message || e) }); }
+});
+
+// Gas top-up: the embedded wallet becomes the sole payer of its own deposit (so
+// Privy's confirmation modal can simulate it), and this gifts it just enough SOL
+// to pay the tx fee + receipt-PDA rent. Anti-abuse: only funds a wallet that (a)
+// is actually low on SOL and (b) already holds >= the smallest tier in USDC.
+const GAS_TOPUP_LAMPORTS = 6_000_000; // 0.006 SOL
+const GAS_MIN_LAMPORTS   = 4_000_000; // skip if the wallet already has >= 0.004
+const MIN_USDC_BASE      = Math.min(...TIERS) * 1_000_000; // 6 decimals
+app.post("/fund-gas", async (req, res) => {
+  try {
+    if (!underLimit()) return res.status(429).json({ error: "rate limited" });
+    const dep = new PublicKey((req.body || {}).depositor);
+    const bal = await conn.getBalance(dep);
+    if (bal >= GAS_MIN_LAMPORTS) return res.json({ funded: false, reason: "already has gas", sol: bal / 1e9 });
+    const ta = await conn.getParsedTokenAccountsByOwner(dep, { mint: new PublicKey(cfg.mint) });
+    const usdc = ta.value.reduce((s, a) => s + Number(a.account.data.parsed.info.tokenAmount.amount || 0), 0);
+    if (usdc < MIN_USDC_BASE) return res.status(400).json({ error: "wallet holds no USDC to deposit" });
+    const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash("confirmed");
+    const tx = new Transaction({ feePayer: relayer.publicKey, blockhash, lastValidBlockHeight });
+    tx.add(SystemProgram.transfer({ fromPubkey: relayer.publicKey, toPubkey: dep, lamports: GAS_TOPUP_LAMPORTS }));
+    tx.sign(relayer);
+    const sig = await conn.sendRawTransaction(tx.serialize());
+    await conn.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, "confirmed");
+    res.json({ funded: true, sig });
   } catch (e) { res.status(400).json({ error: String(e?.message || e) }); }
 });
 

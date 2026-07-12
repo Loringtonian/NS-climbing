@@ -11,7 +11,7 @@ import App from "./App";
 import { PRIVY_APP_ID, RPC, WSS, CAIP } from "./config";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  <React.Fragment>
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
@@ -36,5 +36,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     >
       <App />
     </PrivyProvider>
-  </React.StrictMode>
+  </React.Fragment>
 );
