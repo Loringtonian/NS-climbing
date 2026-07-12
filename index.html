@@ -342,30 +342,11 @@
       <div class="pickhint" id="pickHint">Pick a tier ↑</div>
 
       <div id="flowBox">
-        <div id="nowallet" class="hidden">
-          <a class="btn" id="solflareLink" href="#">Open in Solflare</a>
-          <a class="btn ghost" id="backpackLink" href="#">Open in Backpack</a>
-          <a class="btn ghost" id="coinbaseLink" href="#">Open in Coinbase Wallet</a>
-          <a class="btn ghost" id="okxLink" href="#">Open in OKX Wallet</a>
-          <a class="btn ghost" id="trustLink" href="#">Open in Trust Wallet</a>
-          <a class="btn ghost" id="phantomLink" href="#">Open in Phantom</a>
-          <div class="whatnext">
-            <b>What happens next:</b>
-            <ol>
-              <li>Your wallet app opens this page inside its own browser. It'll still look like this page — that's normal.</li>
-              <li>You tap <b>Connect</b>, and your wallet shows a permission screen naming the site: <code>loringtonian.github.io</code>. That's us.</li>
-              <li>Connecting shares <b>only your public address</b> — no power to move funds. Every deposit needs a separate signature from you.</li>
-            </ol>
-          </div>
-          <div class="fine" style="margin-top:10px"><b>Using a different wallet?</b> Any Solana wallet with a built-in browser works. Open your wallet app, find its browser, and paste this page's address into it.</div>
-          <div class="warnbox"><b>Never send USDC straight to a wallet address for this.</b> A deposit has to go through this page — that's what creates your badge, your vote, and your refund. Tokens sent directly to any address land nowhere and can't be recovered.</div>
-      <div class="fine desktop-hint">On a computer? Install the <a href="https://solflare.com" style="color:#ffb24a">Solflare browser extension</a>, then reload.</div>
-
-        </div>
+        <div id="nowallet" class="hidden"></div>
         <div id="hasWallet">
-          <div class="inwallet">✓ You're in your wallet's browser. This is the right place.</div>
           <button class="btn btn-connect" id="connect">Connect wallet</button>
-          <div class="fine" style="margin-top:10px">Connecting shares <b>only your public address</b> — the same string you'd paste to anyone. It gives this page no power to move your funds: every deposit needs your signature, on that exact transaction. Balances are public on any blockchain, connected or not; we don't read, store, or send them anywhere.</div>
+          <div class="fine" style="margin-top:10px">Connect any Solana wallet — Phantom, Solflare, Backpack and more — through the secure Privy popup. Connecting shares <b>only your public address</b>; it gives this page no power to move your funds, and every deposit needs your signature on that exact transaction.</div>
+          <div class="warnbox" style="margin-top:10px"><b>Never send USDC straight to a wallet address for this.</b> A deposit has to go through this page — that's what creates your badge, your vote, and your refund. Tokens sent directly to any address land nowhere and can't be recovered.</div>
           <div id="inBadge" class="in hidden">You're on the board ✓</div>
       <div id="discordCta" class="fine hidden" style="text-align:center"></div>
       <div id="whoWrap" class="hidden">
@@ -433,6 +414,9 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
           program: "2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ",
           campaign: "send-climbing",
           mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          // Privy external-wallet connector.
+          privyAppId: "cmrhgep4h01vh0clb7o269ab3",
+          usePrivy: true,
         discordThread: "https://discord.com/channels/900827411917201418/1525473314598817862",
         // private name form — set when Lorin's Google Form lands; field hidden until then
         nameForm: {
@@ -445,6 +429,8 @@ my own money to vote with my wallet for a climbing wall at Network School?</pre>
       <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js" defer></script>
       <script src="escrow/web/counter.js?v=1783830505"></script>
       <script src="escrow/web/deposit.js?v=1784014500" defer></script>
+      <!-- Privy island: inert unless ESCROW_CONFIG.usePrivy is true -->
+      <script type="module" src="escrow/web/privy-island.js?v=1"></script>
       <script>
         // tier cards open the inline flow with that tier pre-selected — no navigation
         document.addEventListener("DOMContentLoaded", function () {

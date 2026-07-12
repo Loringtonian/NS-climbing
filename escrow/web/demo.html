@@ -59,19 +59,11 @@
 
   <div class="card">
     <!-- no injected wallet: hand off to the wallet's in-app browser -->
-    <div id="nowallet" class="hidden">
-      <a class="btn" id="solflareLink" href="#">Open in Solflare</a>
-      <a class="btn ghost" id="backpackLink" href="#">Open in Backpack</a>
-      <a class="btn ghost" id="coinbaseLink" href="#">Open in Coinbase Wallet</a>
-      <a class="btn ghost" id="okxLink" href="#">Open in OKX Wallet</a>
-      <a class="btn ghost" id="trustLink" href="#">Open in Trust Wallet</a>
-      <a class="btn ghost" id="phantomLink" href="#">Open in Phantom</a>
-      <div class="fine">This page needs to run inside your wallet's browser to sign the deposit. One tap above brings you right back here, connected.</div>
-      <div class="fine desktop-hint">On a computer? Install the <a href="https://solflare.com" style="color:#ffb24a">Solflare browser extension</a>, then reload.</div>
-
-    </div>
+    <!-- wallet connect is handled entirely by Privy (any Solana wallet) -->
+    <div id="nowallet" class="hidden"></div>
     <div id="hasWallet">
       <button class="btn" id="connect">Connect wallet</button>
+      <div class="fine">Connect any Solana wallet — Phantom, Solflare, Backpack and more — through the secure Privy popup.</div>
       <div id="inBadge" class="in hidden">You're on the board ✓</div>
       <div id="discordCta" class="fine hidden" style="text-align:center"></div>
       <div id="whoWrap" class="hidden">
@@ -126,6 +118,9 @@
     program: "2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ",
     campaign: "send-climbing",
     mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    // Privy external-wallet connector.
+    privyAppId: "cmrhgep4h01vh0clb7o269ab3",
+    usePrivy: true,
         discordThread: "https://discord.com/channels/900827411917201418/1525473314598817862",
         // private name form — set when Lorin's Google Form lands; field hidden until then
         nameForm: {
@@ -138,5 +133,7 @@
 <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
 <script src="counter.js?v=1783830505"></script>
 <script src="deposit.js?v=1784014500"></script>
+<!-- Privy island: inert unless ESCROW_CONFIG.usePrivy is true -->
+<script type="module" src="privy-island.js?v=1"></script>
 </body>
 </html>

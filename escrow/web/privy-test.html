@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Privy connect test</title>
+<style>
+  body{background:#0e1116;color:#f2f4f7;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;max-width:560px;margin:0 auto;padding:32px 20px}
+  h1{font-size:22px;margin-bottom:6px}
+  .sub{color:#9aa4b2;font-size:14px;margin-bottom:20px}
+  button{font-weight:800;border:0;cursor:pointer;padding:14px 20px;border-radius:999px;font-size:16px;background:#ff6b4a;color:#0e1116;margin:6px 6px 6px 0}
+  button.ghost{background:transparent;border:1px solid #262c36;color:#f2f4f7}
+  pre{background:#161b22;border:1px solid #262c36;border-radius:12px;padding:14px;white-space:pre-wrap;word-break:break-all;font-size:13px;margin-top:16px;min-height:60px}
+  .ok{color:#7fe0b2}.err{color:#ff8a6a}
+</style>
+</head>
+<body>
+  <h1>Privy connect / sign test</h1>
+  <div class="sub">Verifies the window.PRIVY handoff (connect → address → sign) before enabling it on the deposit flow. External wallet only — same Phantom/Solflare keys.</div>
+  <button id="connect">Connect via Privy</button>
+  <button id="sign" class="ghost">Test sign (no broadcast)</button>
+  <pre id="log">Ready. Click "Connect via Privy".</pre>
+
+<script>
+  // Standalone config — Privy ON for this test page only.
+  window.ESCROW_CONFIG = {
+    // Public endpoint that allows browser (CORS) requests — the default
+    // api.mainnet-beta.solana.com 403s browser calls. For production use a
+    // dedicated RPC (Helius / QuickNode / Alchemy) with an API key.
+    rpc: "https://solana-rpc.publicnode.com",
+    privyAppId: "cmrhgep4h01vh0clb7o269ab3",
+    usePrivy: true
+  };
+  var connected = null;
+  var log = function (msg, cls) {
+    var el = document.getElementById("log");
+    el.textContent = msg; el.className = cls || "";
+  };
+</script>
+<script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
+<script type="module" src="privy-island.js?v=1"></script>
+<script>
+  document.getElementById("connect").onclick = async function () {
+    if (!window.PRIVY || !window.PRIVY.connect) { log("Privy island not loaded yet — wait a second and retry.", "err"); return; }
+    log("Opening Privy… approve in the modal / your wallet.");
+    try {
+      connected = await window.PRIVY.connect();
+      log("✓ Connected\naddress: " + connected.address, "ok");
+    } catch (e) { log("✗ connect failed: " + (e && e.message), "err"); }
+  };
+  document.getElementById("sign").onclick = async function () {
+    if (!connected) { log("Connect first.", "err"); return; }
+    try {
+      var W = solanaWeb3;
+      var conn = new W.Connection(window.ESCROW_CONFIG.rpc, "confirmed");
+      var pk = new W.PublicKey(connected.address);
+      var tx = new W.Transaction().add(
+        W.SystemProgram.transfer({ fromPubkey: pk, toPubkey: pk, lamports: 0 })
+      );
+      tx.feePayer = pk;
+      tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
+      log("Approve the signature in your wallet (nothing is broadcast)…");
+      var signed = await connected.signTransaction(tx);
+      var ok = signed && typeof signed.serialize === "function";
+      log((ok ? "✓ Signed OK — signTransaction returns a serializable tx.\n" : "⚠ Signed, but unexpected return shape.\n")
+          + "The deposit flow will work with this wallet.", ok ? "ok" : "err");
+    } catch (e) { log("✗ sign failed: " + (e && e.message) + "\nIf this is an API-shape error, see the // VERIFY lines in privy-island.js.", "err"); }
+  };
+</script>
+</body>
+</html>

@@ -135,7 +135,13 @@
   // resolved LAST (below), because its Blowfish simulator hangs 3-5min
   // previewing a brand-new program while the others preview near-instantly.
   var WALLET_ORDER = ["solflare", "backpack", "coinbase", "okx", "trust", "glow", "brave"];
+  function privyEnabled() {
+    return !!(window.ESCROW_CONFIG && window.ESCROW_CONFIG.usePrivy);
+  }
   function provider() {
+    // When Privy is enabled it owns the wallet layer (same external keys); the
+    // injected detection below stays as a fallback.
+    if (window.PRIVY && window.PRIVY.wallet) return window.PRIVY.wallet;
     // ?w=<name> pins one wallet when several extensions are installed (handy for
     // testing / linking). Wallet CHOICE is presentation, not config — it never
     // changes the program/campaign/mint being signed — so it stays within the
@@ -217,9 +223,10 @@
   // the moment a provider appears.
   function reflectWallet() {
     var has = !!provider();
-    show("nowallet", !has);
-    show("hasWallet", has);
-    if (!has) buildDeepLinks();
+    var _pv = privyEnabled();
+    show("nowallet", !has && !_pv);
+    show("hasWallet", has || _pv);
+    if (!has && !_pv) buildDeepLinks();
     return has;
   }
   if (!reflectWallet()) {
@@ -391,6 +398,18 @@
     Array.prototype.forEach.call(document.querySelectorAll(".tier"), function (b) { b.classList.remove("hidden"); b.style.boxShadow = ""; });
   };
   $("connect").onclick = async function () {
+    if (privyEnabled()) {
+      if (!window.PRIVY || !window.PRIVY.connect) { status("Wallet connector still loading — one moment, then tap again."); return; }
+      try {
+        var w = await window.PRIVY.connect();
+        if (!w) { status("Connect cancelled."); return; }
+        wallet = { p: w, pk: new W.PublicKey(w.address) };
+        $("connect").textContent = "Connected " + wallet.pk.toBase58().slice(0, 4) + "…" + wallet.pk.toBase58().slice(-4);
+        $("connect").classList.add("connected");
+        status(""); refreshState();
+      } catch (e) { status("Connect cancelled."); }
+      return;
+    }
     var p = provider();
     if (!p) { status("No wallet found — use the buttons above to open this page inside your wallet."); return; }
     try {
