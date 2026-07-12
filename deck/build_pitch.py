@@ -13,7 +13,13 @@ HERE   = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(HERE, "..", "assets")
 OUT    = os.path.join(HERE, "NS_Climbing_Pitch.pptx")
 QR_PNG = os.path.join(HERE, "cheer_qr.png")
-CHEER_URL = "https://tinyurl.com/sendcheer"   # 301 -> cheer board (short = scans from the back row)
+CAMPAIGN_QR_PNG = os.path.join(HERE, "campaign_qr.png")
+# Two QRs, two different asks. The live-demo slide sends the room to the free,
+# gasless cheer board; the closing slide sends them to the campaign itself, where
+# the ask is locked money. Pointing the close at the cheer button would end the
+# pitch on "tap a button" instead of "fund the wall".
+CHEER_URL    = "https://tinyurl.com/sendcheer"     # 301 -> cheer board
+CAMPAIGN_URL = "https://tinyurl.com/sendclimbing"  # 301 -> the campaign / petition page
 
 # ---- brand tokens (from the live site) ----
 BG     = RGBColor(0x0E, 0x11, 0x16)   # near-black ground
@@ -30,6 +36,8 @@ FONT   = "Arial"                       # universally present after Google Slides
 # ---- QR: dark modules on white, generous quiet zone, crisp for a projector ----
 segno.make(CHEER_URL, error="h").save(QR_PNG, scale=24, border=3,
                                        dark="#0e1116", light="#ffffff")
+segno.make(CAMPAIGN_URL, error="h").save(CAMPAIGN_QR_PNG, scale=24, border=3,
+                                          dark="#0e1116", light="#ffffff")
 
 prs = Presentation()
 prs.slide_width  = Inches(13.333)
@@ -285,13 +293,13 @@ para(tf, "Don't trust us. Ask your agent.", 38, INK, bold=True, first=True)
 para(tf, "The code is public and the contract is immutable. VERIFY_IT.md has a prompt you paste "
         "into your own AI to audit every claim against the chain — right now.", 18, BODY, before=14, spacing=1.1)
 para(tf, "A signature says “sure, whatever.” Locked money says “build it.”", 26, AMBER, bold=True, before=22, spacing=1.14)
-para(tf, "tinyurl.com/sendcheer", 20, INK, bold=True, before=14)
+para(tf, "tinyurl.com/sendclimbing", 20, INK, bold=True, before=14)
 qs2 = 2.0
 panel = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(10.9), Inches(4.8),
                            Inches(qs2+0.3), Inches(qs2+0.3))
 panel.fill.solid(); panel.fill.fore_color.rgb = WHITE; panel.line.fill.background()
 panel.shadow.inherit = False
-s.shapes.add_picture(QR_PNG, Inches(11.05), Inches(4.95), width=Inches(qs2), height=Inches(qs2))
+s.shapes.add_picture(CAMPAIGN_QR_PNG, Inches(11.05), Inches(4.95), width=Inches(qs2), height=Inches(qs2))
 footer(s)
 
 prs.save(OUT)
