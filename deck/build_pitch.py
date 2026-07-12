@@ -132,91 +132,114 @@ def diagram(s, path, top=1.6, maxw=11.7, maxh=5.35):
 
 # ============================ SLIDES ============================
 
+def leadline(tf, tag, col, txt, size=20, first=False, before=13):
+    """a colored bold lead word + body run on one paragraph (scannable)."""
+    p = tf.paragraphs[0] if first else tf.add_paragraph()
+    p.space_before = Pt(0 if first else before); p.line_spacing = 1.06
+    a = p.add_run(); a.text = tag + "   "
+    a.font.bold = True; a.font.size = Pt(size); a.font.color.rgb = col; a.font.name = FONT
+    b = p.add_run(); b.text = txt
+    b.font.size = Pt(size - 1.5); b.font.color.rgb = BODY; b.font.name = FONT
+
 # 1 — TITLE
 s = slide()
 fullbleed(s, "bg_wall.jpg", dark=0.58)
 _, tf = tb(s, 0.9, 2.35, 11.5, 3.2)
 para(tf, "MEMBER INITIATIVE", 15, AMBER, bold=True, first=True)
 para(tf, "We want a climbing wall", 54, INK, bold=True, before=10)
-p, r = para(tf, "at Network School.", 54, ACCENT, bold=True)
+para(tf, "at Network School.", 54, ACCENT, bold=True)
 para(tf, "A petition where the signatures are money.", 24, BODY, before=18)
 footer(s)
 
-# 2 — THE PROBLEM
+# 2 — THE PROBLEM = MEASUREMENT
 s = slide()
 bar(s, 0.9, 1.1)
-_, tf = tb(s, 0.9, 2.3, 11.5, 3.0)
-para(tf, "Last year, a petition almost", 46, INK, bold=True, first=True)
-para(tf, "flipped it. Almost.", 46, INK, bold=True)
-para(tf, "Signatures are free. Free means “maybe.”  A list of names "
-        "that costs nothing proves nothing.", 24, MUTE, before=26)
+_, tf = tb(s, 0.9, 2.0, 11.6, 3.8)
+para(tf, "Collective action dies at measurement.", 44, INK, bold=True, first=True)
+para(tf, "Last year a petition almost flipped it. Almost.", 24, BODY, before=22)
+para(tf, "Nobody knows how many people truly want the thing — so no one goes first. Ask for "
+        "money too early and you kill the signal. Ask for nothing, and the signal is worth "
+        "nothing.", 22, MUTE, before=10, spacing=1.1)
 footer(s)
 
-# 3 — THE TURN
+# 3 — THE THESIS: TWO LAYERS
 s = slide()
-bar(s, 0.9, 1.1, color=AMBER)
-_, tf = tb(s, 0.9, 2.15, 11.5, 3.4)
-para(tf, "This time the signatures", 46, INK, bold=True, first=True)
-para(tf, "are money.", 46, AMBER, bold=True)
-para(tf, "You lock USDC into a pool no person holds.", 26, BODY, before=24)
-para(tf, "That's the point — a commitment, not a maybe.", 26, MUTE, before=6)
+_, tf = tb(s, 0.9, 0.95, 11.6, 1.0)
+para(tf, "So we split it in two — priced on purpose.", 38, INK, bold=True, first=True)
+_, t2 = tb(s, 0.9, 2.5, 11.6, 2.1)
+leadline(t2, "FREE", AMBER, "smash a button. Desire, measured — and on-chain.", size=24, first=True)
+leadline(t2, "LOCKED", ACCENT, "USDC in a pool no one can empty. Commitment, permanent.", size=24, before=16)
+_, t3 = tb(s, 0.9, 4.95, 11.6, 1.9)
+para(t3, "The rollup is where a community discovers it wants something.", 26, INK, bold=True, first=True, spacing=1.12)
+para(t3, "The mainnet contract is where it proves it.", 26, AMBER, bold=True, spacing=1.12)
 footer(s)
 
-# 4 — HOW MONEY MOVES (three exits)
+# 4 — LAYER 1: THE CHEER BOARD (MagicBlock, emphasized)
 s = slide()
-_, tf = tb(s, 0.9, 0.75, 11.5, 1.0)
-para(tf, "Out only together.", 40, INK, bold=True, first=True)
-para(tf, "Three ways money can move — every one is collective, all enforced by code.",
-     19, MUTE, before=6)
-cards = [
-    ("BUILD", ACCENT, "A dollar-majority of depositors backs the organizer's proposed address. Funds the wall."),
-    ("DISSOLVE", AMBER, "A dollar-majority votes no-confidence. Everyone is refunded, in full."),
-    ("TIMEOUT", GREEN, "180 days pass with no build. Everyone is refunded, automatically."),
-]
-cw, gap, x0, y0 = 3.7, 0.35, 0.9, 2.35
-for i,(head,col,desc) in enumerate(cards):
-    x = x0 + i*(cw+gap)
-    c = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(x), Inches(y0), Inches(cw), Inches(3.1))
-    c.fill.solid(); c.fill.fore_color.rgb = PANEL; c.line.color.rgb = col; c.line.width = Pt(1.5)
-    c.shadow.inherit = False
-    _, ctf = tb(s, x+0.32, y0+0.3, cw-0.6, 2.6)
-    para(ctf, head, 26, col, bold=True, first=True)
-    para(ctf, desc, 18, BODY, before=14, spacing=1.08)
-_, tf2 = tb(s, 0.9, 5.95, 11.5, 0.8)
-para(tf2, "No one — not the organizer, not anyone — can move a cent alone.",
-     22, INK, bold=True, first=True)
+pill(s, 0.9, 1.0, "●  LAYER 1 · MAGICBLOCK EPHEMERAL ROLLUP", AMBER, w=5.7)
+_, tf = tb(s, 0.9, 1.9, 11.6, 3.2)
+para(tf, "Saying “yes” should cost nothing.", 40, INK, bold=True, first=True)
+para(tf, "The cheer board is free, gasless, wallet-less — you just smash. That is only possible "
+        "on an Ephemeral Rollup; on base-layer Solana, a wallet and a fee per tap would have "
+        "killed it dead.", 21, BODY, before=18, spacing=1.1)
+_, t2 = tb(s, 0.9, 5.15, 11.6, 1.3)
+para(t2, "25,000+ cheers · 30 people", 38, AMBER, bold=True, first=True)
+para(t2, "live, in the room, on-chain — not a Google Form anyone can stuff.", 19, MUTE, before=4)
 footer(s)
 
-# 5 — WHY YOU CAN TRUST IT
+# 5 — HOW THE ROLLUP WORKS (lifecycle)
 s = slide()
-bar(s, 0.9, 1.1, color=GREEN)
-_, tf = tb(s, 0.9, 1.55, 11.5, 4.6)
-para(tf, "Don't trust us. Ask your own agent.", 40, INK, bold=True, first=True)
-para(tf, "Votes are weighted by dollars locked — not by wallet.", 23, BODY, before=22)
-para(tf, "A flood of cheap wallets can't capture it; the people with the most at stake decide.",
-     18, MUTE, before=4)
-para(tf, "The upgrade key is burned. The code is immutable — it can never change.",
-     23, BODY, before=18)
-para(tf, "Every claim is verifiable on-chain. Paste the repo to any AI and have it audit the contract.",
-     18, MUTE, before=4)
+pill(s, 0.9, 1.0, "●  HOW THE ROLLUP WORKS", AMBER, w=3.9)
+_, tf = tb(s, 0.9, 1.75, 11.6, 1.5)
+para(tf, "On-demand SVM runtimes on Solana.", 36, INK, bold=True, first=True)
+para(tf, "Delegate an account to the rollup, run it at ~10 ms and gasless, then commit state "
+        "back to the base layer.", 18, MUTE, before=8, spacing=1.06)
+_, t2 = tb(s, 0.9, 3.5, 11.6, 2.7)
+leadline(t2, "DELEGATE", ACCENT, "we hand the rollup one counter PDA — a single number, never funds.", first=True)
+leadline(t2, "CHEER", AMBER, "every tap is its own gasless transaction, ~10 ms, signed by a throwaway "
+         "in-page key. No wallet, no SOL. ~366 / sec.")
+leadline(t2, "COMMIT", GREEN, "undelegate, and the final tally lands on Solana L1 as a permanent record.")
+_, t3 = tb(s, 0.9, 6.35, 11.6, 0.7)
+para(t3, "Tallied straight from the chain, not a database — no server. Your face is your "
+        "pubkey; no name ever touches the chain.", 15, MUTE, first=True)
 footer(s)
 
-# 6 — LIVE ESCROW (proof #1, crypto-native)
+# 6 — MAGICBLOCK ARCHITECTURE DIAGRAM
 s = slide()
-pill(s, 0.9, 1.0, "●  LIVE ON SOLANA MAINNET", GREEN, w=3.4)
-_, tf = tb(s, 0.9, 1.8, 11.6, 4.6)
-para(tf, "The escrow is real, and immutable.", 40, INK, bold=True, first=True)
-para(tf, "An Anchor program on Solana — the upgrade authority is burned, so the bytecode "
-        "can never change.", 21, BODY, before=18, spacing=1.08)
+_, tf = tb(s, 0.9, 0.5, 11.6, 0.95)
+para(tf, "One PDA — delegated to a rollup, committed back.", 30, INK, bold=True, first=True)
+para(tf, "The shape of the cheer program.", 17, MUTE, before=6)
+diagram(s, os.path.join(HERE, "arch_magicblock.png"), top=1.78)
+footer(s)
+
+# 7 — LAYER 2: THE ESCROW (turn + three exits)
+s = slide()
+pill(s, 0.9, 1.0, "●  LAYER 2 · LIVE ON SOLANA MAINNET", GREEN, w=4.8)
+_, tf = tb(s, 0.9, 1.85, 11.6, 4.6)
+para(tf, "Then — and only then — the money.", 40, INK, bold=True, first=True)
+para(tf, "USDC locks into a pool no person can empty. Out only together, weighted by dollars:",
+     22, BODY, before=16)
+para(tf, "BUILD — a dollar-majority backs the organizer's address → funds the wall.", 20, AMBER, bold=True, before=13)
+para(tf, "DISSOLVE — a dollar-majority votes no-confidence → everyone refunded.", 20, ACCENT, bold=True, before=7)
+para(tf, "TIMEOUT — 180 days pass → everyone refunded, automatically.", 20, GREEN, bold=True, before=7)
+para(tf, "No one — not the organizer, not anyone — can move a cent alone.", 21, INK, bold=True, before=15)
+footer(s)
+
+# 8 — ESCROW: REAL + IMMUTABLE (specs)
+s = slide()
+_, tf = tb(s, 0.9, 0.9, 11.6, 4.9)
+para(tf, "Real, and immutable.", 40, INK, bold=True, first=True)
+para(tf, "An Anchor program on Solana — the upgrade authority is burned, so the bytecode can "
+        "never change, not even by us.", 21, BODY, before=18, spacing=1.08)
 para(tf, "USDC locks in a program vault PDA. Each depositor gets a non-transferable receipt "
         "PDA — badge, vote, and refund in one.", 21, BODY, before=8, spacing=1.08)
 para(tf, "Release requires  payout_vote_amount × 2 > total_escrowed  — a majority of dollars, "
-        "not wallets. Refunds are permissionless, and funds only ever return to each depositor.",
+        "not wallets. Refunds are permissionless; funds only ever return to each depositor.",
      21, BODY, before=8, spacing=1.08)
 para(tf, "Program  2PAg6iMEzPQnfzVmKdeUDctmmCYwts46Y5GEZBUDA4KJ", 14, MUTE, before=16)
 footer(s)
 
-# 6b — ESCROW ARCHITECTURE (the shape of the contract)
+# 9 — ESCROW ARCHITECTURE DIAGRAM
 s = slide()
 _, tf = tb(s, 0.9, 0.5, 11.6, 0.95)
 para(tf, "The shape of the contract.", 30, INK, bold=True, first=True)
@@ -224,40 +247,7 @@ para(tf, "Deposits in. Three collective ways out. No individual withdraw.", 17, 
 diagram(s, os.path.join(HERE, "arch_escrow.png"), top=1.78)
 footer(s)
 
-# 7 — CHEER BOARD ON MAGICBLOCK (proof #2, the real ER lifecycle)
-s = slide()
-pill(s, 0.9, 1.0, "●  LIVE ON A MAGICBLOCK EPHEMERAL ROLLUP", AMBER, w=5.2)
-_, tf = tb(s, 0.9, 1.75, 11.6, 1.5)
-para(tf, "The cheer board is a live Solana demo.", 38, INK, bold=True, first=True)
-para(tf, "MagicBlock Ephemeral Rollups are on-demand SVM runtimes on Solana: delegate an "
-        "account, run it at ~10 ms and gasless, then commit state back to the base layer.",
-     18, MUTE, before=8, spacing=1.06)
-_, t2 = tb(s, 0.9, 3.45, 11.6, 2.7)
-def _life(tag, col, txt, first=False):
-    p = t2.paragraphs[0] if first else t2.add_paragraph()
-    p.space_before = Pt(0 if first else 13); p.line_spacing = 1.05
-    a = p.add_run(); a.text = tag + "   "
-    a.font.bold = True; a.font.size = Pt(20); a.font.color.rgb = col; a.font.name = FONT
-    b = p.add_run(); b.text = txt
-    b.font.size = Pt(18.5); b.font.color.rgb = BODY; b.font.name = FONT
-_life("DELEGATE", ACCENT, "we hand the rollup one counter PDA — a single number, never funds.", first=True)
-_life("CHEER", AMBER, "every tap is its own gasless transaction, ~10 ms, signed by a throwaway "
-      "in-page key. No wallet, no SOL. ~366 / sec.")
-_life("COMMIT", GREEN, "undelegate, and the final tally lands on Solana L1 as a permanent record.")
-_, t3 = tb(s, 0.9, 6.35, 11.6, 0.7)
-para(t3, "Tallied straight from the chain, not a database — no server. Your face is your "
-        "pubkey; no name ever touches the chain.", 15, MUTE, first=True)
-footer(s)
-
-# 8 — MAGICBLOCK ARCHITECTURE (the shape of the rollup flow)
-s = slide()
-_, tf = tb(s, 0.9, 0.5, 11.6, 0.95)
-para(tf, "One PDA — delegated to a rollup, committed back.", 30, INK, bold=True, first=True)
-para(tf, "How the cheer board runs on MagicBlock.", 17, MUTE, before=6)
-diagram(s, os.path.join(HERE, "arch_magicblock.png"), top=1.78)
-footer(s)
-
-# 8 — SCAN TO CHEER (the live moment)
+# 10 — SCAN TO CHEER (the live moment)
 s = slide()
 _, tf = tb(s, 0.85, 1.15, 6.6, 5.0, anchor=MSO_ANCHOR.MIDDLE)
 para(tf, "Scan to cheer.", 52, INK, bold=True, first=True)
@@ -265,7 +255,6 @@ para(tf, "Right now, from your seat.", 30, AMBER, bold=True, before=6)
 para(tf, "No wallet. No cost. Tap as many times as you mean it — "
         "every tap is its own gasless transaction on the rollup.", 22, BODY, before=24, spacing=1.12)
 para(tf, "tinyurl.com/sendcheer", 22, MUTE, bold=True, before=20)
-# QR panel
 qx, qy, qs = 8.15, 1.55, 4.35
 panel = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(qx-0.28), Inches(qy-0.28),
                            Inches(qs+0.56), Inches(qs+0.56))
@@ -274,34 +263,36 @@ panel.shadow.inherit = False
 s.shapes.add_picture(QR_PNG, Inches(qx), Inches(qy), width=Inches(qs), height=Inches(qs))
 footer(s)
 
-# 9 — WHY IT'S FUNDABLE
+# 11 — WHY IT'S FUNDABLE (honest, human-driven)
 s = slide()
 bar(s, 0.9, 1.1)
-_, tf = tb(s, 0.9, 1.55, 11.5, 4.8)
-para(tf, "Priced demand, not a signature list.", 40, INK, bold=True, first=True)
-para(tf, "Communities set a goal, pool resources, and let the rules — and their agents — execute.",
-     23, BODY, before=22)
-para(tf, "The rails are chain-agnostic in principle: Solana today, any wallet on any chain next.",
-     20, MUTE, before=10)
-para(tf, "A live wedge, not a slide: a real contract, real deposits, real on-chain usage this weekend.",
-     20, MUTE, before=6)
+_, tf = tb(s, 0.9, 1.5, 11.6, 5.0)
+para(tf, "Priced demand, not a signature list.", 38, INK, bold=True, first=True)
+para(tf, "This is Curious's own fundable idea #25 — communities set a goal, pool resources, and "
+        "execute together — shipped, live, and immutable.", 21, BODY, before=20, spacing=1.08)
+para(tf, "Human-driven, honestly: people cheer, people deposit, people vote. No autonomous agent "
+        "DAO here — the agent layer is the honest next step, and agents.md already lets any AI "
+        "audit the contract (and could place a deposit).", 19, MUTE, before=10, spacing=1.08)
+para(tf, "A live wedge, not a slide: a real contract, real cheers, real on-chain usage this weekend.",
+     20, AMBER, bold=True, before=12)
 footer(s)
 
-# 10 — CLOSE
+# 12 — CLOSE (ask your agent + build it)
 s = slide()
 fullbleed(s, "gym_concept_v0.png", dark=0.66)
-_, tf = tb(s, 0.9, 2.05, 8.0, 3.4)
-para(tf, "A signature says", 40, BODY, bold=True, first=True)
-para(tf, "“sure, whatever.”", 40, MUTE, bold=True)
-para(tf, "Locked money says “build it.”", 46, INK, bold=True, before=16)
-para(tf, "tinyurl.com/sendcheer", 22, AMBER, bold=True, before=22)
-# small QR bottom-right
-qs2 = 2.15
-panel = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(10.75), Inches(4.55),
+_, tf = tb(s, 0.9, 1.55, 8.6, 4.4)
+para(tf, "Don't trust us. Ask your agent.", 38, INK, bold=True, first=True)
+para(tf, "The code is public and the contract is immutable. VERIFY_IT.md has a prompt you paste "
+        "into your own AI to audit every claim against the chain — right now.", 18, BODY, before=14, spacing=1.1)
+para(tf, "A signature says “sure, whatever.” Locked money says “build it.”", 26, AMBER, bold=True, before=22, spacing=1.14)
+para(tf, "tinyurl.com/sendcheer", 20, INK, bold=True, before=14)
+qs2 = 2.0
+panel = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(10.9), Inches(4.8),
                            Inches(qs2+0.3), Inches(qs2+0.3))
 panel.fill.solid(); panel.fill.fore_color.rgb = WHITE; panel.line.fill.background()
 panel.shadow.inherit = False
-s.shapes.add_picture(QR_PNG, Inches(10.9), Inches(4.7), width=Inches(qs2), height=Inches(qs2))
+s.shapes.add_picture(QR_PNG, Inches(11.05), Inches(4.95), width=Inches(qs2), height=Inches(qs2))
+footer(s)
 
 prs.save(OUT)
 print("saved:", OUT)

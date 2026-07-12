@@ -180,12 +180,14 @@ Pick one, finish it, ship it. This is also the hackathon demo asset.
 ## ④ HACKATHON SUBMISSIONS (deadline today)
 
 - [ ] **Bank the cheers before demoing**: `node cheerboard/scripts/commit_board.cjs` (commit-only, button never pauses).
-- [ ] **MagicBlock** — Luma "Submission: Solana Blitz v6": repo + video/live link.
-- [ ] **Superteam Earn** — submit on the listing.
-- [ ] **Curious / Ârc** — live pitch (use `STATEMENT.md`, both registers).
-- [ ] **Fulgur** — rolling form at thearccity.com/fulgur/rfs (post-weekend is fine).
+- [ ] **MagicBlock — the strong one, submit it.** Luma "Submission: Solana Blitz v6": needs GitHub repo + a short demo video OR live link, before the Sunday deadline. Hard gate: must integrate Ephemeral Rollups (we do — the cheer board). Pool 1,000 USDC (500/250/150/100); **the $500 is reserved for best MOBILE build — that's the cheer board.** Judged on creativity, technical depth, and meaningful ER use. **Lead with the mobile cheer demo.**
+- [ ] **Superteam TxODDS — likely INELIGIBLE, do not build for it.** The global bar requires a "functional build utilizing **TxLINE** (TxODDS' live football-odds feed) as a **primary input**." We use no sports data. Lorin agrees we don't qualify. Local NS listing states no criteria + 0 submissions. **One decisive move before spending any time: Telegram @tuakdotsol — "Is TxODDS/TxLINE integration required to qualify for the NS local listing, or is any Solana build eligible?"** Don't bend the project into a football story.
+- [ ] **Curious / Ârc — no forms, live pitch only.** Use the deck. Curious: read back their fundable idea #25 ("communities set a goal, pool resources, execute") — but **honest framing: human-driven, not an autonomous agent DAO** (deck slide 11 already says this). Ârc: network-state amenity funded with no treasury/committee.
+- [ ] **Fulgur — rolling Google form** at thearccity.com/fulgur/rfs (post-weekend fine). Weakest fit (Bitcoin app layer; our BTC story is roadmap-only).
 
-Judge/track research: `HACKATHON.md`. Pitch script: `sales_kit/PITCH_SCRIPT.md`.
+**Pitch deck (the presentation asset):** `deck/NS_Climbing_Pitch.pptx` — regenerate with `python3 deck/build_pitch.py` (needs the two Gemini diagrams via `gen_escrow.py` / `gen_arch.py`). 12 slides, two-layer funnel, MagicBlock-forward, honest human-driven framing. Import to Google Slides to edit. Emailed to Lorin 2026-07-12.
+
+Judge/track research: `HACKATHON.md`. Pitch framing: this deck + the agent's two-layer funnel note. Old `sales_kit/PITCH_SCRIPT.md` is stale (says 90 days; head-count not dollar-weighted).
 
 ---
 
