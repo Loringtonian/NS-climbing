@@ -130,10 +130,22 @@
     if (sl) sl.href = "https://solflare.com/ul/v1/browse/" + encodeURIComponent(here) + "?ref=" + encodeURIComponent(location.origin);
   }
   window.EscrowFlow.refreshDeepLinks = buildDeepLinks;
-  if (!provider()) {
-    buildDeepLinks();
-    show("nowallet", true);
-    show("hasWallet", false);
+  // Some extensions (Solflare) inject their provider a beat after our script
+  // runs, so a single check at load falsely concludes "no wallet" and shows the
+  // mobile deep-link buttons. Poll for a few seconds and flip to the connect UI
+  // the moment a provider appears.
+  function reflectWallet() {
+    var has = !!provider();
+    show("nowallet", !has);
+    show("hasWallet", has);
+    if (!has) buildDeepLinks();
+    return has;
+  }
+  if (!reflectWallet()) {
+    var tries = 0;
+    var poll = setInterval(function () {
+      if (reflectWallet() || ++tries >= 24) clearInterval(poll);
+    }, 250);
   }
 
   function ata(owner, mint) {
