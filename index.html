@@ -12,11 +12,13 @@
 <meta name="twitter:title" content="We want a climbing wall at Network School">
 <meta name="twitter:description" content="A petition where the signatures are money. Locked USDC, community-governed, verify it with your own agent.">
 <meta name="twitter:image" content="https://loringtonian.github.io/NS-climbing/assets/og_card.jpg">
-<!-- 🏔️ as an inline SVG. Declared before favicon.ico so it wins in modern browsers;
-     the .ico stays as the fallback for anything that can't do SVG icons. -->
+<!-- 🏔️ everywhere. favicon.ico itself is now the mountain (it used to be a red ball),
+     so whichever icon a browser prefers, it gets a mountain. The ?v=2 is load-bearing:
+     browsers cache favicons independently of the page and a hard refresh does NOT
+     clear that cache — without a new URL, the old ball keeps showing. -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8F%94%EF%B8%8F</text></svg>">
-<link rel="alternate icon" href="favicon.ico">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="alternate icon" href="favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <meta name="robots" content="noindex, nofollow">
 <title>We want a climbing wall at Network School</title>
 <style>
